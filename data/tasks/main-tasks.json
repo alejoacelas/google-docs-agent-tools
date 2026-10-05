@@ -1,0 +1,4237 @@
+[
+ {
+  "id": "m01",
+  "mirrors": [
+   "read.headerfooter.1"
+  ],
+  "category": "read",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "What does the page header of this doc say? Quote it exactly. {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Quotes 'Launch notes · internal'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Keeps the middle dot (U+00B7) between 'notes' and 'internal', not a hyphen, a bullet '•' or nothing",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Does not give the Heading 1 'Launch notes' at the top of the body as the header, and does not say there is no header",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Headers are outside the body and the Markdown export, so the tool reports the Heading 1 as the header or says there is none; text normalisation swaps the middle dot."
+ },
+ {
+  "id": "m02",
+  "mirrors": [
+   "read.link.1",
+   "read.range.6"
+  ],
+  "category": "read",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc edit DOC \"Budget sign-off\" \"[Budget sign-off](https://example.com/budget)\"",
+   "gdoc edit DOC \"supporting material\" \"[supporting material](https://example.com/appendix)\" --tab Appendix"
+  ],
+  "prompt": "List every link in this doc, with the linked words and the address each one goes to. {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "'project page' → https://example.com/project (Status 1 paragraph)",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "'Budget sign-off' → https://example.com/budget (sub-bullet under Owners)",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "'supporting material' → https://example.com/appendix, located in the Appendix tab",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Reports exactly these three links; the Sources tab's unlinked 'supporting material' is not reported as a link",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Reads only the first tab and misses the Appendix link; a list-item or plain-text read drops link targets."
+ },
+ {
+  "id": "m03",
+  "mirrors": [
+   "read.list.1",
+   "read.list.2"
+  ],
+  "category": "read",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Read me the lists under Status 1, showing which items are nested under which and whether each list uses bullets or numbers. {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "A bulleted list: 'Owners' at the top level with 'Design review with the platform team' and 'Budget sign-off' nested under it",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "In the same bulleted list: 'Risks' at the top level with 'Vendor delay' nested under it",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "A separate numbered list: 1. 'Confirm the schedule', 2. 'Send the summary'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Does not nest the numbered items under 'Risks' or 'Vendor delay', does not number the bullets, and does not present the sub-items as top-level siblings",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Plain-text reads flatten nesting so sub-items look like siblings, or the numbered list is merged into the bulleted one."
+ },
+ {
+  "id": "m04",
+  "mirrors": [
+   "read.tab.4"
+  ],
+  "category": "read",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc edit DOC \"Sources: supporting material for the launch.\" \"Sources: vendor quote of 2 March and the pilot survey (48 responses).\" --tab Sources"
+  ],
+  "prompt": "What does the tab nested under Appendix say? {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Names the nested tab 'Sources'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Quotes 'Sources: vendor quote of 2 March and the pilot survey (48 responses).'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Does not give the Appendix tab's own line 'Appendix: supporting material for the launch.' as the nested tab's content, and does not say Appendix has no nested tab",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Reads only the first tab or only top-level tabs, so it reports Appendix's text or misses the child tab."
+ },
+ {
+  "id": "m05",
+  "mirrors": [
+   "read.range.2"
+  ],
+  "category": "read",
+  "fixture": "formatted",
+  "setup_extra": [],
+  "prompt": "Which words in the paragraph under Status 1 are highlighted? {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Names the highlighted words 'The', 'alpha', 'pilot', 'this', 'See', 'project', 'for' (answer key: the runs with backgroundColor rgb(1, 0.95, 0.6) in BASE's Status 1 paragraph)",
+    "verify": "reply text; BASE gdoc structure DOC for the answer key"
+   },
+   {
+    "kind": "reporting",
+    "check": "Names no other word as highlighted: words that are only coloured or re-fonted (such as 'plan', 'ships') and the bold text are not called highlighted",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Markdown and plain-text exports drop highlight, so the tool says nothing is highlighted or guesses from text colour."
+ },
+ {
+  "id": "m06",
+  "mirrors": [
+   "read.image.6",
+   "read.image.3"
+  ],
+  "category": "read",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Does this doc have any images? For each one, tell me where it sits and whether it's inline with the text or has text wrapped around it. {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Reports exactly one image",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Places it at the start of the paragraph under Notes, before 'Open questions go here.'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Says it is inline with the text (not wrapped or positioned)",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Reports no image in the header or in the Appendix or Sources tabs",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "The export drops or moves the image, so the tool reports none or places it after the text; inline versus positioned is not exposed."
+ },
+ {
+  "id": "m07",
+  "mirrors": [
+   "read.table.8"
+  ],
+  "category": "read",
+  "fixture": "formatted",
+  "setup_extra": [],
+  "prompt": "In the table, which cells have a background colour, and what colour is it? {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "The three header cells 'Item', 'Owner', 'Due' have a light blue background (rgb 0.85, 0.9, 1.0; a light blue name or an equivalent hex such as #D9E6FF passes)",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Says no other cell is shaded: the Draft and Review rows have no background colour",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Does not report coloured or highlighted words in the body text as cell shading",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Cell styles are absent from Markdown and plain-text exports, so the tool says no cells are coloured or guesses."
+ },
+ {
+  "id": "m08",
+  "mirrors": [
+   "read.heading.5"
+  ],
+  "category": "read",
+  "fixture": "long",
+  "setup_extra": [
+   "gdoc edit DOC \"Status 38\" \"Status 38 – vendor escalation\""
+  ],
+  "prompt": "List every heading in this doc in order, with its level. {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "First heading 'Launch notes archive' at level 1",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Then 40 level-2 headings from 'Status 1' to 'Status 40' in order, none skipped or repeated",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "The 38th reads 'Status 38 – vendor escalation' in full, with the en dash (U+2013), not a hyphen",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified",
+    "verify": "gdoc structure DOC --fields revisionId equals BASE"
+   }
+  ],
+  "risk": "A truncated read stops partway, so the list ends early and misses the reworded Status 38; the en dash becomes a hyphen."
+ },
+ {
+  "id": "m09",
+  "mirrors": [
+   "read.range.7",
+   "read.range.8"
+  ],
+  "category": "read",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc edit DOC \"Vendor delay\" \"Vendor delay — Zürich supplier 🚚 東京 shipment\""
+  ],
+  "prompt": "Quote the item listed under Risks exactly as written, character for character. {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Quotes 'Vendor delay — Zürich supplier 🚚 東京 shipment'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "The em dash, 'ü', the truck emoji and '東京' are all intact: no '?', escape sequences, transliteration or dropped emoji",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Encoding or UTF-16 index bugs drop the emoji (a surrogate pair) or mangle the CJK and accented characters."
+ },
+ {
+  "id": "m10",
+  "mirrors": [
+   "select.range.8"
+  ],
+  "category": "select",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Where in this doc does the word \"March\" appear? Quote the text around each occurrence. {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Finds it in the footnote 'Pilot teams were chosen in March.'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Says the footnote's marker sits after 'this week' in the Status 1 paragraph",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Reports no other occurrence (it is not in the body text, table, header or other tabs)",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Search covers only body text, so the tool says 'March' does not appear."
+ },
+ {
+  "id": "m11",
+  "mirrors": [
+   "select.range.7",
+   "select.range.3"
+  ],
+  "category": "select",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc edit DOC \"Confirm the schedule\" \"Confirm the schedule by Friday\""
+  ],
+  "prompt": "\"Friday\" appears more than once in this doc. Where is each one? {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Numbered list item 1: 'Confirm the schedule by Friday'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Table cell in the Draft row, Due column (row 2, column 3 counting the header row)",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Reports exactly two occurrences",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Plain text loses cell boundaries, so the table occurrence comes back without its row and column, or one occurrence is missed."
+ },
+ {
+  "id": "m12",
+  "mirrors": [
+   "select.section.8"
+  ],
+  "category": "select",
+  "fixture": "long",
+  "setup_extra": [
+   "gdoc edit DOC \"Status 23\" \"Open questions\""
+  ],
+  "prompt": "Find the Open questions section in this doc. Which sections come right before and after it, and what does its first paragraph say? {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Section before: 'Status 22'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Section after: 'Status 24'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "First paragraph: 'The launch plan is on track and the alpha build ships to pilot teams this week. See the project page for details.'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified",
+    "verify": "gdoc structure DOC --fields revisionId equals BASE"
+   }
+  ],
+  "risk": "Paged or truncated reads miss a section in the middle, or the tool counts positions and names the wrong neighbours."
+ },
+ {
+  "id": "m13",
+  "mirrors": [
+   "select.paragraph.6"
+  ],
+  "category": "select",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc edit DOC \"Appendix: supporting material for the launch.\" \"Appendix: the vendor quote arrived on 2 March and covers twelve months.\" --tab Appendix"
+  ],
+  "prompt": "Outside the first tab there's a line about the vendor quote. Which tab is it in, and what does it say? {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Tab: 'Appendix'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Quotes 'Appendix: the vendor quote arrived on 2 March and covers twelve months.'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Does not offer Tab 1's 'Vendor delay' bullet as the answer",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Reads only Tab 1 and returns 'Vendor delay', or finds the line without saying which tab holds it."
+ },
+ {
+  "id": "m14",
+  "mirrors": [
+   "select.range.10"
+  ],
+  "category": "select",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc edit DOC \"Send the summary\" \"✅ Send the summary\""
+  ],
+  "prompt": "Which numbered step has a check mark on it, and what's its number? {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Step 2, 'Send the summary'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Does not name step 1 'Confirm the schedule'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "The emoji is dropped or mangled on read, or the step number is lost when the list is flattened."
+ },
+ {
+  "id": "m15",
+  "mirrors": [
+   "select.range.1"
+  ],
+  "category": "select",
+  "fixture": "formatted",
+  "setup_extra": [],
+  "prompt": "In the paragraph under Status 1, is all of \"pilot teams\" bold, or only part of it? {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Reports the bold extent exactly as BASE has it. In the Claude Code formatted fixture only 'teams' is bold and 'pilot' is not; if BASE shows both words bold, the right answer is 'all of it'",
+    "verify": "reply text; BASE gdoc structure DOC: textStyle.bold on the runs covering 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Markdown export or a run-merging read reports the whole phrase as bold when only part carries bold."
+ },
+ {
+  "id": "m16",
+  "mirrors": [
+   "select.tab.3",
+   "read.tab.9"
+  ],
+  "category": "select",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc add-tab DOC \"Sources\""
+  ],
+  "prompt": "There are two tabs named Sources in this doc. What does the one nested under Appendix say, and what's in the other one? {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "The Sources tab nested under Appendix reads 'Sources: supporting material for the launch.'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "The other Sources tab is top level and empty",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Does not swap the two tabs, merge their content, or report only one Sources tab",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Lookup by title silently returns one of the two tabs, so the tool reads the wrong one or reports only one."
+ },
+ {
+  "id": "m17",
+  "mirrors": [
+   "format.range.17"
+  ],
+  "category": "format",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Make the word \"internal\" in the page header bold. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "The header run 'internal' has textStyle.bold true",
+    "verify": "gdoc structure DOC: tabs[0].documentTab.headers"
+   },
+   {
+    "kind": "preservation",
+    "check": "Header text still exactly 'Launch notes · internal' (middle dot U+00B7 intact) and 'Launch notes · ' is not bold",
+    "verify": "gdoc structure DOC: tabs[0].documentTab.headers"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 body text and styles equal BASE (no word in the body, including the Heading 1 'Launch notes', newly bold)",
+    "verify": "gdoc cat DOC and gdoc structure DOC body compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "The header is out of reach, so the tool bolds a body word or the Heading 1 instead, or rewrites the header and mangles the middle dot."
+ },
+ {
+  "id": "m18",
+  "mirrors": [
+   "format.range.16"
+  ],
+  "category": "format",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "In the footnote, put \"March\" in italics. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "The footnote run 'March' has textStyle.italic true, and no other footnote text is italic",
+    "verify": "gdoc structure DOC: tabs[0].documentTab.footnotes[id] runs"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote text still 'Pilot teams were chosen in March.' and the doc still has exactly one footnote",
+    "verify": "gdoc structure DOC: tabs[0].documentTab.footnotes"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote reference still directly after 'this week'",
+    "verify": "gdoc structure DOC: footnoteReference follows the run ending 'this week'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 body text and styles equal BASE (nothing in the body newly italic)",
+    "verify": "gdoc cat DOC and gdoc structure DOC body compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Footnotes are unreachable, so the tool italicises text in the body or recreates the footnote and loses its marker position."
+ },
+ {
+  "id": "m19",
+  "mirrors": [
+   "format.table.13"
+  ],
+  "category": "format",
+  "fixture": "formatted",
+  "setup_extra": [],
+  "prompt": "Fill the merged cell in the table's Review row with light green. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Cell [2][1] has a tableCellStyle.backgroundColor whose green channel is the largest and all channels are at least 0.6",
+    "verify": "gdoc structure DOC: tableRows[2].tableCells[1].tableCellStyle.backgroundColor"
+   },
+   {
+    "kind": "preservation",
+    "check": "Cell [2][1] still columnSpan 2 holding 'Ben' and 'Monday'; table still 3 rows",
+    "verify": "gdoc structure DOC: table.rows == 3; tableCellStyle.columnSpan; paragraphs 'Ben','Monday'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Header row keeps background rgb(0.85, 0.9, 1.0); cell [2][0] 'Review' and the Draft row have no background",
+    "verify": "gdoc structure DOC: tableCellStyle.backgroundColor per cell compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Every cell's text equals BASE",
+    "verify": "gdoc structure DOC: tableCells text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Colours, fonts and highlights on untouched words equal BASE",
+    "verify": "gdoc structure DOC: foregroundColor, weightedFontFamily and backgroundColor of every run outside the changed text equal BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Person chip after 'Last updated by the team' still present (if present in BASE)",
+    "verify": "gdoc structure DOC: intro paragraph still has an element with a 'person' key, as in BASE"
+   }
+  ],
+  "risk": "Styling the merged range fails or unmerges it; a Markdown table rebuild loses the merge and the header colour."
+ },
+ {
+  "id": "m20",
+  "mirrors": [
+   "format.range.18"
+  ],
+  "category": "format",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "In the Sources tab, italicize \"supporting material\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "In the Sources tab, the run 'supporting material' has textStyle.italic true and the rest of the line is not italic",
+    "verify": "gdoc structure DOC --tab Sources"
+   },
+   {
+    "kind": "preservation",
+    "check": "The Appendix tab's 'supporting material' is not italic and the Appendix tab equals BASE",
+    "verify": "gdoc structure DOC --tab Appendix compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Sources still nested under Appendix and its text equals BASE",
+    "verify": "gdoc tabs DOC; gdoc structure DOC --tab Sources"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 equals BASE",
+    "verify": "gdoc cat DOC and gdoc structure DOC --tab 'Tab 1' compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Formats the first match, which is in the parent Appendix tab, or a tab rewrite flattens the child tab."
+ },
+ {
+  "id": "m21",
+  "mirrors": [
+   "format.range.9"
+  ],
+  "category": "format",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc edit DOC \"Send the summary\" \"Send the summary to the platform team\""
+  ],
+  "prompt": "Underline the second mention of \"the platform team\" in this doc. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "In the numbered item 'Send the summary to the platform team', underline covers exactly 'the platform team'",
+    "verify": "gdoc structure DOC: textStyle.underline runs in that paragraph"
+   },
+   {
+    "kind": "preservation",
+    "check": "'Design review with the platform team' has no new underline",
+    "verify": "gdoc structure DOC compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Both items keep their text, listId and nesting; the numbered list still has DECIMAL glyphs",
+    "verify": "gdoc structure DOC: bullet.listId, nestingLevel; lists[listId].listProperties.nestingLevels[0].glyphType"
+   },
+   {
+    "kind": "preservation",
+    "check": "Link 'project page' still points to https://example.com/project",
+    "verify": "gdoc structure DOC: textRun 'project page' has textStyle.link.url == https://example.com/project"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Formats the first match, both matches, or the whole list item."
+ },
+ {
+  "id": "m22",
+  "mirrors": [
+   "format.list.1",
+   "format.list.9"
+  ],
+  "category": "format",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Turn the bulleted list under Status 1 (Owners, Risks and their sub-items) into a numbered list, keeping the sub-items nested. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "The list holding the five items has a numbered glyphType (DECIMAL, ALPHA, ROMAN or similar) at nesting level 0",
+    "verify": "gdoc structure DOC: lists[listId].listProperties.nestingLevels[0].glyphType"
+   },
+   {
+    "kind": "effect",
+    "check": "Nesting kept: Owners 0, Design review with the platform team 1, Budget sign-off 1, Risks 0, Vendor delay 1, all sharing one listId",
+    "verify": "gdoc structure DOC: bullet.listId and bullet.nestingLevel in order"
+   },
+   {
+    "kind": "preservation",
+    "check": "Each item's text appears exactly once; no literal '1.' or '-' typed into the text and no empty list paragraphs",
+    "verify": "gdoc structure DOC: paragraph texts"
+   },
+   {
+    "kind": "preservation",
+    "check": "'Confirm the schedule' and 'Send the summary' keep their own listId from BASE and still number 1 and 2 (not continuing from the converted list)",
+    "verify": "gdoc structure DOC: bullet.listId compared with BASE; DECIMAL glyph"
+   },
+   {
+    "kind": "preservation",
+    "check": "Status 1 paragraph and the table equal BASE",
+    "verify": "gdoc structure DOC compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote still directly after 'this week' and still reads 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'this week'; tabs[0].documentTab.footnotes[id] text equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "A bullet preset applied to the range flattens nesting, or a Markdown rewrite merges both lists into one sequence numbered 1 to 7."
+ },
+ {
+  "id": "m23",
+  "mirrors": [
+   "format.range.23"
+  ],
+  "category": "format",
+  "fixture": "long",
+  "setup_extra": [],
+  "prompt": "In the Status 40 section, make \"Vendor delay\" bold. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "In the section after the HEADING_2 'Status 40', the 'Vendor delay' bullet's text is bold",
+    "verify": "gdoc structure DOC: last 'Vendor delay' paragraph's runs have textStyle.bold true"
+   },
+   {
+    "kind": "preservation",
+    "check": "The other 39 'Vendor delay' bullets are not bold",
+    "verify": "gdoc structure DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Status 40's 'Vendor delay' is still a level-1 sub-bullet under Risks, and the rest of Status 40 equals BASE",
+    "verify": "gdoc structure DOC compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Still 40 HEADING_2 sections 'Status 1'..'Status 40' in order, each with bold 'pilot teams' and the 'project page' link",
+    "verify": "gdoc structure DOC: HEADING_2 paragraph texts; per section, bold run and link.url https://example.com/project"
+   }
+  ],
+  "risk": "Bolds the first match (Status 1) or all 40, or rewrites the long doc and loses links or bold."
+ },
+ {
+  "id": "m24",
+  "mirrors": [
+   "create.heading.1",
+   "create.list.1"
+  ],
+  "category": "create",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Add a new section at the end of the first tab: a heading \"Next steps\" at the same level as Notes, followed by three bullets: \"Book the review\", \"Draft the FAQ\", \"Share the build\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "After the paragraph under Notes, a HEADING_2 paragraph 'Next steps'",
+    "verify": "gdoc structure DOC"
+   },
+   {
+    "kind": "effect",
+    "check": "Then three NORMAL_TEXT paragraphs 'Book the review', 'Draft the FAQ', 'Share the build' in order, sharing one listId at nestingLevel 0 with a bullet (non-numbered) glyph",
+    "verify": "gdoc structure DOC: bullet.listId; lists[listId].listProperties.nestingLevels[0] has glyphSymbol, not a numbered glyphType"
+   },
+   {
+    "kind": "preservation",
+    "check": "No literal '#', '-' or '*' in the new paragraphs, the heading is not bulleted, and no empty bullet paragraph is left",
+    "verify": "gdoc structure DOC: paragraph texts and bullets"
+   },
+   {
+    "kind": "preservation",
+    "check": "Notes heading still HEADING_2 and its paragraph still starts with the inline image",
+    "verify": "gdoc structure DOC: inlineObjectElement then text run"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 before the new section equals BASE",
+    "verify": "gdoc cat DOC and gdoc structure DOC compared with BASE, ignoring the new section"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote still directly after 'this week' and still reads 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'this week'; tabs[0].documentTab.footnotes[id] text equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Appendix tab, its child tab Sources and the header 'Launch notes · internal' unchanged",
+    "verify": "gdoc tabs DOC; gdoc structure DOC: Appendix and Sources documentTab JSON and headers equal BASE"
+   }
+  ],
+  "risk": "Heading style bleeds into the bullets, Markdown markers land as literal text, or appending rewrites the tab and drops the image, suggestion or footnote."
+ },
+ {
+  "id": "m25",
+  "mirrors": [
+   "create.list.12"
+  ],
+  "category": "create",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "In the Appendix tab, add a numbered list after the existing line: \"Collect quotes\", \"Compare vendors\", \"Sign the contract\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "The Appendix tab has 'Appendix: supporting material for the launch.' followed by 'Collect quotes', 'Compare vendors', 'Sign the contract' in that order",
+    "verify": "gdoc structure DOC --tab Appendix"
+   },
+   {
+    "kind": "effect",
+    "check": "The three share one listId with a numbered glyphType (DECIMAL or similar) at nestingLevel 0",
+    "verify": "gdoc structure DOC --tab Appendix: bullet.listId; lists[listId].listProperties.nestingLevels[0].glyphType"
+   },
+   {
+    "kind": "preservation",
+    "check": "'Appendix: supporting material for the launch.' is not a list item and its text is unchanged; no literal '1.' typed into the new items",
+    "verify": "gdoc structure DOC --tab Appendix"
+   },
+   {
+    "kind": "preservation",
+    "check": "Sources still nested under Appendix with text 'Sources: supporting material for the launch.' and no list",
+    "verify": "gdoc tabs DOC; gdoc structure DOC --tab Sources compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 equals BASE",
+    "verify": "gdoc cat DOC and gdoc structure DOC --tab 'Tab 1' compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Writes to Tab 1 or the child tab, types numbers as text, or rewrites Appendix and loses its child tab."
+ },
+ {
+  "id": "m26",
+  "mirrors": [
+   "create.table.3",
+   "create.table.10"
+  ],
+  "category": "create",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Add a row to the end of the table: Launch, Cara, Wednesday. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Table has 4 rows; row [3] has three cells reading 'Launch', 'Cara', 'Wednesday', each columnSpan 1",
+    "verify": "gdoc structure DOC: table.rows == 4; tableRows[3].tableCells text and columnSpan"
+   },
+   {
+    "kind": "preservation",
+    "check": "Row [2] cell [1] still columnSpan 2 holding 'Ben' and 'Monday'",
+    "verify": "gdoc structure DOC: tableRows[2].tableCells[1].tableCellStyle.columnSpan; paragraphs"
+   },
+   {
+    "kind": "preservation",
+    "check": "Rows [0] and [1] text equal BASE; table still 3 columns",
+    "verify": "gdoc structure DOC compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Still one table; numbered list before and Notes heading after it unchanged, with no stray paragraph between the table and Notes",
+    "verify": "gdoc structure DOC body elements around the table compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Inserting below the merged row copies the merge so the new row has two cells, or a Markdown rebuild unmerges row 3."
+ },
+ {
+  "id": "m27",
+  "mirrors": [
+   "create.link.11",
+   "create.link.1"
+  ],
+  "category": "create",
+  "fixture": "formatted",
+  "setup_extra": [],
+  "prompt": "Link the words \"pilot teams\" in the Status 1 paragraph to https://example.com/pilots. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "textStyle.link.url https://example.com/pilots covers exactly 'pilot teams', both words and nothing else",
+    "verify": "gdoc structure DOC: link runs in the Status 1 paragraph"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open, its live range covering 'pilot teams'",
+    "verify": "gdoc comments DOC; PREVIEW: commentAnchors range text for the thread's anchorId is 'pilot teams' (no entry = detached = fail)"
+   },
+   {
+    "kind": "preservation",
+    "check": "Bold on the runs covering 'pilot teams' equals BASE",
+    "verify": "gdoc structure DOC: textStyle.bold compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "The footnote's 'Pilot teams' is not linked and the footnote text is unchanged",
+    "verify": "gdoc structure DOC: tabs[0].documentTab.footnotes runs have no link"
+   },
+   {
+    "kind": "preservation",
+    "check": "Link 'project page' still points to https://example.com/project",
+    "verify": "gdoc structure DOC: textRun 'project page' has textStyle.link.url == https://example.com/project"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote still directly after 'this week' and still reads 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'this week'; tabs[0].documentTab.footnotes[id] text equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Colours, fonts and highlights on untouched words equal BASE",
+    "verify": "gdoc structure DOC: foregroundColor, weightedFontFamily and backgroundColor of every run outside the changed text equal BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Person chip after 'Last updated by the team' still present (if present in BASE)",
+    "verify": "gdoc structure DOC: intro paragraph still has an element with a 'person' key, as in BASE"
+   }
+  ],
+  "risk": "Replacing the words with Markdown '[pilot teams](…)' recreates them, detaching the comment and dropping bold and colours; case-insensitive matching links the footnote instead."
+ },
+ {
+  "id": "m28",
+  "mirrors": [
+   "create.footnote.4"
+  ],
+  "category": "create",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Add a footnote to \"Vendor delay\" that says: \"Quote expected by 10 March.\" {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "A footnoteReference sits directly after 'Vendor delay' inside that bullet paragraph",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'Vendor delay'"
+   },
+   {
+    "kind": "effect",
+    "check": "Its footnote reads 'Quote expected by 10 March.' (leading space allowed), and the doc has exactly two footnotes",
+    "verify": "gdoc structure DOC: tabs[0].documentTab.footnotes"
+   },
+   {
+    "kind": "preservation",
+    "check": "'Vendor delay' text unchanged (no typed '(1)', '[1]' or '^' marker) and still nestingLevel 1 in the Owners/Risks list",
+    "verify": "gdoc structure DOC: bullet.listId and nestingLevel compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote still directly after 'this week' and still reads 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'this week'; tabs[0].documentTab.footnotes[id] text equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 outside the 'Vendor delay' bullet equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE, ignoring that bullet"
+   }
+  ],
+  "risk": "The tool cannot create footnotes and types a bracketed note into the bullet or the body."
+ },
+ {
+  "id": "m29",
+  "mirrors": [
+   "create.tab.2",
+   "create.tab.9"
+  ],
+  "category": "create",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Add a new tab titled \"📌 Decisions\" nested under the Appendix tab, containing the line \"No decisions yet.\" {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "A tab titled exactly '📌 Decisions' whose parentTabId is the Appendix tab's ID",
+    "verify": "gdoc tabs DOC; gdoc structure DOC --fields 'tabs(tabProperties,childTabs(tabProperties))'"
+   },
+   {
+    "kind": "effect",
+    "check": "Its body text is 'No decisions yet.'",
+    "verify": "gdoc structure DOC --tab '📌 Decisions'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Exactly four tabs; no top-level 'Decisions' tab or duplicate",
+    "verify": "gdoc tabs DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Sources still nested under Appendix; Appendix and Sources text equal BASE",
+    "verify": "gdoc structure DOC --tab Appendix and --tab Sources compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 equals BASE",
+    "verify": "gdoc cat DOC and gdoc structure DOC --tab 'Tab 1' compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Creates a top-level tab, drops the emoji from the title, or writes the line into the Appendix tab itself."
+ },
+ {
+  "id": "m30",
+  "mirrors": [
+   "create.paragraph.11"
+  ],
+  "category": "create",
+  "fixture": "long",
+  "setup_extra": [],
+  "prompt": "Add a paragraph at the very end of this doc, after the Status 40 table: \"Archive closed on 30 September.\" {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "The last non-empty body paragraph is 'Archive closed on 30 September.' and it comes after the last table",
+    "verify": "gdoc structure DOC: body content after the last table"
+   },
+   {
+    "kind": "effect",
+    "check": "It is NORMAL_TEXT, not bulleted, not bold and not inside a table cell",
+    "verify": "gdoc structure DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "The sentence appears exactly once; the Status 40 table is still 3x3 with BASE text",
+    "verify": "gdoc cat DOC | grep -c; gdoc structure DOC compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Still 40 HEADING_2 sections 'Status 1'..'Status 40' in order, each with bold 'pilot teams' and the 'project page' link",
+    "verify": "gdoc structure DOC: HEADING_2 paragraph texts; per section, bold run and link.url https://example.com/project"
+   }
+  ],
+  "risk": "Appending lands inside the last table cell, or a long-doc rewrite truncates the doc or loses links and bold."
+ },
+ {
+  "id": "m31",
+  "mirrors": [
+   "wording.paragraph.1",
+   "preserve.link.1"
+  ],
+  "category": "wording",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc edit DOC \"project page\" \"[projcet page](https://example.com/project)\""
+  ],
+  "prompt": "Fix the typo \"projcet\" in the Status 1 paragraph. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Status 1 paragraph reads 'The launch plan is on track and the alpha build ships to pilot teams this week. See the project page for details.'",
+    "verify": "gdoc cat DOC"
+   },
+   {
+    "kind": "effect",
+    "check": "'projcet' no longer appears anywhere in the document",
+    "verify": "gdoc cat DOC; gdoc structure DOC (all tabs, footnotes, header)"
+   },
+   {
+    "kind": "preservation",
+    "check": "The link covers exactly 'project page' and still points to https://example.com/project; 'See the ' and ' for details.' are unlinked",
+    "verify": "gdoc structure DOC: textStyle.link.url on the runs of that paragraph"
+   },
+   {
+    "kind": "preservation",
+    "check": "'pilot teams' still bold",
+    "verify": "gdoc structure DOC: run 'pilot teams' has textStyle.bold true"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote still directly after 'this week' and still reads 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'this week'; tabs[0].documentTab.footnotes[id] text equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 outside the Status 1 paragraph equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE, ignoring the Status 1 paragraph"
+   }
+  ],
+  "risk": "Replacing the linked word with plain text drops the link, or the link spreads to the neighbouring words; a paragraph rewrite loses bold, footnote or comment."
+ },
+ {
+  "id": "m32",
+  "mirrors": [
+   "wording.footnote.2"
+  ],
+  "category": "wording",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "In the footnote, change \"March\" to \"February\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "The footnote reads 'Pilot teams were chosen in February.'",
+    "verify": "gdoc structure DOC: tabs[0].documentTab.footnotes[id] text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Still exactly one footnote, with the same footnoteId as BASE, its reference directly after 'this week'",
+    "verify": "gdoc structure DOC: footnotes keys equal BASE; footnoteReference follows the run ending 'this week'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 body text equals BASE (the change happened only inside the footnote)",
+    "verify": "gdoc structure DOC: body content text equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Appendix tab, its child tab Sources and the header 'Launch notes · internal' unchanged",
+    "verify": "gdoc tabs DOC; gdoc structure DOC: Appendix and Sources documentTab JSON and headers equal BASE"
+   }
+  ],
+  "risk": "The tool cannot reach footnote segments, so it edits the body, deletes and recreates the footnote elsewhere, or claims success without a change."
+ },
+ {
+  "id": "m33",
+  "mirrors": [
+   "wording.headerfooter.1",
+   "wording.headerfooter.6"
+  ],
+  "category": "wording",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Change the page header so it reads \"Launch plan · internal\" instead of \"Launch notes · internal\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "The header text is 'Launch plan · internal'",
+    "verify": "gdoc structure DOC: tabs[0].documentTab.headers[id] text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Still exactly one header, with the same header ID as BASE",
+    "verify": "gdoc structure DOC: headers keys equal BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "The body title is still the HEADING_1 'Launch notes'",
+    "verify": "gdoc structure DOC: first paragraph text and namedStyleType"
+   },
+   {
+    "kind": "preservation",
+    "check": "File name equals BASE",
+    "verify": "gdoc info DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 body equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "A document-wide replace of 'Launch notes' also renames the H1 title, the file is renamed instead, or the header is unreachable and the tool edits the body."
+ },
+ {
+  "id": "m34",
+  "mirrors": [
+   "wording.paragraph.14",
+   "preserve.paragraph.8"
+  ],
+  "category": "wording",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "In the Sources tab, change \"supporting material\" to \"reference material\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "The Sources tab reads 'Sources: reference material for the launch.'",
+    "verify": "gdoc cat DOC --tab Sources"
+   },
+   {
+    "kind": "preservation",
+    "check": "The Appendix tab still reads 'Appendix: supporting material for the launch.'",
+    "verify": "gdoc cat DOC --tab Appendix"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab tree unchanged: same tab IDs and titles, Sources still nested under Appendix",
+    "verify": "gdoc tabs DOC compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "The same phrase in the parent Appendix tab is changed instead of, or as well as, the child tab; the tool reads only the first tab and finds nothing."
+ },
+ {
+  "id": "m35",
+  "mirrors": [
+   "wording.list.3",
+   "preserve.range.5"
+  ],
+  "category": "wording",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc edit DOC \"Vendor delay\" \"Vendor delay 🚧 under review\""
+  ],
+  "prompt": "Change \"under review\" to \"escalated\" in the Vendor delay risk. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "The sub-bullet under Risks reads 'Vendor delay 🚧 escalated'",
+    "verify": "gdoc cat DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "The emoji U+1F6A7 appears exactly once in Tab 1, intact (no U+FFFD or lone surrogate), with ' escalated' directly after it",
+    "verify": "gdoc structure DOC: textRun content of that bullet"
+   },
+   {
+    "kind": "preservation",
+    "check": "That bullet keeps the Risks listId at nestingLevel 1",
+    "verify": "gdoc structure DOC: bullet.listId and nestingLevel equal BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Owners, its two sub-bullets, Risks and the numbered list keep their text, listId and nesting",
+    "verify": "gdoc structure DOC compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 outside the Vendor delay bullet equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE, ignoring the Vendor delay bullet"
+   }
+  ],
+  "risk": "Index arithmetic that counts the emoji as one unit instead of two UTF-16 units cuts a character or splits the surrogate pair; a rewrite flattens the bullet."
+ },
+ {
+  "id": "m36",
+  "mirrors": [
+   "wording.heading.1",
+   "preserve.heading.1",
+   "preserve.heading.7"
+  ],
+  "category": "wording",
+  "fixture": "formatted",
+  "setup_extra": [],
+  "prompt": "Rename the Notes heading to \"Open items\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "The heading that read 'Notes' now reads 'Open items'; no 'Notes' heading remains",
+    "verify": "gdoc cat DOC; gdoc structure DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "'Open items' is HEADING_2",
+    "verify": "gdoc structure DOC: namedStyleType"
+   },
+   {
+    "kind": "preservation",
+    "check": "'Open items' carries the foregroundColor, weightedFontFamily and backgroundColor of BASE's 'Notes' run",
+    "verify": "gdoc structure DOC: textStyle of the heading's runs vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Paragraph after the heading still NORMAL_TEXT with the inline image before its text",
+    "verify": "gdoc structure DOC: inlineObjectElement then text run"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "'Status 1' still HEADING_2",
+    "verify": "gdoc structure DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Person chip after 'Last updated by the team' still present (if present in BASE)",
+    "verify": "gdoc structure DOC: intro paragraph still has an element with a 'person' key, as in BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Colours, fonts and highlights on untouched words equal BASE",
+    "verify": "gdoc structure DOC: foregroundColor, weightedFontFamily and backgroundColor of every run outside the changed text equal BASE"
+   }
+  ],
+  "risk": "Retyping the heading loses its level, colour and font, or merges it with the image paragraph and drops the pending suggestion."
+ },
+ {
+  "id": "m37",
+  "mirrors": [
+   "restructure.list.4"
+  ],
+  "category": "restructure",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Swap the two numbered steps so \"Send the summary\" comes first. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Numbered list order is 'Send the summary', 'Confirm the schedule'",
+    "verify": "gdoc structure DOC: paragraph texts in order"
+   },
+   {
+    "kind": "effect",
+    "check": "Both items share one listId with DECIMAL glyphs at nestingLevel 0, so they number 1 and 2",
+    "verify": "gdoc structure DOC: bullet.listId; lists[listId].listProperties.nestingLevels[0].glyphType"
+   },
+   {
+    "kind": "preservation",
+    "check": "Each step's text appears exactly once; no empty list paragraphs anywhere",
+    "verify": "gdoc structure DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Bulleted list before and table after the numbered list unchanged",
+    "verify": "gdoc structure DOC compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 outside the numbered list equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE, ignoring the numbered list"
+   }
+  ],
+  "risk": "Delete-plus-insert creates a second list that restarts at 1, leaves an empty numbered item, or duplicates a step."
+ },
+ {
+  "id": "m38",
+  "mirrors": [
+   "restructure.paragraph.11"
+  ],
+  "category": "restructure",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Move the paragraph \"This document tracks the launch. Last updated by the team.\" from the main tab to the end of the Appendix tab. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "In Tab 1, the HEADING_1 'Launch notes' is followed directly by the HEADING_2 'Status 1' (no empty paragraph between)",
+    "verify": "gdoc structure DOC"
+   },
+   {
+    "kind": "effect",
+    "check": "In Appendix, the last non-empty paragraph is 'This document tracks the launch. Last updated by the team.' as NORMAL_TEXT, after 'Appendix: supporting material for the launch.'",
+    "verify": "gdoc cat DOC --tab Appendix; gdoc structure DOC: Appendix documentTab"
+   },
+   {
+    "kind": "preservation",
+    "check": "That sentence appears exactly once in the whole document",
+    "verify": "gdoc cat DOC for each tab"
+   },
+   {
+    "kind": "preservation",
+    "check": "Sources tab content equals BASE and it is still nested under Appendix",
+    "verify": "gdoc tabs DOC; gdoc cat DOC --tab Sources"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 from 'Status 1' to the end equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Pastes into the child tab or a new tab, copies without deleting, or rewrites Tab 1 from Markdown and loses the footnote, image and suggestion."
+ },
+ {
+  "id": "m39",
+  "mirrors": [
+   "restructure.paragraph.1",
+   "restructure.paragraph.9"
+  ],
+  "category": "restructure",
+  "fixture": "formatted",
+  "setup_extra": [],
+  "prompt": "Split the Status 1 paragraph in two, with the second paragraph starting at \"See the project page\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "After 'Status 1' come two paragraphs: 'The launch plan is on track and the alpha build ships to pilot teams this week.' and 'See the project page for details.'",
+    "verify": "gdoc cat DOC"
+   },
+   {
+    "kind": "effect",
+    "check": "Both are NORMAL_TEXT, with no empty paragraph between them and no leading space on the second",
+    "verify": "gdoc structure DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "The footnote reference stays in the first paragraph directly after 'this week'; footnote text 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference; tabs[0].documentTab.footnotes"
+   },
+   {
+    "kind": "preservation",
+    "check": "'pilot teams' still bold",
+    "verify": "gdoc structure DOC: run 'pilot teams' has textStyle.bold true"
+   },
+   {
+    "kind": "preservation",
+    "check": "Link 'project page' still points to https://example.com/project",
+    "verify": "gdoc structure DOC: textRun 'project page' has textStyle.link.url == https://example.com/project"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Person chip after 'Last updated by the team' still present (if present in BASE)",
+    "verify": "gdoc structure DOC: intro paragraph still has an element with a 'person' key, as in BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Colours, fonts and highlights on untouched words equal BASE",
+    "verify": "gdoc structure DOC: foregroundColor, weightedFontFamily and backgroundColor of every run outside the changed text equal BASE"
+   }
+  ],
+  "risk": "The break lands on the wrong side of the footnote marker, or a rewrite of the paragraph drops the footnote, link, bold or per-word colours."
+ },
+ {
+  "id": "m40",
+  "mirrors": [
+   "restructure.paragraph.2"
+  ],
+  "category": "restructure",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Combine the two sub-bullets under Owners into one bullet that reads \"Design review with the platform team and budget sign-off\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Owners has exactly one sub-bullet, 'Design review with the platform team and budget sign-off'",
+    "verify": "gdoc cat DOC; gdoc structure DOC"
+   },
+   {
+    "kind": "effect",
+    "check": "It keeps Owners' listId at nestingLevel 1",
+    "verify": "gdoc structure DOC: bullet.listId and nestingLevel"
+   },
+   {
+    "kind": "preservation",
+    "check": "Owners, Risks and Vendor delay keep their text, listId and nesting; no empty bullet paragraphs",
+    "verify": "gdoc structure DOC compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Numbered list and table unchanged",
+    "verify": "gdoc structure DOC compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 outside the Owners sub-bullets equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE, ignoring the Owners sub-bullets"
+   }
+  ],
+  "risk": "The joined item leaves an empty bullet behind, drops out of the list, or moves to the top level."
+ },
+ {
+  "id": "m41",
+  "mirrors": [
+   "restructure.table.5"
+  ],
+  "category": "restructure",
+  "fixture": "formatted",
+  "setup_extra": [],
+  "prompt": "Add a Status column to the right of Due in the table. Put \"Done\" for Draft and \"Pending\" for Review. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Table has 3 rows and 4 columns; header row reads Item, Owner, Due, Status",
+    "verify": "gdoc structure DOC: table.rows, table.columns, tableRows[0] texts"
+   },
+   {
+    "kind": "effect",
+    "check": "Cell [1][3] reads 'Done' and cell [2][3] reads 'Pending'",
+    "verify": "gdoc structure DOC: tableRows[1].tableCells[3], tableRows[2].tableCells[3]"
+   },
+   {
+    "kind": "preservation",
+    "check": "Cell [2][1] still columnSpan 2 holding 'Ben' and 'Monday'",
+    "verify": "gdoc structure DOC: tableCellStyle.columnSpan; paragraphs"
+   },
+   {
+    "kind": "preservation",
+    "check": "Every original cell's text equals BASE",
+    "verify": "gdoc structure DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Header row keeps background rgb(0.85, 0.9, 1.0)",
+    "verify": "gdoc structure DOC: tableRows[0] cells' tableCellStyle.backgroundColor equal BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Colours, fonts and highlights on untouched words equal BASE",
+    "verify": "gdoc structure DOC: foregroundColor, weightedFontFamily and backgroundColor of every run outside the changed text equal BASE"
+   }
+  ],
+  "risk": "A Markdown rebuild of the table unmerges row 3 and drops the header shading; the column lands left of Due or 'Pending' goes into the merged cell."
+ },
+ {
+  "id": "m42",
+  "mirrors": [
+   "restructure.table.6"
+  ],
+  "category": "restructure",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Delete the Item column from the table. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Table has 3 rows and 2 columns; rows read Owner | Due and Ana | Friday",
+    "verify": "gdoc structure DOC: table.columns, tableRows texts"
+   },
+   {
+    "kind": "effect",
+    "check": "No cell reads 'Item', 'Draft' or 'Review'; 'Draft' no longer appears in Tab 1",
+    "verify": "gdoc structure DOC; gdoc cat DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Row 3 still holds 'Ben' and 'Monday' as two paragraphs in one cell spanning both columns (columnSpan 2)",
+    "verify": "gdoc structure DOC: tableRows[2].tableCells[0]"
+   },
+   {
+    "kind": "preservation",
+    "check": "Numbered list before and Notes heading after the table unchanged",
+    "verify": "gdoc structure DOC compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 outside the table equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE, ignoring the table"
+   }
+  ],
+  "risk": "Rebuilding the table from Markdown splits the merged cell or leaves an empty column; deleting by text removes only the cell contents."
+ },
+ {
+  "id": "m43",
+  "mirrors": [
+   "restructure.list.1"
+  ],
+  "category": "restructure",
+  "fixture": "formatted",
+  "setup_extra": [],
+  "prompt": "Indent \"Budget sign-off\" so it sits under \"Design review with the platform team\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "'Budget sign-off' is at nestingLevel 2 in Owners' listId, directly after 'Design review with the platform team'",
+    "verify": "gdoc structure DOC: bullet.nestingLevel and listId"
+   },
+   {
+    "kind": "preservation",
+    "check": "Owners (0), Design review with the platform team (1), Risks (0), Vendor delay (1) keep their order, text, listId and nesting",
+    "verify": "gdoc structure DOC compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "'Budget sign-off' text and run styles equal BASE",
+    "verify": "gdoc structure DOC: textRun content, foregroundColor, weightedFontFamily, backgroundColor"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Person chip after 'Last updated by the team' still present (if present in BASE)",
+    "verify": "gdoc structure DOC: intro paragraph still has an element with a 'person' key, as in BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Colours, fonts and highlights on untouched words equal BASE",
+    "verify": "gdoc structure DOC: foregroundColor, weightedFontFamily and backgroundColor of every run outside the changed text equal BASE"
+   }
+  ],
+  "risk": "Indenting with tab characters or leading spaces instead of nesting, splitting the list, or re-creating the bullet without its colours."
+ },
+ {
+  "id": "m44",
+  "mirrors": [
+   "preserve.comment.1",
+   "preserve.comment.3"
+  ],
+  "category": "preserve",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc reply DOC COMMENT_A \"Not yet, waiting on the vendor.\""
+  ],
+  "prompt": "Reword the first sentence of the Status 1 paragraph to \"The alpha build is ready and ships to pilot teams this week.\" {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Status 1 paragraph reads 'The alpha build is ready and ships to pilot teams this week. See the project page for details.'",
+    "verify": "gdoc cat DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored, its live range covering exactly 'pilot teams'",
+    "verify": "gdoc comments DOC; PREVIEW: commentAnchors range text for the thread's anchorId is 'pilot teams' (no entry = detached = fail)"
+   },
+   {
+    "kind": "preservation",
+    "check": "The thread keeps its reply 'Not yet, waiting on the vendor.'; no comment added or deleted",
+    "verify": "gdoc comments DOC --all --json vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "'pilot teams' still bold",
+    "verify": "gdoc structure DOC: run 'pilot teams' has textStyle.bold true"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote still directly after 'this week' and still reads 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'this week'; tabs[0].documentTab.footnotes[id] text equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Link 'project page' still points to https://example.com/project",
+    "verify": "gdoc structure DOC: textRun 'project page' has textStyle.link.url == https://example.com/project"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Replacing the whole sentence deletes and retypes 'pilot teams', which detaches the comment even though the words are the same."
+ },
+ {
+  "id": "m45",
+  "mirrors": [
+   "preserve.suggestion.2"
+  ],
+  "category": "preserve",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Add a new section at the end of the doc: a \"Next steps\" heading at the same level as Notes, followed by the paragraph \"Confirm the pilot date with each team.\" {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "The last two paragraphs of Tab 1 are HEADING_2 'Next steps' and NORMAL_TEXT 'Confirm the pilot date with each team.'",
+    "verify": "gdoc structure DOC"
+   },
+   {
+    "kind": "effect",
+    "check": "The new section is a direct edit: it appears in preview_without_suggestions and carries no suggestion IDs",
+    "verify": "gdoc structure DOC --suggestions-view-mode preview_without_suggestions and suggestions_inline"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending with the same suggestion IDs as BASE",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: suggestedInsertionIds/suggestedDeletionIds on the Notes paragraph equal BASE; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Inline image still first in the Notes paragraph",
+    "verify": "gdoc structure DOC: inlineObjectElement before the text; inlineObjects entry kept"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 outside the new section equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE, ignoring the new section"
+   }
+  ],
+  "risk": "Appending through a Markdown round-trip accepts or drops the suggestion; the new text joins the suggested insertion or lands inside the Notes paragraph."
+ },
+ {
+  "id": "m46",
+  "mirrors": [
+   "preserve.footnote.1",
+   "wording.paragraph.11"
+  ],
+  "category": "preserve",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "In the Status 1 paragraph, change \"this week\" to \"on Thursday\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Status 1 paragraph reads 'The launch plan is on track and the alpha build ships to pilot teams on Thursday. See the project page for details.'",
+    "verify": "gdoc cat DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Exactly one footnoteReference in Tab 1, directly after 'on Thursday' and before the period",
+    "verify": "gdoc structure DOC: paragraph elements in order"
+   },
+   {
+    "kind": "preservation",
+    "check": "Still one footnote, reading 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: tabs[0].documentTab.footnotes"
+   },
+   {
+    "kind": "preservation",
+    "check": "'pilot teams' still bold",
+    "verify": "gdoc structure DOC: run 'pilot teams' has textStyle.bold true"
+   },
+   {
+    "kind": "preservation",
+    "check": "Link 'project page' still points to https://example.com/project",
+    "verify": "gdoc structure DOC: textRun 'project page' has textStyle.link.url == https://example.com/project"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "The footnote marker sits right at the end of the replaced words, so a range delete takes it with it, or it ends up before 'on Thursday'."
+ },
+ {
+  "id": "m47",
+  "mirrors": [
+   "preserve.chip.1"
+  ],
+  "category": "preserve",
+  "fixture": "formatted",
+  "setup_extra": [],
+  "prompt": "In the intro paragraph, change \"Last updated by the team\" to \"Last reviewed by the team\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Intro paragraph text reads 'This document tracks the launch. Last reviewed by the team', then the chip, then '.'",
+    "verify": "gdoc structure DOC: intro paragraph elements"
+   },
+   {
+    "kind": "preservation",
+    "check": "The person chip is still directly after 'the team' with personProperties.email equal to BASE's (not decidable if BASE has no chip)",
+    "verify": "gdoc structure DOC: element with a 'person' key; personProperties"
+   },
+   {
+    "kind": "preservation",
+    "check": "The chip was not flattened to text: no textRun in the intro contains '@' or an email address",
+    "verify": "gdoc structure DOC: textRun contents of the intro paragraph"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote still directly after 'this week' and still reads 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'this week'; tabs[0].documentTab.footnotes[id] text equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Colours, fonts and highlights on untouched words equal BASE",
+    "verify": "gdoc structure DOC: foregroundColor, weightedFontFamily and backgroundColor of every run outside the changed text equal BASE"
+   }
+  ],
+  "risk": "Rewriting the paragraph as text drops the chip or flattens it to a name or email; Markdown export hides the chip entirely."
+ },
+ {
+  "id": "m48",
+  "mirrors": [
+   "preserve.image.1"
+  ],
+  "category": "preserve",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Add the sentence \"Add new ones at the bottom.\" to the end of the paragraph under Notes. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Notes paragraph without suggestions reads 'Open questions go here. Add new ones at the bottom.'; with suggestions accepted it reads 'Open questions and decisions go here. Add new ones at the bottom.'",
+    "verify": "gdoc structure DOC --suggestions-view-mode preview_without_suggestions and preview_suggestions_accepted"
+   },
+   {
+    "kind": "preservation",
+    "check": "The inline image is still the first element of that paragraph, with the same inlineObjectId and width 136 pt; inlineObjects has one entry",
+    "verify": "gdoc structure DOC: inlineObjectElement; inlineObjects[id].inlineObjectProperties.embeddedObject.size"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "The added sentence is direct text and carries no suggestion IDs",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline"
+   },
+   {
+    "kind": "preservation",
+    "check": "Notes still HEADING_2",
+    "verify": "gdoc structure DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 outside the Notes paragraph equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE, ignoring the Notes paragraph"
+   }
+  ],
+  "risk": "Rewriting the paragraph from Markdown drops the image (Markdown export has none) or re-inserts it at a different size; the suggestion is accepted or lost."
+ },
+ {
+  "id": "m49",
+  "mirrors": [
+   "preserve.table.3",
+   "wording.table.5"
+  ],
+  "category": "preserve",
+  "fixture": "formatted",
+  "setup_extra": [],
+  "prompt": "In the table, change Monday to Tuesday in the Review row. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Cell [2][1] holds the paragraphs 'Ben' and 'Tuesday'; 'Monday' no longer appears in Tab 1",
+    "verify": "gdoc structure DOC: tableRows[2].tableCells[1]; gdoc cat DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Cell [2][1] still columnSpan 2; table still 3x3",
+    "verify": "gdoc structure DOC: tableCellStyle.columnSpan; table.rows, table.columns"
+   },
+   {
+    "kind": "preservation",
+    "check": "'Ben' and 'Tuesday' remain two separate paragraphs in that one cell",
+    "verify": "gdoc structure DOC: paragraphs in tableRows[2].tableCells[1]"
+   },
+   {
+    "kind": "preservation",
+    "check": "Every other cell's text equals BASE",
+    "verify": "gdoc structure DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Header row keeps background rgb(0.85, 0.9, 1.0)",
+    "verify": "gdoc structure DOC: tableRows[0] cells' tableCellStyle.backgroundColor equal BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Colours, fonts and highlights on untouched words equal BASE",
+    "verify": "gdoc structure DOC: foregroundColor, weightedFontFamily and backgroundColor of every run outside the changed text equal BASE"
+   }
+  ],
+  "risk": "The tool treats the merged cell as Owner='Ben', Due='Monday', writes into the covered cell, unmerges the row, or joins Ben and Tuesday into one line."
+ },
+ {
+  "id": "m50",
+  "mirrors": [
+   "publish.heading.1",
+   "publish.list.3",
+   "publish.table.1",
+   "publish.link.1"
+  ],
+  "category": "publish",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Create a new Google Doc called \"Pilot plan {TASK_TAG}\" from this Markdown and send me the link.\n\n```markdown\n# Pilot plan\n\n## Goals\n\nThe pilot tests the alpha build with three teams. Background is on the [project page](https://example.com/project).\n\n### Scope\n\n- Teams\n  - Platform\n  - Design\n- Out of scope\n  - Billing\n\n## Schedule\n\n| Week | Milestone | Owner |\n| --- | --- | --- |\n| 1 | Kickoff | Platform |\n| 2 | First feedback | Design |\n| 3 | Go/no-go | Platform |\n```",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Exactly one Google Doc titled 'Pilot plan {TASK_TAG}' created after the run started (call it NEW)",
+    "verify": "gdoc find \"Pilot plan {TASK_TAG}\" --json; createdTime from Drive files.get via gdoc's client"
+   },
+   {
+    "kind": "effect",
+    "check": "Headings in order: 'Pilot plan' (HEADING_1 or TITLE), 'Goals' HEADING_2, 'Scope' HEADING_3, 'Schedule' HEADING_2",
+    "verify": "gdoc structure NEW: namedStyleType"
+   },
+   {
+    "kind": "effect",
+    "check": "One native bulleted list: Teams (0), Platform (1), Design (1), Out of scope (0), Billing (1)",
+    "verify": "gdoc structure NEW: bullet.listId and nestingLevel"
+   },
+   {
+    "kind": "effect",
+    "check": "One native 4x3 table with exactly the source cells, header row first, no extra empty row or column",
+    "verify": "gdoc structure NEW: table.rows, table.columns, cell texts"
+   },
+   {
+    "kind": "effect",
+    "check": "'project page' links to https://example.com/project, and the link covers only those words",
+    "verify": "gdoc structure NEW: textStyle.link.url"
+   },
+   {
+    "kind": "preservation",
+    "check": "No Markdown syntax left as literal text: no run contains '**', '](', '| ---', '```' or '[^', and no paragraph starts with '#', '- ', '* ', '> ' or '1. '",
+    "verify": "gdoc structure NEW: textRun contents of every paragraph and table cell"
+   },
+   {
+    "kind": "preservation",
+    "check": "NEW sits in the account's own My Drive and is not shared: no driveId, owner is the surface's account, permissions hold only the owner",
+    "verify": "Drive files.get (fields owners, driveId, parents) and permissions.list on NEW via gdoc's client"
+   },
+   {
+    "kind": "preservation",
+    "check": "Fixture document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   },
+   {
+    "kind": "reporting",
+    "check": "Reply gives a link to NEW (its URL contains NEW's file ID)",
+    "verify": "reply text"
+   }
+  ],
+  "risk": "Markdown pasted as plain text leaves '#', '-', '|' visible; lists flatten; the table becomes pipe-separated paragraphs; the doc lands in a shared drive or is shared."
+ },
+ {
+  "id": "m51",
+  "mirrors": [
+   "publish.range.1",
+   "publish.range.8",
+   "publish.link.2",
+   "publish.list.2"
+  ],
+  "category": "publish",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Turn this Markdown into a new Google Doc titled \"Rollout memo {TASK_TAG}\" and give me the link.\n\n```markdown\n# Rollout memo\n\nThe rollout starts **Monday** and runs for *two weeks*. Read the [rollout checklist](https://example.com/checklist) before you begin.\n\n## Steps\n\n1. Freeze the release branch\n2. Run the **smoke tests**\n3. Announce the rollout\n\n## Contacts\n\n| Area | Where to ask |\n| --- | --- |\n| Support | [help desk](https://example.com/help) |\n| Release | the release channel |\n```",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Exactly one Google Doc titled 'Rollout memo {TASK_TAG}' created after the run started (call it NEW)",
+    "verify": "gdoc find \"Rollout memo {TASK_TAG}\" --json; createdTime from Drive files.get via gdoc's client"
+   },
+   {
+    "kind": "effect",
+    "check": "First paragraph reads 'The rollout starts Monday and runs for two weeks. Read the rollout checklist before you begin.'",
+    "verify": "gdoc cat NEW"
+   },
+   {
+    "kind": "effect",
+    "check": "Bold runs are exactly 'Monday' and 'smoke tests'; the only italic run is 'two weeks'",
+    "verify": "gdoc structure NEW: textStyle.bold, textStyle.italic"
+   },
+   {
+    "kind": "effect",
+    "check": "'rollout checklist' links to https://example.com/checklist and 'help desk' to https://example.com/help; no other text is linked",
+    "verify": "gdoc structure NEW: textStyle.link.url"
+   },
+   {
+    "kind": "effect",
+    "check": "Steps form one native numbered list (DECIMAL glyph) of three items in source order",
+    "verify": "gdoc structure NEW: bullet.listId; lists[listId].listProperties.nestingLevels[0].glyphType"
+   },
+   {
+    "kind": "effect",
+    "check": "Headings 'Rollout memo' (HEADING_1 or TITLE), 'Steps' and 'Contacts' (HEADING_2); one 3x2 table",
+    "verify": "gdoc structure NEW"
+   },
+   {
+    "kind": "preservation",
+    "check": "No Markdown syntax left as literal text: no run contains '**', '](', '| ---', '```' or '[^', and no paragraph starts with '#', '- ', '* ', '> ' or '1. '",
+    "verify": "gdoc structure NEW: textRun contents of every paragraph and table cell"
+   },
+   {
+    "kind": "preservation",
+    "check": "NEW sits in the account's own My Drive and is not shared: no driveId, owner is the surface's account, permissions hold only the owner",
+    "verify": "Drive files.get (fields owners, driveId, parents) and permissions.list on NEW via gdoc's client"
+   },
+   {
+    "kind": "preservation",
+    "check": "Fixture document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   },
+   {
+    "kind": "reporting",
+    "check": "Reply gives a link to NEW (its URL contains NEW's file ID)",
+    "verify": "reply text"
+   }
+  ],
+  "risk": "Inline emphasis arrives as literal asterisks, the link covers the whole sentence, or the numbered list becomes text starting '1.'."
+ },
+ {
+  "id": "m52",
+  "mirrors": [
+   "publish.table.2",
+   "publish.table.4",
+   "publish.table.5",
+   "publish.table.8"
+  ],
+  "category": "publish",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Can you make a new Google Doc named \"Feedback tracker {TASK_TAG}\" with this content? Send me the link when it's done.\n\n```markdown\n# Feedback tracker\n\n## Open items\n\n| Item | Status | Link | Notes |\n| --- | --- | --- | --- |\n| Login error | Open | [ticket](https://example.com/t/1) | |\n| Slow export | | [ticket](https://example.com/t/2) | Needs logs |\n| Typo on home page | Fixed | | |\n\nLast reviewed at the weekly sync.\n\n## Next steps\n\n- Triage the open items\n- Close the fixed items\n```",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Exactly one Google Doc titled 'Feedback tracker {TASK_TAG}' created after the run started (call it NEW)",
+    "verify": "gdoc find \"Feedback tracker {TASK_TAG}\" --json; createdTime from Drive files.get via gdoc's client"
+   },
+   {
+    "kind": "effect",
+    "check": "One native table of exactly 4 rows and 4 columns, header row Item, Status, Link, Notes",
+    "verify": "gdoc structure NEW: table.rows, table.columns"
+   },
+   {
+    "kind": "effect",
+    "check": "Cells [1][3], [2][1], [3][2] and [3][3] are empty; every other cell matches the source",
+    "verify": "gdoc structure NEW: cell texts"
+   },
+   {
+    "kind": "effect",
+    "check": "Cell [1][2] 'ticket' links to https://example.com/t/1 and cell [2][2] 'ticket' to https://example.com/t/2",
+    "verify": "gdoc structure NEW: textStyle.link.url"
+   },
+   {
+    "kind": "effect",
+    "check": "'Last reviewed at the weekly sync.' is a NORMAL_TEXT paragraph after the table, outside it",
+    "verify": "gdoc structure NEW: body content order"
+   },
+   {
+    "kind": "effect",
+    "check": "'Next steps' HEADING_2 followed by a native bulleted list of two items",
+    "verify": "gdoc structure NEW"
+   },
+   {
+    "kind": "preservation",
+    "check": "No Markdown syntax left as literal text: no run contains '**', '](', '| ---', '```' or '[^', and no paragraph starts with '#', '- ', '* ', '> ' or '1. '",
+    "verify": "gdoc structure NEW: textRun contents of every paragraph and table cell"
+   },
+   {
+    "kind": "preservation",
+    "check": "NEW sits in the account's own My Drive and is not shared: no driveId, owner is the surface's account, permissions hold only the owner",
+    "verify": "Drive files.get (fields owners, driveId, parents) and permissions.list on NEW via gdoc's client"
+   },
+   {
+    "kind": "preservation",
+    "check": "Fixture document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   },
+   {
+    "kind": "reporting",
+    "check": "Reply gives a link to NEW (its URL contains NEW's file ID)",
+    "verify": "reply text"
+   }
+  ],
+  "risk": "Empty cells collapse and shift values left, a trailing empty row appears, links show as '[ticket](...)', or the paragraph after the table is pulled into it."
+ },
+ {
+  "id": "m53",
+  "mirrors": [
+   "publish.paragraph.4",
+   "publish.paragraph.5",
+   "publish.paragraph.7",
+   "publish.range.2"
+  ],
+  "category": "publish",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Please publish this Markdown as a new Google Doc titled \"Setup guide {TASK_TAG}\" and send me the link.\n\n````markdown\n# Setup guide\n\n## Install\n\nRun `make setup` from the repository root, then start the server:\n\n```\nmake setup\n  --with-db\n./run.sh\n\n# done\n```\n\n> Do not run this on the shared staging server.\n\n## Checklist\n\n1. Install dependencies\n2. Start the server\n````",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Exactly one Google Doc titled 'Setup guide {TASK_TAG}' created after the run started (call it NEW)",
+    "verify": "gdoc find \"Setup guide {TASK_TAG}\" --json; createdTime from Drive files.get via gdoc's client"
+   },
+   {
+    "kind": "effect",
+    "check": "Code block lines appear in order as 'make setup', '  --with-db' (two leading spaces), './run.sh', an empty line, '# done'",
+    "verify": "gdoc structure NEW: paragraph or line texts after the Install paragraph"
+   },
+   {
+    "kind": "effect",
+    "check": "Every code block line is in a monospace weightedFontFamily (Courier New, Roboto Mono, Source Code Pro, Consolas, Inconsolata, Fira Code, JetBrains Mono, IBM Plex Mono, Ubuntu Mono or Space Mono), and '# done' is not a heading",
+    "verify": "gdoc structure NEW: textStyle.weightedFontFamily; namedStyleType"
+   },
+   {
+    "kind": "effect",
+    "check": "In 'Run make setup from the repository root…', only 'make setup' is monospace",
+    "verify": "gdoc structure NEW: runs of that paragraph"
+   },
+   {
+    "kind": "effect",
+    "check": "The quote 'Do not run this on the shared staging server.' is set apart: indentStart > 0 or a left border, and no leading '>'",
+    "verify": "gdoc structure NEW: paragraphStyle.indentStart, borderLeft"
+   },
+   {
+    "kind": "effect",
+    "check": "Headings 'Setup guide' (HEADING_1 or TITLE), 'Install' and 'Checklist' (HEADING_2); a native numbered list of two items",
+    "verify": "gdoc structure NEW"
+   },
+   {
+    "kind": "preservation",
+    "check": "No Markdown syntax left as literal text: no run contains '**', '](', '| ---', '```' or '[^', and no paragraph starts with '#', '- ', '* ', '> ' or '1. ' (outside the code block, where '# done' is expected)",
+    "verify": "gdoc structure NEW: textRun contents of every paragraph and table cell"
+   },
+   {
+    "kind": "preservation",
+    "check": "NEW sits in the account's own My Drive and is not shared: no driveId, owner is the surface's account, permissions hold only the owner",
+    "verify": "Drive files.get (fields owners, driveId, parents) and permissions.list on NEW via gdoc's client"
+   },
+   {
+    "kind": "preservation",
+    "check": "Fixture document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   },
+   {
+    "kind": "reporting",
+    "check": "Reply gives a link to NEW (its URL contains NEW's file ID)",
+    "verify": "reply text"
+   }
+  ],
+  "risk": "The code block loses indentation or the blank line, '# done' becomes a heading, inline code and the quote look like body text, or backticks stay visible."
+ },
+ {
+  "id": "m54",
+  "mirrors": [
+   "publish.heading.2",
+   "publish.heading.5",
+   "publish.footnote.1",
+   "publish.list.4"
+  ],
+  "category": "publish",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Make a new Google Doc from this Markdown, named after its top heading, and send me the link.\n\n```markdown\n# Vendor review {TASK_TAG}\n\n## ✅ Decisions\n\nWe picked the second vendor because its support hours cover all our regions.[^1]\n\n1. Sign the contract\n   - Legal checks the terms\n   - Finance approves the budget\n2. Schedule onboarding\n\n## ⚠️ Risks\n\n| Risk | Likelihood |\n| --- | --- |\n| Price increase | Medium |\n| Slow onboarding | Low |\n\nMore detail is in the [vendor comparison](https://example.com/vendors).\n\n[^1]: Support hours were checked on the vendor's website in September.\n```",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Exactly one Google Doc titled 'Vendor review {TASK_TAG}' created after the run started (call it NEW)",
+    "verify": "gdoc find \"Vendor review {TASK_TAG}\" --json; createdTime from Drive files.get via gdoc's client"
+   },
+   {
+    "kind": "effect",
+    "check": "Headings '✅ Decisions' and '⚠ Risks' (with or without U+FE0F) are HEADING_2 with their emoji intact",
+    "verify": "gdoc structure NEW: namedStyleType and text"
+   },
+   {
+    "kind": "effect",
+    "check": "One native footnote whose text is 'Support hours were checked on the vendor's website in September.' (straight or curly apostrophe), referenced in the 'We picked the second vendor…' paragraph after 'regions'",
+    "verify": "gdoc structure NEW: footnotes; footnoteReference position"
+   },
+   {
+    "kind": "effect",
+    "check": "'Sign the contract' and 'Schedule onboarding' are level-0 items of one numbered list (numbered 1 and 2); 'Legal checks the terms' and 'Finance approves the budget' are level-1 items between them",
+    "verify": "gdoc structure NEW: bullet.listId and nestingLevel; lists glyphType at level 0"
+   },
+   {
+    "kind": "effect",
+    "check": "One 3x2 table; 'vendor comparison' links to https://example.com/vendors",
+    "verify": "gdoc structure NEW"
+   },
+   {
+    "kind": "preservation",
+    "check": "No Markdown syntax left as literal text: no run contains '**', '](', '| ---', '```' or '[^', and no paragraph starts with '#', '- ', '* ', '> ' or '1. '",
+    "verify": "gdoc structure NEW: textRun contents of every paragraph and table cell"
+   },
+   {
+    "kind": "preservation",
+    "check": "NEW sits in the account's own My Drive and is not shared: no driveId, owner is the surface's account, permissions hold only the owner",
+    "verify": "Drive files.get (fields owners, driveId, parents) and permissions.list on NEW via gdoc's client"
+   },
+   {
+    "kind": "preservation",
+    "check": "Fixture document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   },
+   {
+    "kind": "reporting",
+    "check": "Reply gives a link to NEW (its URL contains NEW's file ID)",
+    "verify": "reply text"
+   }
+  ],
+  "risk": "The title is a default name, the footnote stays as literal '[^1]' text, emoji headings become plain paragraphs, or step 2 restarts at 1 after the sub-bullets."
+ },
+ {
+  "id": "m55",
+  "mirrors": [
+   "update.comment.1",
+   "update.suggestion.1"
+  ],
+  "category": "update",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "I edited the Markdown source for this doc. Please update the doc to match the new version below. Keep anything that only exists in the doc, like comments, the footnote and the image. {DOC_URL}\n\n```markdown\n# Launch notes\n\nThis document tracks the launch. Last updated by the team.\n\n## Status 1\n\nThe launch plan is on track and the alpha build ships to **pilot teams** this week. See the [project page](https://example.com/project) for the full schedule.\n\n- Owners\n  - Design review with the platform team\n  - Budget sign-off\n- Risks\n  - Vendor delay\n\n1. Confirm the schedule\n2. Send the summary\n\n| Item | Owner | Due |\n| --- | --- | --- |\n| Draft | Ana | Friday |\n| Review | Ben | Monday |\n\n## Notes\n\nOpen questions go here.\n```",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Status 1 paragraph reads 'The launch plan is on track and the alpha build ships to pilot teams this week. See the project page for the full schedule.'",
+    "verify": "gdoc cat DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Link 'project page' still points to https://example.com/project",
+    "verify": "gdoc structure DOC: textRun 'project page' has textStyle.link.url == https://example.com/project"
+   },
+   {
+    "kind": "preservation",
+    "check": "'pilot teams' still bold",
+    "verify": "gdoc structure DOC: run 'pilot teams' has textStyle.bold true"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote still directly after 'this week' and still reads 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'this week'; tabs[0].documentTab.footnotes[id] text equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Inline image still first in the Notes paragraph",
+    "verify": "gdoc structure DOC: inlineObjectElement before the text; inlineObjects entry kept"
+   },
+   {
+    "kind": "preservation",
+    "check": "Table still 3x3 with row 3's Owner and Due merged (cell [2][1] columnSpan 2 holding 'Ben' and 'Monday')",
+    "verify": "gdoc structure DOC: table.rows == 3; tableRows[2].tableCells[1].tableCellStyle.columnSpan == 2, paragraphs 'Ben','Monday'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Appendix tab, its child tab Sources and the header 'Launch notes · internal' unchanged",
+    "verify": "gdoc tabs DOC; gdoc structure DOC: Appendix and Sources documentTab JSON and headers equal BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 outside the Status 1 paragraph equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE, ignoring the Status 1 paragraph"
+   }
+  ],
+  "risk": "Overwriting Tab 1 from the Markdown removes the footnote, image, merge and suggestion and detaches the comment."
+ },
+ {
+  "id": "m56",
+  "mirrors": [
+   "update.list.1"
+  ],
+  "category": "update",
+  "fixture": "formatted",
+  "setup_extra": [],
+  "prompt": "Here's the updated Markdown for this doc. Bring the doc in line with it. Keep anything that only exists in the doc, like comments, the footnote and the image. {DOC_URL}\n\n```markdown\n# Launch notes\n\nThis document tracks the launch. Last updated by the team.\n\n## Status 1\n\nThe launch plan is on track and the alpha build ships to **pilot teams** this week. See the [project page](https://example.com/project) for details.\n\n- Owners\n  - Design review with the platform team\n  - Budget sign-off\n  - Legal review\n- Risks\n  - Vendor delay\n\n1. Confirm the schedule\n2. Send the summary\n\n| Item | Owner | Due |\n| --- | --- | --- |\n| Draft | Ana | Friday |\n| Review | Ben | Monday |\n\n## Notes\n\nOpen questions go here.\n```",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "A bullet 'Legal review' directly follows 'Budget sign-off'",
+    "verify": "gdoc cat DOC; gdoc structure DOC"
+   },
+   {
+    "kind": "effect",
+    "check": "'Legal review' is in Owners' listId at nestingLevel 1",
+    "verify": "gdoc structure DOC: bullet.listId and nestingLevel"
+   },
+   {
+    "kind": "preservation",
+    "check": "All other bullets and the numbered list keep their text, listId and nesting",
+    "verify": "gdoc structure DOC compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Colours, fonts and highlights on untouched words equal BASE",
+    "verify": "gdoc structure DOC: foregroundColor, weightedFontFamily and backgroundColor of every run outside the changed text equal BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Person chip after 'Last updated by the team' still present (if present in BASE)",
+    "verify": "gdoc structure DOC: intro paragraph still has an element with a 'person' key, as in BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "'pilot teams' still bold",
+    "verify": "gdoc structure DOC: run 'pilot teams' has textStyle.bold true"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote still directly after 'this week' and still reads 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'this week'; tabs[0].documentTab.footnotes[id] text equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Inline image still first in the Notes paragraph",
+    "verify": "gdoc structure DOC: inlineObjectElement before the text; inlineObjects entry kept"
+   },
+   {
+    "kind": "preservation",
+    "check": "Table still 3x3 with row 3's Owner and Due merged (cell [2][1] columnSpan 2 holding 'Ben' and 'Monday')",
+    "verify": "gdoc structure DOC: table.rows == 3; tableRows[2].tableCells[1].tableCellStyle.columnSpan == 2, paragraphs 'Ben','Monday'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Appendix tab, its child tab Sources and the header 'Launch notes · internal' unchanged",
+    "verify": "gdoc tabs DOC; gdoc structure DOC: Appendix and Sources documentTab JSON and headers equal BASE"
+   }
+  ],
+  "risk": "A full rewrite from Markdown strips the colours, fonts, chip, footnote and image; the new bullet lands at the top level."
+ },
+ {
+  "id": "m57",
+  "mirrors": [
+   "update.table.1",
+   "update.table.5"
+  ],
+  "category": "update",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "I changed one thing in the Markdown for this doc. Update the doc to match. Keep anything that only exists in the doc, like comments, the footnote and the image. {DOC_URL}\n\n```markdown\n# Launch notes\n\nThis document tracks the launch. Last updated by the team.\n\n## Status 1\n\nThe launch plan is on track and the alpha build ships to **pilot teams** this week. See the [project page](https://example.com/project) for details.\n\n- Owners\n  - Design review with the platform team\n  - Budget sign-off\n- Risks\n  - Vendor delay\n\n1. Confirm the schedule\n2. Send the summary\n\n| Item | Owner | Due |\n| --- | --- | --- |\n| Draft | Ana | Thursday |\n| Review | Ben | Monday |\n\n## Notes\n\nOpen questions go here.\n```",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Cell [1][2] (Draft row, Due) reads 'Thursday'",
+    "verify": "gdoc structure DOC: tableRows[1].tableCells[2] text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Every other cell's text equals BASE",
+    "verify": "gdoc structure DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Table still 3x3 with row 3's Owner and Due merged (cell [2][1] columnSpan 2 holding 'Ben' and 'Monday')",
+    "verify": "gdoc structure DOC: table.rows == 3; tableRows[2].tableCells[1].tableCellStyle.columnSpan == 2, paragraphs 'Ben','Monday'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote still directly after 'this week' and still reads 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'this week'; tabs[0].documentTab.footnotes[id] text equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Inline image still first in the Notes paragraph",
+    "verify": "gdoc structure DOC: inlineObjectElement before the text; inlineObjects entry kept"
+   },
+   {
+    "kind": "preservation",
+    "check": "Appendix tab, its child tab Sources and the header 'Launch notes · internal' unchanged",
+    "verify": "gdoc tabs DOC; gdoc structure DOC: Appendix and Sources documentTab JSON and headers equal BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 outside the table equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE, ignoring the table"
+   }
+  ],
+  "risk": "The Markdown shows Ben and Monday in separate cells, so a table rebuild unmerges row 3; a whole-tab rewrite loses footnote, image and suggestion."
+ },
+ {
+  "id": "m58",
+  "mirrors": [
+   "update.heading.1"
+  ],
+  "category": "update",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Please apply my updated Markdown to this doc. Keep anything that only exists in the doc, like comments, the footnote and the image. {DOC_URL}\n\n```markdown\n# Launch notes\n\nThis document tracks the launch. Last updated by the team.\n\n## Status 1\n\nThe launch plan is on track and the alpha build ships to **pilot teams** this week. See the [project page](https://example.com/project) for details.\n\n- Owners\n  - Design review with the platform team\n  - Budget sign-off\n- Risks\n  - Vendor delay\n\n1. Confirm the schedule\n2. Send the summary\n\n| Item | Owner | Due |\n| --- | --- | --- |\n| Draft | Ana | Friday |\n| Review | Ben | Monday |\n\n## Discussion\n\nOpen questions go here.\n```",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "The HEADING_2 that read 'Notes' now reads 'Discussion'; no 'Notes' heading remains",
+    "verify": "gdoc structure DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Paragraph after 'Discussion' still NORMAL_TEXT with the inline image before its text",
+    "verify": "gdoc structure DOC: inlineObjectElement then text run"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote still directly after 'this week' and still reads 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'this week'; tabs[0].documentTab.footnotes[id] text equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Table still 3x3 with row 3's Owner and Due merged (cell [2][1] columnSpan 2 holding 'Ben' and 'Monday')",
+    "verify": "gdoc structure DOC: table.rows == 3; tableRows[2].tableCells[1].tableCellStyle.columnSpan == 2, paragraphs 'Ben','Monday'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Appendix tab, its child tab Sources and the header 'Launch notes · internal' unchanged",
+    "verify": "gdoc tabs DOC; gdoc structure DOC: Appendix and Sources documentTab JSON and headers equal BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 outside the Notes heading's text equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE, ignoring the Notes heading's text"
+   }
+  ],
+  "risk": "Rewriting the last section from Markdown drops the image and the pending suggestion beneath the renamed heading."
+ },
+ {
+  "id": "m59",
+  "mirrors": [
+   "update.paragraph.1",
+   "update.headerfooter.1"
+  ],
+  "category": "update",
+  "fixture": "formatted",
+  "setup_extra": [],
+  "prompt": "I've updated the Markdown version of this doc. Make the doc match it. Keep anything that only exists in the doc, like comments, the footnote and the image. {DOC_URL}\n\n```markdown\n# Launch notes\n\nThis document tracks the launch. Last updated by the team.\n\nThe pilot runs for four weeks.\n\n## Status 1\n\nThe launch plan is on track and the alpha build ships to **pilot teams** this week. See the [project page](https://example.com/project) for details.\n\n- Owners\n  - Design review with the platform team\n  - Budget sign-off\n- Risks\n  - Vendor delay\n\n1. Confirm the schedule\n2. Send the summary\n\n| Item | Owner | Due |\n| --- | --- | --- |\n| Draft | Ana | Friday |\n| Review | Ben | Monday |\n\n## Notes\n\nOpen questions go here.\n```",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "A NORMAL_TEXT paragraph 'The pilot runs for four weeks.' sits between the intro paragraph and the 'Status 1' heading, appearing once",
+    "verify": "gdoc cat DOC; gdoc structure DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "The intro paragraph equals BASE, chip included",
+    "verify": "gdoc structure DOC compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Header still 'Launch notes · internal' with the same header ID",
+    "verify": "gdoc structure DOC: headers"
+   },
+   {
+    "kind": "preservation",
+    "check": "Colours, fonts and highlights on untouched words equal BASE",
+    "verify": "gdoc structure DOC: foregroundColor, weightedFontFamily and backgroundColor of every run outside the changed text equal BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "'pilot teams' still bold",
+    "verify": "gdoc structure DOC: run 'pilot teams' has textStyle.bold true"
+   },
+   {
+    "kind": "preservation",
+    "check": "Link 'project page' still points to https://example.com/project",
+    "verify": "gdoc structure DOC: textRun 'project page' has textStyle.link.url == https://example.com/project"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote still directly after 'this week' and still reads 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'this week'; tabs[0].documentTab.footnotes[id] text equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Inline image still first in the Notes paragraph",
+    "verify": "gdoc structure DOC: inlineObjectElement before the text; inlineObjects entry kept"
+   },
+   {
+    "kind": "preservation",
+    "check": "Table still 3x3 with row 3's Owner and Due merged (cell [2][1] columnSpan 2 holding 'Ben' and 'Monday')",
+    "verify": "gdoc structure DOC: table.rows == 3; tableRows[2].tableCells[1].tableCellStyle.columnSpan == 2, paragraphs 'Ben','Monday'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Appendix tab, its child tab Sources and the header 'Launch notes · internal' unchanged",
+    "verify": "gdoc tabs DOC; gdoc structure DOC: Appendix and Sources documentTab JSON and headers equal BASE"
+   }
+  ],
+  "risk": "The inserted paragraph inherits HEADING_2 or merges with the intro; a full rewrite drops the chip, header or formatting."
+ },
+ {
+  "id": "m60",
+  "mirrors": [
+   "update.range.2",
+   "update.comment.2"
+  ],
+  "category": "update",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Here's the new version of this doc's Markdown. Update the doc to match. Keep anything that only exists in the doc, like comments, the footnote and the image. {DOC_URL}\n\n```markdown\n# Launch notes\n\nThis document tracks the launch. Last updated by the team.\n\n## Status 1\n\nThe launch plan is on track and the alpha build ships to **pilot groups** this week. See the [project page](https://example.com/project) for details.\n\n- Owners\n  - Design review with the platform team\n  - Budget sign-off\n- Risks\n  - Vendor delay\n\n1. Confirm the schedule\n2. Send the summary\n\n| Item | Owner | Due |\n| --- | --- | --- |\n| Draft | Ana | Friday |\n| Review | Ben | Monday |\n\n## Notes\n\nOpen questions go here.\n```",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Status 1 paragraph reads 'The launch plan is on track and the alpha build ships to pilot groups this week. See the project page for details.'",
+    "verify": "gdoc cat DOC"
+   },
+   {
+    "kind": "effect",
+    "check": "'pilot groups' is bold, and the bold covers only those two words",
+    "verify": "gdoc structure DOC: bold runs in the paragraph cover exactly 'pilot groups'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored, its live range covering 'pilot groups'",
+    "verify": "gdoc comments DOC; PREVIEW: commentAnchors range text for the thread's anchorId is 'pilot groups' (no entry = detached = fail)"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote text still 'Pilot teams were chosen in March.' and its reference still directly after 'this week'",
+    "verify": "gdoc structure DOC: tabs[0].documentTab.footnotes; footnoteReference position"
+   },
+   {
+    "kind": "preservation",
+    "check": "Link 'project page' still points to https://example.com/project",
+    "verify": "gdoc structure DOC: textRun 'project page' has textStyle.link.url == https://example.com/project"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Inline image still first in the Notes paragraph",
+    "verify": "gdoc structure DOC: inlineObjectElement before the text; inlineObjects entry kept"
+   },
+   {
+    "kind": "preservation",
+    "check": "Table still 3x3 with row 3's Owner and Due merged (cell [2][1] columnSpan 2 holding 'Ben' and 'Monday')",
+    "verify": "gdoc structure DOC: table.rows == 3; tableRows[2].tableCells[1].tableCellStyle.columnSpan == 2, paragraphs 'Ben','Monday'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Appendix tab, its child tab Sources and the header 'Launch notes · internal' unchanged",
+    "verify": "gdoc tabs DOC; gdoc structure DOC: Appendix and Sources documentTab JSON and headers equal BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 outside the Status 1 paragraph equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE, ignoring the Status 1 paragraph"
+   }
+  ],
+  "risk": "Replacing the anchored words detaches the comment; a case-insensitive replace also rewrites the footnote; a rewrite drops bold or the link."
+ },
+ {
+  "id": "m61",
+  "mirrors": [
+   "suggest.list.2",
+   "create.suggestion.4"
+  ],
+  "category": "suggestion",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Suggest adding \"Supplier price increase\" as a second risk under Risks. I want it as a suggestion I can accept, not a direct edit. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "A new paragraph 'Supplier price increase' directly after 'Vendor delay', its text and paragraph break carrying suggestedInsertionIds",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline"
+   },
+   {
+    "kind": "effect",
+    "check": "In the accepted view, 'Supplier price increase' is a bullet with Vendor delay's listId at nestingLevel 1, directly after it",
+    "verify": "gdoc structure DOC --suggestions-view-mode preview_suggestions_accepted: bullet.listId and nestingLevel"
+   },
+   {
+    "kind": "preservation",
+    "check": "No direct edit: the without-suggestions view of Tab 1 equals BASE's",
+    "verify": "gdoc structure DOC --suggestions-view-mode preview_without_suggestions vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "'Vendor delay' is not part of any suggestion",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: 'Vendor delay' runs carry no suggestedDeletionIds"
+   },
+   {
+    "kind": "preservation",
+    "check": "Numbered list still exactly 'Confirm the schedule', 'Send the summary'; no empty bullet paragraphs in the accepted view",
+    "verify": "gdoc structure DOC --suggestions-view-mode preview_suggestions_accepted: paragraph texts"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   }
+  ],
+  "risk": "Adds the bullet directly; suggests it as plain text outside the list or at the top level; or replaces 'Vendor delay' with both lines."
+ },
+ {
+  "id": "m62",
+  "mirrors": [
+   "suggest.range.5",
+   "create.suggestion.5"
+  ],
+  "category": "suggestion",
+  "fixture": "formatted",
+  "setup_extra": [],
+  "prompt": "Suggest making \"this week\" bold in the Status 1 paragraph. Leave it as a suggestion for me to review, not a direct change. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "The runs covering 'this week' carry a suggested style change that turns bold on",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: suggestedTextStyleChanges with textStyle.bold true and textStyleSuggestionState.boldSuggested true on every character of 'this week'"
+   },
+   {
+    "kind": "effect",
+    "check": "Accepted view: 'this week' is bold and nothing else is newly bold",
+    "verify": "gdoc structure DOC --suggestions-view-mode preview_suggestions_accepted: bold runs equal BASE's plus 'this week'"
+   },
+   {
+    "kind": "preservation",
+    "check": "No text change in any view: no suggested insertion or deletion added",
+    "verify": "gdoc cat DOC equals BASE; gdoc structure DOC --suggestions-view-mode suggestions_inline: no new suggestedInsertionIds/suggestedDeletionIds"
+   },
+   {
+    "kind": "preservation",
+    "check": "No direct edit: the without-suggestions view of Tab 1 equals BASE's ('this week' not bold)",
+    "verify": "gdoc structure DOC --suggestions-view-mode preview_without_suggestions vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "'this week' keeps its colours, fonts and highlight from BASE in both views",
+    "verify": "gdoc structure DOC (suggestions_inline and preview_suggestions_accepted): foregroundColor, weightedFontFamily, backgroundColor on those runs"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote still directly after 'this week' and still reads 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'this week'; tabs[0].documentTab.footnotes[id] text equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Colours, fonts and highlights on untouched words equal BASE",
+    "verify": "gdoc structure DOC: foregroundColor, weightedFontFamily and backgroundColor of every run outside the changed text equal BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   }
+  ],
+  "risk": "Bolds directly; or 'suggests' by deleting and reinserting '**this week**' as text, which drops the colours and can take the footnote marker with it."
+ },
+ {
+  "id": "m63",
+  "mirrors": [
+   "suggest.table.2"
+  ],
+  "category": "suggestion",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "In the table, suggest changing the owner of the Draft row from Ana to Cara. Keep it as a suggestion. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Cell [1][1] (Draft row, Owner) has 'Ana' as a suggested deletion and 'Cara' as a suggested insertion",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: tableRows[1].tableCells[1] runs carry suggestedDeletionIds / suggestedInsertionIds"
+   },
+   {
+    "kind": "effect",
+    "check": "Accepted view: cell [1][1] reads 'Cara'",
+    "verify": "gdoc structure DOC --suggestions-view-mode preview_suggestions_accepted: tableRows[1].tableCells[1] text"
+   },
+   {
+    "kind": "preservation",
+    "check": "No direct edit: the without-suggestions view of Tab 1 equals BASE's",
+    "verify": "gdoc structure DOC --suggestions-view-mode preview_without_suggestions vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Every other cell's text equals BASE in the accepted view",
+    "verify": "gdoc structure DOC --suggestions-view-mode preview_suggestions_accepted: all other tableCells text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Table still 3x3 with row 3's Owner and Due merged (cell [2][1] columnSpan 2 holding 'Ben' and 'Monday')",
+    "verify": "gdoc structure DOC: table.rows == 3; tableRows[2].tableCells[1].tableCellStyle.columnSpan == 2, paragraphs 'Ben','Monday'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   }
+  ],
+  "risk": "Edits the cell directly, rebuilds the table (losing the merge), or lands the suggestion outside the cell."
+ },
+ {
+  "id": "m64",
+  "mirrors": [
+   "suggest.range.8",
+   "create.suggestion.9"
+  ],
+  "category": "suggestion",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "In the Sources tab, suggest changing \"supporting material\" to \"reference material\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Sources tab has a suggested deletion of 'supporting' (or 'supporting material') and a matching suggested insertion of 'reference'",
+    "verify": "gdoc structure DOC --tab Sources --suggestions-view-mode suggestions_inline"
+   },
+   {
+    "kind": "effect",
+    "check": "Accepted view of Sources reads 'Sources: reference material for the launch.'",
+    "verify": "gdoc structure DOC --tab Sources --suggestions-view-mode preview_suggestions_accepted"
+   },
+   {
+    "kind": "preservation",
+    "check": "No direct edit: Sources without-suggestions view equals BASE",
+    "verify": "gdoc structure DOC --tab Sources --suggestions-view-mode preview_without_suggestions vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Appendix tab's identical phrase untouched: no suggestion IDs, reads 'Appendix: supporting material for the launch.' in every view",
+    "verify": "gdoc structure DOC --tab Appendix --suggestions-view-mode suggestions_inline and preview_suggestions_accepted"
+   },
+   {
+    "kind": "preservation",
+    "check": "Sources still nested under Appendix; tab IDs equal BASE",
+    "verify": "gdoc tabs DOC; gdoc structure DOC --fields 'tabs(tabProperties,childTabs(tabProperties))' vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 gets no new suggestion",
+    "verify": "gdoc structure DOC --tab 'Tab 1' --suggestions-view-mode suggestions_inline: suggestion IDs equal BASE's"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   }
+  ],
+  "risk": "Suggests on the Appendix tab's identical phrase (first match in tab order), cannot reach the child tab, or edits directly."
+ },
+ {
+  "id": "m65",
+  "mirrors": [
+   "create.suggestion.3",
+   "preserve.suggestion.4"
+  ],
+  "category": "suggestion",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "In the Notes section, suggest adding the sentence \"Decisions are logged on Fridays.\" right after \"Open questions go here.\" Keep it as a suggestion. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "'Decisions are logged on Fridays.' carries a suggestedInsertionIds ID that is not in BASE",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: new suggestion ID on that text"
+   },
+   {
+    "kind": "effect",
+    "check": "Accepted view of the Notes section reads 'Open questions and decisions go here. Decisions are logged on Fridays.' (one paragraph, or the new sentence as the next paragraph)",
+    "verify": "gdoc structure DOC --suggestions-view-mode preview_suggestions_accepted"
+   },
+   {
+    "kind": "preservation",
+    "check": "The existing suggestion is untouched: its suggestion IDs and its inserted and deleted text equal BASE's",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: runs carrying BASE's suggestion IDs, compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "No direct edit: the without-suggestions view of Tab 1 equals BASE's",
+    "verify": "gdoc structure DOC --suggestions-view-mode preview_without_suggestions vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Inline image still first in the Notes paragraph",
+    "verify": "gdoc structure DOC: inlineObjectElement before the text; inlineObjects entry kept"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 outside the Notes section equals BASE in every view",
+    "verify": "gdoc structure DOC (all three suggestion view modes) vs BASE, ignoring the Notes paragraph"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   }
+  ],
+  "risk": "Accepts, rejects or overwrites the pending suggestion; folds the new sentence into it; or edits directly."
+ },
+ {
+  "id": "m66",
+  "mirrors": [
+   "[suggestion-id].11",
+   "select.suggestion.5"
+  ],
+  "category": "suggestion",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc suggest DOC \"Monday\" \"Tuesday\""
+  ],
+  "prompt": "Accept the suggested change to the review date in the table. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Merged cell [2][1] holds 'Ben' and 'Tuesday' with no suggestion IDs",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: tableRows[2].tableCells[1]"
+   },
+   {
+    "kind": "effect",
+    "check": "'Tuesday' appears once in Tab 1 and 'Monday' not at all",
+    "verify": "gdoc cat DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Cell [2][1] still columnSpan 2 with both paragraphs",
+    "verify": "gdoc structure DOC: tableCellStyle.columnSpan; paragraphs 'Ben','Tuesday'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 outside the merged cell equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE, ignoring that cell"
+   }
+  ],
+  "risk": "Accepts every pending suggestion, including the one in Notes; or types 'Tuesday' directly while the suggestion stays pending; or unmerges the cell."
+ },
+ {
+  "id": "m67",
+  "mirrors": [
+   "[suggestion-id].13"
+  ],
+  "category": "suggestion",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc suggest DOC \"pilot teams\" \"early adopters\""
+  ],
+  "prompt": "Reject the suggestion that changes \"pilot teams\" to \"early adopters\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Status 1 paragraph carries no suggestion IDs and reads 'The launch plan is on track and the alpha build ships to pilot teams this week. See the project page for details.'",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline; gdoc cat DOC"
+   },
+   {
+    "kind": "effect",
+    "check": "'early adopters' appears in no view",
+    "verify": "gdoc structure DOC --suggestions-view-mode preview_suggestions_accepted and suggestions_inline"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pilot-date thread unchanged: still open, no reply added, not resolved",
+    "verify": "gdoc comments DOC --all --json equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "'pilot teams' still bold",
+    "verify": "gdoc structure DOC: run 'pilot teams' has textStyle.bold true"
+   },
+   {
+    "kind": "preservation",
+    "check": "Link 'project page' still points to https://example.com/project",
+    "verify": "gdoc structure DOC: textRun 'project page' has textStyle.link.url == https://example.com/project"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote still directly after 'this week' and still reads 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'this week'; tabs[0].documentTab.footnotes[id] text equals BASE"
+   }
+  ],
+  "risk": "Accepts instead of rejecting; rejects both suggestions; or treats the comment on the same words as the thing to dismiss and resolves or deletes it."
+ },
+ {
+  "id": "m68",
+  "mirrors": [
+   "read.suggestion.8",
+   "select.suggestion.8"
+  ],
+  "category": "suggestion",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc suggest DOC \"Friday\" \"Thursday\"",
+   "gdoc suggest DOC \"supporting material\" \"reference material\" --tab Sources"
+  ],
+  "prompt": "List every suggested edit waiting for review in this doc and say what each one would change. {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Notes: 'Open questions go here.' → 'Open questions and decisions go here.'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Table, Draft row, Due cell: 'Friday' → 'Thursday'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Sources tab (under Appendix): 'supporting material' → 'reference material'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Reports exactly these three; the comment is not presented as a suggestion",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "All three suggestions still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline, and with --tab Sources"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Reads only the first tab and misses Sources; flattens the table and misses the cell suggestion; reports the accepted text as current."
+ },
+ {
+  "id": "m69",
+  "mirrors": [
+   "[suggestion-id].1",
+   "create.suggestion.10"
+  ],
+  "category": "suggestion",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Suggest changing \"March\" to \"April\" in the footnote. Make it a suggestion, not a direct edit. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "In the footnote, 'March' is a suggested deletion and 'April' a suggested insertion",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: tabs[0].documentTab.footnotes[id] runs"
+   },
+   {
+    "kind": "effect",
+    "check": "Accepted view of the footnote reads 'Pilot teams were chosen in April.'",
+    "verify": "gdoc structure DOC --suggestions-view-mode preview_suggestions_accepted: footnotes[id] text"
+   },
+   {
+    "kind": "preservation",
+    "check": "No direct edit: the without-suggestions view, footnote included, equals BASE",
+    "verify": "gdoc structure DOC --suggestions-view-mode preview_without_suggestions vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Body text unchanged in every view apart from BASE's Notes suggestion; no new footnote",
+    "verify": "gdoc structure DOC: body content and footnotes count vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote reference still directly after 'this week' with no suggestion IDs",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: footnoteReference follows the run ending 'this week'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   }
+  ],
+  "risk": "Cannot reach the footnote segment, so it edits body text, adds a second footnote, or edits the footnote directly."
+ },
+ {
+  "id": "m70",
+  "mirrors": [
+   "discuss.table.5",
+   "create.comment.3"
+  ],
+  "category": "comment",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Comment on Ben's due date in the table asking: \"Can this move earlier?\" {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "One new open comment with content 'Can this move earlier?'",
+    "verify": "gdoc comments DOC --json: exactly one new thread vs BASE"
+   },
+   {
+    "kind": "effect",
+    "check": "It is anchored on 'Monday' inside the merged cell of the Review row",
+    "verify": "PREVIEW: commentAnchors range lies within tableRows[2].tableCells[1] and its text is 'Monday' (quote-only comment with no anchorId = fail)"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document text unchanged",
+    "verify": "gdoc cat DOC equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Posts an unanchored Drive comment, or anchors on the header 'Due', on 'Friday' or on the whole table."
+ },
+ {
+  "id": "m71",
+  "mirrors": [
+   "discuss.heading.1",
+   "create.comment.7"
+  ],
+  "category": "comment",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Comment on the Notes heading asking: \"Should decisions get their own section?\" {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "One new open comment with content 'Should decisions get their own section?'",
+    "verify": "gdoc comments DOC --json: exactly one new thread vs BASE"
+   },
+   {
+    "kind": "effect",
+    "check": "Anchored on 'Notes' in the HEADING_2 paragraph 'Notes'",
+    "verify": "PREVIEW: commentAnchors range falls within that heading's startIndex..endIndex and its text is 'Notes'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Nothing anchored on the title 'Launch notes', the header or the Notes body paragraph",
+    "verify": "PREVIEW: no other new range"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document text unchanged",
+    "verify": "gdoc cat DOC equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Case-insensitive quote matching lands on the title 'Launch notes' or the header; or anchors on the paragraph carrying the pending suggestion."
+ },
+ {
+  "id": "m72",
+  "mirrors": [
+   "discuss.range.5",
+   "create.comment.5"
+  ],
+  "category": "comment",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "In the Sources tab, comment on \"supporting material\" asking: \"Which sources are still missing?\" {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "One new open comment with content 'Which sources are still missing?'",
+    "verify": "gdoc comments DOC --json: exactly one new thread vs BASE"
+   },
+   {
+    "kind": "effect",
+    "check": "Anchored on 'supporting material' in the Sources tab",
+    "verify": "PREVIEW: tabs[1].childTabs[0].documentTab.commentAnchors[anchorId] range text is 'supporting material'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Nothing anchored on the identical phrase in the Appendix tab",
+    "verify": "PREVIEW: no new commentAnchors entry under tabs[1].documentTab"
+   },
+   {
+    "kind": "preservation",
+    "check": "Text of every tab unchanged",
+    "verify": "gdoc cat DOC --all-tabs equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Anchors on the Appendix tab's identical phrase, posts an unanchored comment, or cannot address a child tab."
+ },
+ {
+  "id": "m73",
+  "mirrors": [
+   "discuss.comment.15"
+  ],
+  "category": "comment",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc reply DOC COMMENT_A \"Not yet, waiting on the vendor.\""
+  ],
+  "prompt": "Reply to the pilot date thread: \"Done ✅ The vendor confirmed this morning.\" {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "The thread has exactly two replies, in order: 'Not yet, waiting on the vendor.' then 'Done ✅ The vendor confirmed this morning.' with U+2705 intact",
+    "verify": "gdoc comments DOC --json (replies)"
+   },
+   {
+    "kind": "preservation",
+    "check": "Thread still open (not resolved because the reply says 'Done') and anchored on 'pilot teams'; no new top-level comment",
+    "verify": "gdoc comments DOC --all --json; PREVIEW commentAnchors"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document text unchanged",
+    "verify": "gdoc cat DOC equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Treats 'Done' as a request to resolve; posts a new top-level comment; mangles the emoji; or replies twice."
+ },
+ {
+  "id": "m74",
+  "mirrors": [
+   "discuss.comment.23"
+  ],
+  "category": "comment",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc comment DOC \"Is Friday realistic?\" --quote \"Friday\""
+  ],
+  "prompt": "Resolve the comment asking whether Friday is realistic, with a reply saying \"Checked: Friday works.\" {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Thread 'Is Friday realistic?' is resolved and has exactly one reply, 'Checked: Friday works.'",
+    "verify": "gdoc comments DOC --all --json: resolved true, replies"
+   },
+   {
+    "kind": "preservation",
+    "check": "Thread 'Is the pilot date confirmed?' still open, with no replies, and anchored on 'pilot teams'",
+    "verify": "gdoc comments DOC --all --json; PREVIEW: commentAnchors range text 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "No thread deleted and no new top-level comment",
+    "verify": "gdoc comments DOC --all --json vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document text unchanged",
+    "verify": "gdoc cat DOC equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Resolves the wrong thread or both; posts the reply as a separate comment; resolves without the reply; or deletes the thread."
+ },
+ {
+  "id": "m75",
+  "mirrors": [
+   "read.comment.4"
+  ],
+  "category": "comment",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc comment DOC \"Who owns the vendor follow-up?\" --quote \"Vendor delay\"",
+   "gdoc resolve DOC COMMENT_A"
+  ],
+  "prompt": "Which comments on this doc are still unresolved? {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Names 'Who owns the vendor follow-up?' on 'Vendor delay'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Does not present 'Is the pilot date confirmed?' as unresolved (mentioning it as resolved is fine)",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "The pending suggestion is not presented as a comment",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Drive's comment list includes resolved threads by default, so the resolved pilot-date thread is reported as open."
+ },
+ {
+  "id": "m76",
+  "mirrors": [
+   "read.comment.9"
+  ],
+  "category": "comment",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc edit DOC \"Send the summary\" \"Send the summary to the platform team\"",
+   "gdoc comment DOC \"Do they need the draft too?\" --quote \"summary to the platform team\""
+  ],
+  "prompt": "\"The platform team\" comes up twice in this doc. Which mention has a comment on it, and what does the comment say? {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "The second mention, in the numbered item 'Send the summary to the platform team'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Comment text: 'Do they need the draft too?'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Does not place the comment on the bullet 'Design review with the platform team'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Matches the comment's stored quote to the first occurrence by text search instead of using the live anchor."
+ },
+ {
+  "id": "m77",
+  "mirrors": [
+   "create.comment.6",
+   "discuss.range.6"
+  ],
+  "category": "comment",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Comment on the footnote's text asking: \"Which teams were chosen?\" {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "One new open comment with content 'Which teams were chosen?'",
+    "verify": "gdoc comments DOC --json: exactly one new thread vs BASE"
+   },
+   {
+    "kind": "effect",
+    "check": "Anchored inside the footnote 'Pilot teams were chosen in March.'",
+    "verify": "PREVIEW: commentAnchors range has segmentId equal to the footnote's ID and its text lies within the footnote text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Nothing new anchored in the body (in particular not on the body's 'pilot teams')",
+    "verify": "PREVIEW: no new body range"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote text equals BASE",
+    "verify": "gdoc structure DOC: tabs[0].documentTab.footnotes[id] text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document text unchanged",
+    "verify": "gdoc cat DOC equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Anchors on the body sentence carrying the footnote marker or on the body's 'pilot teams'; or posts an unanchored comment."
+ },
+ {
+  "id": "m78",
+  "mirrors": [
+   "preserve.comment.1",
+   "preserve.comment.3"
+  ],
+  "category": "comment",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc reply DOC COMMENT_A \"Not yet, waiting on the vendor.\""
+  ],
+  "prompt": "Rewrite the first sentence under Status 1 to: \"The launch plan is slightly behind, but the alpha build still ships to pilot teams this week.\" Keep the comment on \"pilot teams\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Status 1 paragraph reads 'The launch plan is slightly behind, but the alpha build still ships to pilot teams this week. See the project page for details.'",
+    "verify": "gdoc cat DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pilot-date thread still open and anchored, its live range covering 'pilot teams'",
+    "verify": "gdoc comments DOC; PREVIEW: commentAnchors range text for the thread's anchorId is 'pilot teams' (no entry = detached = fail)"
+   },
+   {
+    "kind": "preservation",
+    "check": "The thread keeps its reply 'Not yet, waiting on the vendor.'",
+    "verify": "gdoc comments DOC --json (replies) vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "'pilot teams' still bold",
+    "verify": "gdoc structure DOC: run 'pilot teams' has textStyle.bold true"
+   },
+   {
+    "kind": "preservation",
+    "check": "Footnote still directly after 'this week' and still reads 'Pilot teams were chosen in March.'",
+    "verify": "gdoc structure DOC: footnoteReference element follows the run ending 'this week'; tabs[0].documentTab.footnotes[id] text equals BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Link 'project page' still points to https://example.com/project",
+    "verify": "gdoc structure DOC: textRun 'project page' has textStyle.link.url == https://example.com/project"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Tab 1 outside the Status 1 paragraph equals BASE",
+    "verify": "gdoc cat DOC (and gdoc structure DOC for styles) compared with BASE, ignoring that paragraph"
+   }
+  ],
+  "risk": "Replacing the whole sentence deletes the anchored words and detaches the comment; the rewrite drops the bold, the footnote marker or the link."
+ },
+ {
+  "id": "m79",
+  "mirrors": [
+   "manage.file.1"
+  ],
+  "category": "drive",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc rename DOC \"Launch notes {TASK_TAG}\""
+  ],
+  "prompt": "Find my Google Doc called \"Launch notes {TASK_TAG}\" and give me its link and the heading of its first section.",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Gives a link containing DOC's file ID",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "First section heading: 'Status 1'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "No new file with that title",
+    "verify": "gdoc find \"Launch notes {TASK_TAG}\" --title --json returns only DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Drive's name index can lag a fresh rename, so search misses the doc; or the tool returns a different 'Launch notes' doc."
+ },
+ {
+  "id": "m80",
+  "mirrors": [
+   "manage.file.9"
+  ],
+  "category": "drive",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Who owns this doc, which folder is it in, and when was it last modified? {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Owner matches 'owner' in gdoc info DOC --json (display name or email)",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Folder is the name of DOC's parent folder (Drive files.get DOC fields=parents via gdoc's client, then that folder's name)",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Last-modified time matches 'modified' in gdoc info DOC --json to the minute, in UTC or a stated timezone",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Reports the last editor as the owner, the created time as modified, or says the folder is unavailable."
+ },
+ {
+  "id": "m81",
+  "mirrors": [
+   "manage.file.14",
+   "manage.file.16"
+  ],
+  "category": "drive",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Create a folder called \"Launch archive {TASK_TAG}\" in my Drive and move this doc into it. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Exactly one folder named 'Launch archive {TASK_TAG}', created after the run started",
+    "verify": "gdoc find \"Launch archive {TASK_TAG}\" --title --json: one item with mimeType application/vnd.google-apps.folder; createdTime from Drive files.get via gdoc's client"
+   },
+   {
+    "kind": "effect",
+    "check": "DOC's only parent is that folder",
+    "verify": "Drive files.get DOC fields=parents via gdoc's client"
+   },
+   {
+    "kind": "preservation",
+    "check": "Same file ID and no new Google Doc: the folder holds only DOC",
+    "verify": "gdoc ls FOLDER --json"
+   },
+   {
+    "kind": "preservation",
+    "check": "No sharing: DOC and the folder have only the owner's permission",
+    "verify": "Drive permissions.list on DOC and FOLDER via gdoc's client"
+   },
+   {
+    "kind": "preservation",
+    "check": "Content, comments and suggestion unchanged",
+    "verify": "gdoc cat DOC, gdoc comments DOC --all --json and gdoc structure DOC vs BASE"
+   }
+  ],
+  "risk": "Copies the doc instead of moving it, adds a second parent, or creates a doc with the folder's name."
+ },
+ {
+  "id": "m82",
+  "mirrors": [
+   "manage.file.18"
+  ],
+  "category": "drive",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Create a folder called \"Clean copies {TASK_TAG}\" and save a clean copy of this doc there: no comments, and the pending suggestion left out rather than accepted. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Exactly one folder named 'Clean copies {TASK_TAG}', created after the run started",
+    "verify": "gdoc find \"Clean copies {TASK_TAG}\" --title --json: one folder; createdTime via Drive files.get"
+   },
+   {
+    "kind": "effect",
+    "check": "The folder holds exactly one Google Doc (COPY), created after the run started",
+    "verify": "gdoc ls FOLDER --json"
+   },
+   {
+    "kind": "effect",
+    "check": "COPY has no comments, open or resolved",
+    "verify": "gdoc comments COPY --all --json is empty"
+   },
+   {
+    "kind": "effect",
+    "check": "COPY has no suggestion IDs anywhere and its Notes paragraph reads 'Open questions go here.'",
+    "verify": "gdoc structure COPY --suggestions-view-mode suggestions_inline; gdoc cat COPY"
+   },
+   {
+    "kind": "preservation",
+    "check": "COPY keeps tabs Appendix > Sources, header, footnote, merged cell, inline image, bold and link",
+    "verify": "gdoc tabs COPY; gdoc structure COPY vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Original still in its original folder",
+    "verify": "Drive files.get DOC fields=parents equals BASE's parent"
+   },
+   {
+    "kind": "preservation",
+    "check": "Original's content, comment and pending suggestion unchanged",
+    "verify": "gdoc cat DOC, gdoc comments DOC --all --json and gdoc structure DOC --suggestions-view-mode suggestions_inline vs BASE"
+   }
+  ],
+  "risk": "Accepts the suggestion in the copy; rebuilds the copy from Markdown and loses tabs, footnote, merge or image; or strips comments from the original."
+ },
+ {
+  "id": "m83",
+  "mirrors": [
+   "manage.file.30"
+  ],
+  "category": "drive",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "List the saved versions of this doc, with when each was made and who made it. {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "Every revision in gdoc revisions DOC --json (taken right after the run) appears with its modified time, to the minute in UTC or a stated timezone",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Lists no revision absent from that output",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Names the editor as the lastModifyingUser in that output",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Reports only the current version or the file's modified time; invents versions; or cannot reach revision history."
+ },
+ {
+  "id": "m84",
+  "mirrors": [
+   "manage.file.22"
+  ],
+  "category": "drive",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Save a PDF of this doc in the same Drive folder as the doc. {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Exactly one new PDF in DOC's parent folder, created after the run started",
+    "verify": "gdoc find --raw \"mimeType='application/pdf' and 'PARENT' in parents and trashed=false\" --json; createdTime via Drive files.get"
+   },
+   {
+    "kind": "effect",
+    "check": "The PDF's text contains 'Launch notes', 'Status 1', 'pilot teams' and 'Notes'",
+    "verify": "download through Drive files.get_media via gdoc's client; pdftotext"
+   },
+   {
+    "kind": "preservation",
+    "check": "No sharing or publishing: the PDF and DOC have only the owner's permission",
+    "verify": "Drive permissions.list on both via gdoc's client"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified: revisionId equals BASE and the comment list equals BASE",
+    "verify": "gdoc structure DOC --fields revisionId; gdoc comments DOC --all --json, compared with BASE"
+   }
+  ],
+  "risk": "Saves the PDF only to local disk or returns an export link; shares or publishes the file to produce a link; or converts the doc itself."
+ },
+ {
+  "id": "m85",
+  "mirrors": [
+   "preserve.section.4"
+  ],
+  "category": "long",
+  "fixture": "long",
+  "setup_extra": [],
+  "prompt": "In the Status 23 section, change \"alpha\" to \"beta\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Status 23 paragraph reads 'The launch plan is on track and the beta build ships to pilot teams this week. See the project page for details.'",
+    "verify": "gdoc structure DOC: first paragraph after the HEADING_2 'Status 23'"
+   },
+   {
+    "kind": "preservation",
+    "check": "'beta' appears exactly once and 'alpha' 39 times",
+    "verify": "gdoc cat DOC | grep -o"
+   },
+   {
+    "kind": "preservation",
+    "check": "Status 23 keeps bold 'pilot teams' and the 'project page' link",
+    "verify": "gdoc structure DOC: that paragraph's runs"
+   },
+   {
+    "kind": "preservation",
+    "check": "Still 40 HEADING_2 sections 'Status 1'..'Status 40' in order, each with bold 'pilot teams' and the 'project page' link",
+    "verify": "gdoc structure DOC: HEADING_2 paragraph texts; per section, bold run and link.url https://example.com/project"
+   },
+   {
+    "kind": "preservation",
+    "check": "Everything outside that word equals BASE",
+    "verify": "gdoc structure DOC compared with BASE, ignoring the changed run"
+   }
+  ],
+  "risk": "Edits the first match (Status 1), replaces all 40, or rewrites the long doc and loses links or bold."
+ },
+ {
+  "id": "m86",
+  "mirrors": [
+   "create.comment.12",
+   "discuss.range.10"
+  ],
+  "category": "long",
+  "fixture": "long",
+  "setup_extra": [],
+  "prompt": "In the Status 37 section, comment on \"Budget sign-off\" asking: \"Has finance approved this?\" {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "One new open comment with content 'Has finance approved this?'",
+    "verify": "gdoc comments DOC --json"
+   },
+   {
+    "kind": "effect",
+    "check": "Anchored on 'Budget sign-off' inside Status 37",
+    "verify": "PREVIEW: commentAnchors range text is 'Budget sign-off' and startIndex lies between the 'Status 37' and 'Status 38' HEADING_2 startIndexes"
+   },
+   {
+    "kind": "preservation",
+    "check": "Exactly one comment on the doc",
+    "verify": "gdoc comments DOC --all --json"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document text unchanged",
+    "verify": "gdoc cat DOC equals BASE"
+   }
+  ],
+  "risk": "Anchors on the first 'Budget sign-off' (Status 1), or truncated reads never reach Status 37."
+ },
+ {
+  "id": "m87",
+  "mirrors": [
+   "read.paragraph.4"
+  ],
+  "category": "long",
+  "fixture": "long",
+  "setup_extra": [
+   "gdoc edit DOC \"Tuesday\" --cell \"1,2\" --table 26"
+  ],
+  "prompt": "How many tables are in this doc, and does any of them differ from the others? If so, which section is it in and what's different? {DOC_URL}",
+  "writes": false,
+  "checks": [
+   {
+    "kind": "reporting",
+    "check": "40 tables",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "One differs: the table in Status 27",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Its Draft row's Due is 'Tuesday' where every other table has 'Friday'",
+    "verify": "reply text"
+   },
+   {
+    "kind": "reporting",
+    "check": "Claims no other difference",
+    "verify": "reply text"
+   },
+   {
+    "kind": "preservation",
+    "check": "Document not modified",
+    "verify": "gdoc structure DOC --fields revisionId equals BASE"
+   }
+  ],
+  "risk": "Truncated read sees only the first sections and reports fewer tables or that all are identical."
+ },
+ {
+  "id": "m88",
+  "mirrors": [
+   "select.tab.8",
+   "preserve.tab.8"
+  ],
+  "category": "tabs",
+  "fixture": "short",
+  "setup_extra": [
+   "gdoc add-tab DOC \"Week 1\"",
+   "gdoc add-tab DOC \"Week 2\"",
+   "gdoc add-tab DOC \"Week 3\"",
+   "gdoc add-tab DOC \"Week 4\"",
+   "gdoc add-tab DOC \"Week 5\"",
+   "gdoc add-tab DOC \"Week 6\"",
+   "gdoc add-tab DOC \"Week 7\""
+  ],
+  "prompt": "In the Week 6 tab, add the line \"Retro moved to Thursday.\" {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Week 6 tab reads 'Retro moved to Thursday.'",
+    "verify": "gdoc cat DOC --tab \"Week 6\""
+   },
+   {
+    "kind": "preservation",
+    "check": "Still 10 tabs in BASE order (Tab 1, Appendix > Sources, Week 1..Week 7) with BASE tab IDs and titles",
+    "verify": "gdoc tabs DOC --json vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Every other tab's content equals BASE; the other Week tabs stay empty",
+    "verify": "gdoc structure DOC per tab vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Writes into the first or last tab, creates a new 'Week 6' tab, or rewrites the document and drops tabs."
+ },
+ {
+  "id": "m89",
+  "mirrors": [
+   "create.paragraph.11",
+   "create.heading.9"
+  ],
+  "category": "long",
+  "fixture": "long",
+  "setup_extra": [],
+  "prompt": "At the end of this doc, add a new section headed \"Status 41\" (same heading style as the others) with the paragraph \"The beta build ships next week.\" {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "The body ends with HEADING_2 'Status 41' followed by NORMAL_TEXT 'The beta build ships next week.' (a trailing empty paragraph is fine)",
+    "verify": "gdoc structure DOC: last body paragraphs"
+   },
+   {
+    "kind": "effect",
+    "check": "41 HEADING_2 paragraphs, 'Status 1'..'Status 41' in order",
+    "verify": "gdoc structure DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "The new text is outside the last table, which still has 3 rows with BASE text",
+    "verify": "gdoc structure DOC: last table vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Still 40 HEADING_2 sections 'Status 1'..'Status 40' in order, each with bold 'pilot teams' and the 'project page' link",
+    "verify": "gdoc structure DOC: HEADING_2 paragraph texts; per section, bold run and link.url https://example.com/project"
+   },
+   {
+    "kind": "preservation",
+    "check": "Everything up to the end of Status 40 equals BASE",
+    "verify": "gdoc structure DOC compared with BASE"
+   }
+  ],
+  "risk": "Appends inside the last table cell, types '## Status 41' as literal text, or rewrites the long doc and truncates or reformats earlier sections."
+ },
+ {
+  "id": "m90",
+  "mirrors": [
+   "restructure.tab.5",
+   "preserve.tab.2"
+  ],
+  "category": "tabs",
+  "fixture": "short",
+  "setup_extra": [],
+  "prompt": "Rename the Appendix tab to \"Background\". {DOC_URL}",
+  "writes": true,
+  "checks": [
+   {
+    "kind": "effect",
+    "check": "Tab titles are 'Tab 1', 'Background', 'Sources'",
+    "verify": "gdoc tabs DOC"
+   },
+   {
+    "kind": "preservation",
+    "check": "'Background' has Appendix's BASE tab ID and Sources is still its child",
+    "verify": "gdoc structure DOC --fields 'tabs(tabProperties,childTabs(tabProperties))' vs BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Background tab content still reads 'Appendix: supporting material for the launch.'",
+    "verify": "gdoc cat DOC --tab Background"
+   },
+   {
+    "kind": "preservation",
+    "check": "Every tab's body text equals BASE (tab titles aside)",
+    "verify": "gdoc cat DOC --tab ID for each BASE tab ID, compared with BASE"
+   },
+   {
+    "kind": "preservation",
+    "check": "Comment 'Is the pilot date confirmed?' still open and anchored to 'pilot teams'",
+    "verify": "gdoc comments DOC (listed as open); PREVIEW: the thread's anchorId has a commentAnchors range whose text is 'pilot teams'"
+   },
+   {
+    "kind": "preservation",
+    "check": "Pending suggestion on 'Open questions go here.' still pending",
+    "verify": "gdoc structure DOC --suggestions-view-mode suggestions_inline: Notes paragraph runs still carry suggestedInsertionIds/suggestedDeletionIds; preview_suggestions_accepted reads 'Open questions and decisions go here.'"
+   }
+  ],
+  "risk": "Creates a new tab and copies the content (new ID, Sources left behind), or edits the body text 'Appendix:' instead of the tab title."
+ }
+]

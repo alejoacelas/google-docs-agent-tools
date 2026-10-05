@@ -1,0 +1,3595 @@
+[
+ {
+  "id": "add-change-remove-links",
+  "status": "partial",
+  "summary": "updateTextStyle linked existing text to web/mailto/Doc URLs and native heading/tab/cross-tab-heading targets, and changed/removed links without retyping or losing the comment anchor. Cell, footnote and footer links worked; adding links applied default blue/underline styling. Bookmark creation has no native request, and UI navigation checks were not-run: needs UI.",
+  "findings": [
+   {
+    "claim": "External and native internal links supported",
+    "result": "yes",
+    "detail": "pilot teams→https://example.com/pilots; Owners→mailto:[email]; Risks→fixture Doc URL; Notes→link.heading{id:h.5g6j5365iucy,tabId:t.0}; Budget sign-off→link.heading{id:h.77hh7mcf17p2,tabId:t.s26rxitwwju3}; Vendor delay→link.tabId=t.wschzhhelw7v. project page destination changed from /project to /new-project."
+   },
+   {
+    "claim": "Linking retains text and live comments",
+    "result": "yes",
+    "detail": "All body text unchanged; anchor kix.cym793wfyixh remained [141,152). Font/highlight/bold on pilot teams survived, but new link applied blue RGB(0.0667,0.3333,0.8) and underline=true, replacing prior foreground colour."
+   },
+   {
+    "claim": "Cell/footnote/footer links and removal work",
+    "result": "yes",
+    "detail": "Friday cell, footnote kix.1l1ugpn1gon9[1,12), footer kix.t9pyrgobxm8m[0,14) gained native textStyle.link; fields=link with empty textStyle cleared all ten links, final link count 0, retaining text and anchor."
+   },
+   {
+    "claim": "Create bookmark and confirm UI navigation",
+    "result": "no",
+    "detail": "Bookmark creation: definition/no native request. UI clicks not-run: needs UI. Internal link schema verified against https://developers.google.com/workspace/docs/api/reference/rest/v1/documents#Link."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle"
+    ],
+    "seconds": 0.594,
+    "wall_before": "1791213630.616846000",
+    "wall_after": "1791213631.283326000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle"
+    ],
+    "seconds": 0.775,
+    "wall_before": "1791213649.782197000",
+    "wall_after": "1791213650.627069000",
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python preview; links-before/added/removed"
+ },
+ {
+  "id": "apply-and-remove-text-style-in-place",
+  "status": "ran",
+  "summary": "updateTextStyle applied and removed all tested styles without retyping, preserving text, linked-commented ranges, existing bold within italic text and person chips. Clearing a field mask reset just the specified properties.",
+  "findings": [
+   {
+    "claim": "Bold linked/commented phrase without losing existing properties",
+    "result": "yes",
+    "detail": "'project page'[173,185) gained bold=true; link https://example.com/project, colour/font/underline and anchor kix.hwn91vzhwj36 [173,185) remained."
+   },
+   {
+    "claim": "Unbold/unhighlight and compound styles preserve other formatting",
+    "result": "yes",
+    "detail": "pilot teams bold=true→inherited false, original pilot colour/Georgia remained; this[153,157) lost backgroundColor while colour/font remained. 'bold' inside italic quote had bold=true and italic=true; removing italic kept bold=true."
+   },
+   {
+    "claim": "Font, colour, strike, highlight and subscript can be added and cleared",
+    "result": "yes",
+    "detail": "Child code sample[36,47) acquired Roboto Mono 9PT, strikethrough=true, green background and red≈0.502/blue0.8 foreground; clearing those mask fields returned textStyle={}. CO2's 2[34,35) SUBSCRIPT→NONE. Text identical in all tabs before/after."
+   },
+   {
+    "claim": "Range spanning chips preserves chips",
+    "result": "yes",
+    "detail": "Italic [66,75) changed both existing person.textStyle.italic=true without losing their personId/properties."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle"
+    ],
+    "seconds": 0.554,
+    "wall_before": "1791213447.306878000",
+    "wall_after": "1791213447.935268000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "updateTextStyle",
+     "updateTextStyle",
+     "updateTextStyle"
+    ],
+    "seconds": 1.113,
+    "wall_before": "1791213465.549176000",
+    "wall_after": "1791213466.739419000",
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python preview; text-style-before/after/final"
+ },
+ {
+  "id": "change-list-structure-and-checked-state",
+  "status": "partial",
+  "summary": "Native list-type conversions retained item text, list ID and nesting; removing bullets retained visual indentation. Restoring bullets and changing paragraph indentation did not reliably perform semantic indent/outdent. Checked-state control and arbitrary restart/custom glyph editing have no exposed request; rendered ticks and numbering need UI and were not run.",
+  "findings": [
+   {
+    "claim": "Bullets→numbers→checkboxes preserve nesting and text",
+    "result": "yes",
+    "detail": "Owners, Design review, Budget sign-off, Risks, Vendor delay retained listId kix.2xh36siddpnb and nesting [0,1,1,0,1]. NUMBERED_DECIMAL_ALPHA_ROMAN set glyphs DECIMAL/ALPHA/ROMAN; BULLET_CHECKBOX succeeded but raw glyphType is GLYPH_TYPE_UNSPECIFIED, with no checked field."
+   },
+   {
+    "claim": "Remove bullets and restore/indent list without retyping",
+    "result": "partly",
+    "detail": "deleteParagraphBullets removed bullets; nested items retained indentStart36PT versus top-level0. Adding leading tabs and recreating numbering produced nesting2 for former nesting1 items (existing visual indent matters). Setting Owners indentStart72PT left it nesting0; Design review/Budget/Vendor were nesting2. Thus paragraph indent writes are not a reliable semantic indent-item-with-children operation, and Vendor changed during recreation despite lying outside the later paragraph-style range."
+   },
+   {
+    "claim": "Set checked state/restart number/custom one-level glyph directly",
+    "result": "no",
+    "detail": "Request schema exposes presets and deleteParagraphBullets, no updateListProperties, checked boolean, or startNumber write. Checked-item setup and rendered verification: not-run: needs UI. Explicit list merge/restart variants not tested."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "mcp__codex_apps__google_drive_copy_file",
+    "requests": [],
+    "seconds": 3.320395,
+    "ok": true,
+    "timestamps": [
+     "1791214246.900012000",
+     "1791214250.220407000"
+    ],
+    "tool_only_seconds": 3.255,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "createParagraphBullets"
+    ],
+    "seconds": 0.606026,
+    "ok": true,
+    "timestamps": [
+     "1791214262.744223000",
+     "1791214263.350249000"
+    ],
+    "tool_only_seconds": 0.533,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "createParagraphBullets"
+    ],
+    "seconds": 0.820107,
+    "ok": true,
+    "timestamps": [
+     "1791214263.950847000",
+     "1791214264.770954000"
+    ],
+    "tool_only_seconds": 0.751,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "deleteParagraphBullets"
+    ],
+    "seconds": 1.159291,
+    "ok": true,
+    "timestamps": [
+     "1791214265.338518000",
+     "1791214266.497809000"
+    ],
+    "tool_only_seconds": 1.091,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "insertText",
+     "insertText",
+     "insertText",
+     "createParagraphBullets",
+     "updateParagraphStyle",
+     "updateParagraphStyle"
+    ],
+    "seconds": 1.07142,
+    "ok": true,
+    "timestamps": [
+     "1791214292.672970000",
+     "1791214293.744390000"
+    ],
+    "tool_only_seconds": 0.996,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs client; raw before/after JSON",
+  "evidence_files": [
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/change-list-structure-and-checked-state-1.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/change-list-structure-and-checked-state-2.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/change-list-structure-and-checked-state-3.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/change-list-structure-and-checked-state-4.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/change-list-structure-and-checked-state-5.json"
+  ]
+ },
+ {
+  "id": "comment-anchor-hard-targets",
+  "status": "partial",
+  "summary": "Raw insertComment can target second occurrences, an empty-cell newline, footnote text and individual adjacent images with live anchors. A whole-table structural range was silently widened into the next paragraph. Drawings/charts were not-run: needs UI; browser highlights were not inspected.",
+  "findings": [
+   {
+    "claim": "Second repeated phrase/paragraph/heading/cell target stays exact",
+    "result": "yes",
+    "detail": "Requested and observed respectively [20,36), [58,78), [90,100), [426,429) in t.0. plainTextQuote values 'Identical phrase', 'Identical paragraph.', 'Background', 'TBD'."
+   },
+   {
+    "claim": "Empty cell, footnote and second image anchor",
+    "result": "yes",
+    "detail": "Empty cell newline [437,438) retained; footnote segment kix.1l1ugpn1gon9 [1,12) quotes 'Pilot teams'; image anchors [481,482) and [482,483) remain distinct, with empty plainTextQuote."
+   },
+   {
+    "claim": "Whole-table range stays exactly on table",
+    "result": "no",
+    "detail": "Requested table structural [418,475); stored anchor [420,476), quote ends with '\\nN', including initial 'N' of following 'Notes' paragraph [475,481). No warning or refusal."
+   },
+   {
+    "claim": "Drawing/chart anchoring tested",
+    "result": "no",
+    "detail": "not-run: needs UI; no drawing/chart fixture could be added under no-browser rule."
+   },
+   {
+    "claim": "A batch with a zero-length empty-cell range succeeded",
+    "result": "no",
+    "detail": "Follow-up batch contained table-content [420,474) and empty-cell [437,437) insertComment requests; connector returned \"tool call error: tool call failed for `codex_apps/google_drive.batch_update_document`\\n\\nCaused by:\\n    Mcp error: -32603: Internal error\". Inspection found neither new anchor. Because both requests were in one batch, failure is not attributable to either individually."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "insertComment",
+     "insertComment",
+     "insertComment",
+     "insertComment"
+    ],
+    "seconds": 0.739,
+    "wall_before": "1791213239.075332000",
+    "wall_after": "1791213239.897545000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "insertComment"
+    ],
+    "seconds": 0.65,
+    "wall_before": "1791213239.970525000",
+    "wall_after": "1791213240.706201000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "insertComment"
+    ],
+    "seconds": 0.94,
+    "wall_before": "1791213240.784255000",
+    "wall_after": "1791213241.800261000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "insertComment"
+    ],
+    "seconds": 0.914,
+    "wall_before": "1791213241.866314000",
+    "wall_after": "1791213242.853898000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "insertComment",
+     "insertComment"
+    ],
+    "seconds": 0.905,
+    "wall_before": "1791213242.948203000",
+    "wall_after": "1791213243.949434000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "insertComment",
+     "insertComment"
+    ],
+    "seconds": 0.839,
+    "wall_before": "1791213268.983329000",
+    "wall_after": "1791213269.920027000",
+    "ok": false,
+    "error": "tool call error: tool call failed for `codex_apps/google_drive.batch_update_document`\n\nCaused by:\n    Mcp error: -32603: Internal error"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python preview read; hard-before/after/final"
+ },
+ {
+  "id": "comment-and-suggestion-preview-requests",
+  "status": "ran",
+  "summary": "Raw preview insertComment, addCommentReply, acceptSuggestion and rejectSuggestion all worked; Drive quote comments were unanchored. write_control.writeMode=SUGGEST was rejected by the connector schema before a write. Anchoring was checked through preview commentAnchors; no browser/UI was used.",
+  "findings": [
+   {
+    "claim": "Preview comment creation, reply and resolve preserve an exact anchor",
+    "result": "yes",
+    "detail": "[comment-id] anchored kix.6ekkcfoxv7x6 to t.0 [141,152) 'pilot teams'; after reply and RESOLVE same ID/range, status RESOLVED."
+   },
+   {
+    "claim": "Drive quoted comment creates a Docs live anchor",
+    "result": "no",
+    "detail": "[comment-id] quotedFileContent='project page', anchor=null; preview thread has plainTextQuote but no anchorId. Reply and resolve succeeded."
+   },
+   {
+    "claim": "Accept/reject named suggestions",
+    "result": "yes",
+    "detail": "Setup suggestion [suggestion-id] changed to ACCEPTED; text 'Open questions and decisions go here.'; [suggestion-id] changed to REJECTED, retaining 'Vendor delay'."
+   },
+   {
+    "claim": "Suggest-mode write control exposed",
+    "result": "no",
+    "detail": "write_control:{writeMode:'SUGGEST'} returned InvalidActionArgumentsError: Invalid action arguments; error_data reason=schema_validation, failure_stage=argument_binding. No SUGGEST-PROBE text inserted."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "insertComment"
+    ],
+    "seconds": 0.741,
+    "wall_before": "1791213017.191457000",
+    "wall_after": "1791213018.000668000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "addCommentReply",
+     "addCommentReply"
+    ],
+    "seconds": 0.947,
+    "wall_before": "1791213026.390601000",
+    "wall_after": "1791213027.410344000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "insertText"
+    ],
+    "seconds": 0.207,
+    "wall_before": "1791213027.477441000",
+    "wall_after": "1791213027.761442000",
+    "ok": false,
+    "error": "InvalidActionArgumentsError: Invalid action arguments"
+   },
+   {
+    "tool": "bulk_update_file_comments",
+    "requests": [],
+    "seconds": 0.567,
+    "wall_before": "1791213051.605737000",
+    "wall_after": "1791213052.245975000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "acceptSuggestion"
+    ],
+    "seconds": 0.95,
+    "wall_before": "1791213060.032101000",
+    "wall_after": "1791213061.055580000",
+    "ok": true
+   },
+   {
+    "tool": "bulk_update_file_comments",
+    "requests": [],
+    "seconds": 1.359,
+    "wall_before": "1791213061.127922000",
+    "wall_after": "1791213062.553791000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "rejectSuggestion"
+    ],
+    "seconds": 0.94,
+    "wall_before": "1791213076.262829000",
+    "wall_after": "1791213077.277112000",
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python _comments_view_get; raw preview-before/after captures"
+ },
+ {
+  "id": "comment-created-anchored-to-target",
+  "status": "ran",
+  "summary": "Raw insertComment created ten exact live anchors across body, heading, nested list, child tab, normal and merged cells, Unicode text, bold/linked phrases and suggested insertion text. Drive quoted comments alone do not anchor (tested in the first probe). Live preview ranges were verified; UI highlights were not inspected because browser use is prohibited.",
+  "findings": [
+   {
+    "claim": "All ten requested raw ranges remained exact live anchors",
+    "result": "yes",
+    "detail": "t.0: launch plan[88,99), Status 1[75,83), Budget sign-off[244,259), Friday cell[352,358), Ben merged cell[369,372), pilot teams[141,152), project page[173,185), pending inserted 'Open questions and decisions go here.'[390,427). Child t.s26rxitwwju3: supporting material[30,49), '😀 日本語'[7,13) UTF-16. Every insertComment returned anchorId and matching plainTextQuote, and preview commentAnchors confirmed identical ranges."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "insertComment",
+     "insertComment",
+     "insertComment",
+     "insertComment",
+     "insertComment",
+     "insertComment",
+     "insertComment",
+     "insertComment",
+     "insertComment",
+     "insertComment"
+    ],
+    "seconds": 0.979,
+    "wall_before": "1791213194.438955000",
+    "wall_after": "1791213195.485691000",
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python _comments_view_get; comment-targets-before/after"
+ },
+ {
+  "id": "comment-threads-lifecycle-and-mentions",
+  "status": "partial",
+  "summary": "Read/reply/resolve/reopen/edit/delete-comment/delete-reply all worked; reply, resolve, reopen and edit retained the thread ID and live anchor. Raw addCommentReply can reply to a suggestion, but connector readers could not retrieve its discussion thread. Mentions and assignments were not-run under the explicit no-notification rule.",
+  "findings": [
+   {
+    "claim": "Comment reader includes author, timestamps, ordered replies and resolved state",
+    "result": "yes",
+    "detail": "[comment-id] included author the test account/me=true (emailAddress=null), created/modified UTC times, replies Reply one→Reply two→Resolution reply in chronological order, resolved=true. No assignee/mention fields appeared; assigned fixture deliberately not created."
+   },
+   {
+    "claim": "Lifecycle edits preserve thread ID and live anchor",
+    "result": "yes",
+    "detail": "After REOPEN and updateCommentPost to 'Lifecycle anchor edited', [comment-id] had resolved=false and same anchor kix.17zkwg1hkyp4 [141,152). deleteCommentReply [comment-id] returned deleted=true/content=null while remaining replies survived. deleteComment left same thread ID as tombstone, deleted=true/anchor=null, all replies deleted."
+   },
+   {
+    "claim": "Reply to suggestion discussion",
+    "result": "yes",
+    "detail": "addCommentReply suggestionId=[suggestion-id] returned post [comment-id]; gdoc preview confirmed 'Suggestion discussion probe' in that suggestion's replies."
+   },
+   {
+    "claim": "Read suggestion discussion through connector",
+    "result": "no",
+    "detail": "get_document_comments omitted the suggestion thread. get_document fields comments,suggestions,commentsViewMode returned 400 'Field mask may not contain comment-specific fields if comments are not requested'; tool has no commentsViewMode parameter."
+   },
+   {
+    "claim": "Mention/assignment behavior tested",
+    "result": "no",
+    "detail": "not-run: explicit task rule says do not mention or notify any person, including self. Request schemas for preview updateCommentPost/deleteComment/deleteCommentReply checked at https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/request."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "bulk_update_file_comments",
+    "requests": [],
+    "seconds": 0.806,
+    "wall_before": "1791213495.303964000",
+    "wall_after": "1791213496.188365000",
+    "ok": true
+   },
+   {
+    "tool": "bulk_update_file_comments",
+    "requests": [],
+    "seconds": 1.124,
+    "wall_before": "1791213496.262514000",
+    "wall_after": "1791213497.460764000",
+    "ok": true
+   },
+   {
+    "tool": "get_document_comments",
+    "requests": [],
+    "seconds": 0.459,
+    "wall_before": "1791213497.528006000",
+    "wall_after": "1791213498.058226000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "addCommentReply",
+     "addCommentReply"
+    ],
+    "seconds": 0.504,
+    "wall_before": "1791213498.128191000",
+    "wall_after": "1791213498.703308000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "updateCommentPost",
+     "deleteCommentReply"
+    ],
+    "seconds": 0.758,
+    "wall_before": "1791213513.205596000",
+    "wall_after": "1791213514.034540000",
+    "ok": true
+   },
+   {
+    "tool": "get_document_comments",
+    "requests": [],
+    "seconds": 0.526,
+    "wall_before": "1791213514.102338000",
+    "wall_after": "1791213514.698519000",
+    "ok": true
+   },
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 1.699,
+    "wall_before": "1791213514.785103000",
+    "wall_after": "1791213516.559812000",
+    "ok": false,
+    "error": "HTTPError: 400: \n\n\n\nBad Request\n\nContent:\n{'code': 400,\n 'message': 'Field mask may not contain comment-specific fields if comments '\n            'are not requested',\n 'status': 'INVALID_ARGUMENT'}\n\nRequest URL:\nhttps://docs.googleapis.com/v1/documents/[doc-id]?fields=documentId%2Ctabs%28tabProperties%29%2Ccomments%2Csuggestions%2CcommentsViewMode&includeTabsContent=True (Response: {'error': {'code': 400, 'message': 'Field mask may not contain comment-specific fields if comments are not requested', 'status': 'INVALID_ARGUMENT'}})"
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "deleteComment"
+    ],
+    "seconds": 0.826,
+    "wall_before": "1791213517.014685000",
+    "wall_after": "1791213517.911713000",
+    "ok": true
+   },
+   {
+    "tool": "get_document_comments",
+    "requests": [],
+    "seconds": 0.469,
+    "wall_before": "1791213517.977521000",
+    "wall_after": "1791213518.513989000",
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "get_document_comments; gdoc Python preview lifecycle-before-delete"
+ },
+ {
+  "id": "concurrent-collaborator-edit-between-read-and-write",
+  "status": "partial",
+  "summary": "Unprotected stale ranges silently misplace formatting and overwrite collaborator text; requiredRevisionId refuses and targetRevisionId merges the tested shifted range correctly. Text matching resolves current text and independent tab additions coexist. Stale quoted comments are accepted without verifying that their target still exists; suggestion writes have no exposed route.",
+  "findings": [
+   {
+    "claim": "Stale ranges automatically re-resolve",
+    "result": "no",
+    "detail": "Read 'pilot teams' [141,152); collaborator inserted 20-unit 'COLLABORATOR PREFIX\\n' at index 1. Unprotected underline [141,152) succeeded on 'lpha build ', not pilot teams. Prefix survived."
+   },
+   {
+    "claim": "Required revision prevents stale write",
+    "result": "yes",
+    "detail": "Protected call failed HTTP 400 INVALID_ARGUMENT: 'The required revision ID ... does not match the latest revision.' Full exact message is retained in calls/evidence."
+   },
+   {
+    "claim": "Text matching and target revision survive insertion",
+    "result": "yes",
+    "detail": "replaceAllText changed pilot teams→pilot groups once. A fresh pilot groups range followed by another prefix insert and targetRevisionId strikethrough preserved the prefix and struck pilot groups at its shifted position."
+   },
+   {
+    "claim": "Same-paragraph stale replacement preserves collaborator rewrite",
+    "result": "no",
+    "detail": "Read SAME ORIGINAL [455,468); collaborator changed it to COLLAB REWRITE LONGER. Unprotected deleteContentRange+insertText yielded CONNECTOR VALUEE LONGER, overwriting the first 13 characters and leaving an unintended suffix."
+   },
+   {
+    "claim": "Stale cell formatting follows inserted row",
+    "result": "no",
+    "detail": "Read Friday [393,399); collaborator inserted a row before row0. Unprotected italic update[393,399) succeeded on a newline[393,394) and Ana\\n[395,399), not Friday."
+   },
+   {
+    "claim": "Concurrent comments/tabs and unrelated edit survive",
+    "result": "partly",
+    "detail": "After read, collaborator added Collaborator tab, comment on Vendor waits and changed Vendor delay→Vendor waits. Connector added Connector tab and replaced pilot groups→pilot cohort; final full read contains both tabs and both text edits. A stale comment quoting nonexistent SAME ORIGINAL also succeeded with anchor:null, so existence is not checked."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "copy_file",
+    "requests": [],
+    "seconds": 3.546547,
+    "ok": true,
+    "evidence": "logs/worker1-concurrent-copy.json"
+   },
+   {
+    "tool": "find_document_text_range",
+    "requests": [],
+    "seconds": 1.410751,
+    "ok": true,
+    "evidence": "logs/worker1-concurrent-find.json"
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "updateTextStyle"
+    ],
+    "seconds": 1.600656,
+    "ok": false,
+    "error": "{\"content\":[{\"type\":\"text\",\"text\":\"HTTPError: 400: \\n\\n\\n\\nBad Request\\n\\nContent:\\n{'code': 400,\\n 'message': 'The required revision ID '\\n            \\\"'AHj4eMQX2_xOpvcM5jt2QvMVpaC-tuzDhnDYuxeUtJNNio9d8Qs5kzW4leDt273XzuJDPWJG029cAtT6JBbArdSpF23msGaFyXxyJnrq5Q' \\\"\\n            'does not match the latest revision.',\\n 'status': 'INVALID_ARGUMENT'}\\n\\nRequest URL:\\nhttps://docs.googleapis.com/v1/documents/[doc-id]:batchUpdate (Response: {'error': {'code': 400, 'message': \\\"The required revision ID 'AHj4eMQX2_xOpvcM5jt2QvMVpaC-tuzDhnDYuxeUtJNNio9d8Qs5kzW4leDt273XzuJDPWJG029cAtT6JBbArdSpF23msGaFyXxyJnrq5Q' does not match the latest revision.\\\", 'status': 'INVALID_ARGUMENT'}})\"}],\"structuredContent\":{\"error\":\"HTTPError: 400: \\n\\n\\n\\nBad Request\\n\\nContent:\\n{'code': 400,\\n 'message': 'The required revision ID '\\n            \\\"'AHj4eMQX2_xOpvcM5jt2QvMVpaC-tuzDhnDYuxeUtJNNio9d8Qs5kzW4leDt273XzuJDPWJG029cAtT6JBbArdSpF23msGaFyXxyJnrq5Q' \\\"\\n            'does not match the latest revision.',\\n 'status': 'INVALID_ARGUMENT'}\\n\\nRequest URL:\\nhttps://docs.googleapis.com/v1/documents/[doc-id]:batchUpdate (Response: {'error': {'code': 400, 'message': \\\"The required revision ID 'AHj4eMQX2_xOpvcM5jt2QvMVpaC-tuzDhnDYuxeUtJNNio9d8Qs5kzW4leDt273XzuJDPWJG029cAtT6JBbArdSpF23msGaFyXxyJnrq5Q' does not match the latest revision.\\\", 'status': 'INVALID_ARGUMENT'}})\",\"error_code\":\"INVALID_ARGUMENT\"},\"isError\":true}",
+    "evidence": "logs/worker1-concurrent-protected.json"
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "updateTextStyle"
+    ],
+    "seconds": 0.975198,
+    "ok": true,
+    "evidence": "logs/worker1-concurrent-unprotected.json"
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "replaceAllText"
+    ],
+    "seconds": 0.55592,
+    "ok": true,
+    "evidence": "logs/worker1-concurrent-text-match.json"
+   },
+   {
+    "tool": "find_document_text_range",
+    "requests": [],
+    "seconds": 0.636279,
+    "ok": true,
+    "evidence": "logs/worker1-concurrent-target-find.json"
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "updateTextStyle"
+    ],
+    "seconds": 0.836437,
+    "ok": true,
+    "evidence": "logs/worker1-concurrent-target-write.json"
+   },
+   {
+    "tool": "find_document_text_range",
+    "requests": [],
+    "seconds": 0.898384,
+    "ok": true,
+    "evidence": "logs/worker1-concurrent-same-find.json"
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "deleteContentRange",
+     "insertText"
+    ],
+    "seconds": 0.534565,
+    "ok": true,
+    "evidence": "logs/worker1-concurrent-same-write.json"
+   },
+   {
+    "tool": "bulk_update_file_comments",
+    "requests": [],
+    "seconds": 0.664988,
+    "ok": true,
+    "evidence": "logs/worker1-concurrent-stale-comment.json"
+   },
+   {
+    "tool": "find_document_text_range",
+    "requests": [],
+    "seconds": 0.57377,
+    "ok": true,
+    "evidence": "logs/worker1-concurrent-row-find.json"
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "updateTextStyle"
+    ],
+    "seconds": 0.679521,
+    "ok": true,
+    "evidence": "logs/worker1-concurrent-row-write.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 0.863176,
+    "ok": true,
+    "evidence": "logs/worker1-concurrent-tab-before.json"
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "addDocumentTab",
+     "replaceAllText"
+    ],
+    "seconds": 0.626404,
+    "ok": true,
+    "evidence": "logs/worker1-concurrent-tab-write.json"
+   },
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.799142,
+    "ok": true,
+    "evidence": "logs/worker1-concurrent-final.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "independent gdoc Python Docs API collaborator writes and after snapshots"
+ },
+ {
+  "id": "delete-split-join-blocks",
+  "status": "ran",
+  "summary": "Native range deletion removed paragraphs, a sentence, headings, a section/subsection, a table, a bullet subtree and a blank above an image while preserving surviving objects and styles. Splitting/joining paragraphs worked, with the parent bullet style winning on join. Deleting the mandatory newline immediately before a section break was rejected without changing the document.",
+  "findings": [
+   {
+    "claim": "Delete headings/table/bullet subtree without rebuilding neighbours",
+    "result": "yes",
+    "detail": "Removed Notes [383,389), 3x3 table [318,383), Owners and two children [200,260), and Status 1 [75,84). Open questions text remains NORMAL_TEXT; Launch notes remains HEADING_1 h.b4u630uz69jh. Inline object kix.tkt9472uql02 and footnote kix.1l1ugpn1gon9 survive."
+   },
+   {
+    "claim": "Split/join preserves intended text and list relationship",
+    "result": "partly",
+    "detail": "insertText newline at 111 splits 'The launch plan is on track\\n' from ' and the alpha build ships...'; both NORMAL_TEXT. Removing newline [265,266) joins 'Risks\\n' + nested 'Vendor delay\\n' as 'RisksVendor delay\\n' in original list kix.2xh36siddpnb at parent nesting level. No separator is synthesized."
+   },
+   {
+    "claim": "Delete section/subsection, full paragraph and blank above image",
+    "result": "yes",
+    "detail": "Deleted main introductory paragraph[14,75) and blank[248,249), preserving Launch notes heading and image kix.tkt9472uql02. Child section range[19,75) removed Section A, its paragraph, Subsection A.1 and Nested paragraph; following After section retained HEADING_2 h.en7khm98cqxp. Deleting sentence Before paragraph. separately left its newline."
+   },
+   {
+    "claim": "Delete mandatory newline directly before section break",
+    "result": "no",
+    "detail": "deleteContentRange child[35,36) returned HTTP400 INVALID_ARGUMENT: Invalid requests[0].deleteContentRange: Invalid deletion range. Cannot delete the requested range. SectionBreak and neighbouring paragraphs remained unchanged."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "mcp__codex_apps__google_drive_copy_file",
+    "requests": [],
+    "seconds": 3.55268,
+    "ok": true,
+    "timestamps": [
+     "1791214052.542477000",
+     "1791214056.095157000"
+    ],
+    "tool_only_seconds": 3.48,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "deleteContentRange",
+     "deleteContentRange",
+     "deleteContentRange",
+     "deleteContentRange",
+     "insertText",
+     "deleteContentRange"
+    ],
+    "seconds": 0.875884,
+    "ok": true,
+    "timestamps": [
+     "1791214077.823017000",
+     "1791214078.698901000"
+    ],
+    "tool_only_seconds": 0.805,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "deleteContentRange",
+     "deleteContentRange",
+     "deleteContentRange"
+    ],
+    "seconds": 0.587613,
+    "ok": true,
+    "timestamps": [
+     "1791214917.805424000",
+     "1791214918.393037000"
+    ],
+    "tool_only_seconds": 0.517,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "deleteContentRange"
+    ],
+    "seconds": 1.882187,
+    "ok": false,
+    "error": "HTTPError: 400: \n\n\n\nBad Request\n\nContent:\n{'code': 400,\n 'message': 'Invalid requests[0].deleteContentRange: Invalid deletion range. '\n            'Cannot delete the requested range.',\n 'status': 'INVALID_ARGUMENT'}\n\nRequest URL:\nhttps://docs.googleapis.com/v1/documents/[doc-id]:batchUpdate (Response: {'error': {'code': 400, 'message': 'Invalid requests[0].deleteContentRange: Invalid deletion range. Cannot delete the requested range.', 'status': 'INVALID_ARGUMENT'}})",
+    "timestamps": [
+     "1791214919.288361000",
+     "1791214921.170548000"
+    ],
+    "tool_only_seconds": 1.816,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "deleteContentRange"
+    ],
+    "seconds": 0.609288,
+    "ok": true,
+    "timestamps": [
+     "1791214941.769807000",
+     "1791214942.379095000"
+    ],
+    "tool_only_seconds": 0.54,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs client; raw before/after JSON",
+  "evidence_files": [
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/delete-split-join-blocks-1.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/delete-split-join-blocks-2.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/delete-split-join-blocks-3.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/delete-split-join-blocks-4.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/delete-split-join-blocks-5.json"
+  ]
+ },
+ {
+  "id": "direct-edit-keeps-pending-suggestions",
+  "status": "partial",
+  "summary": "Adjacent text edits and a heading-level change kept four existing suggestions OPEN with the same IDs/authors. An overlapping direct replace silently changed text inside a pending insertion while keeping its suggestion ID; it was neither refused nor warned about. Suggestions were synthetic and owned by the caller, so behavior for a different collaborator's suggestion remains untested.",
+  "findings": [
+   {
+    "claim": "Adjacent/same-paragraph edits preserve pending suggestions",
+    "result": "yes",
+    "detail": "Context sentence.→Nearby sentence. and heading H2→H3 retained OPEN IDs [suggestion-id] (body), [suggestion-id] (heading), [suggestion-id] (cell), [suggestion-id] (footnote), all author the test account/users/114806137656247190389."
+   },
+   {
+    "claim": "Overlapping direct edit is refused or warned",
+    "result": "no",
+    "detail": "replaceAllText decisions→choices returned occurrencesChanged=1 with no warning. New 'choices'[427,434) still carries suggestedInsertionIds=[[suggestion-id]]. Suggestion summaryText stayed stale: 'Replace: “Open questions go here.” with “Open questions and decisions go here.”', while inserted text now reads 'Open questions and choices go here.'."
+   },
+   {
+    "claim": "Different collaborator authorship tested",
+    "result": "no",
+    "detail": "Not run: only personal synthetic caller-authored suggestions used; no other person involved. Copy dropped original pending suggestions, so four were recreated using setup-only gdoc APIs."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "replaceAllText",
+     "updateParagraphStyle"
+    ],
+    "seconds": 0.531,
+    "wall_before": "1791213576.726834000",
+    "wall_after": "1791213577.326261000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "replaceAllText"
+    ],
+    "seconds": 0.949,
+    "wall_before": "1791213578.062594000",
+    "wall_after": "1791213579.083167000",
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python preview; pending-before/adjacent/overlap"
+ },
+ {
+  "id": "drive-files-search-and-access-read",
+  "status": "partial",
+  "summary": "Metadata, folder-scoped full-text search, copy, PDF/Word/Markdown export and Word import work on the synthetic files. Metadata exposes permissions and can-share but drops several requested fields, and copying dropped the pending suggestion and original comment. No single-tab export selector exists; shared-drive/shared-with-me attribution is untested because fixtures are private My Drive files.",
+  "findings": [
+   {
+    "claim": "Metadata supplies owner, modified time, parents, link and own access",
+    "result": "partly",
+    "detail": "Returned modified_time 2026-10-05T14:49:09.765Z, fixture parent ID, Docs URL, shared:false, permissions [{type:user,role:owner,emailAddress:[email]}], current_user_can_share:true. Requested owners/capabilities are not returned as such; no canEdit field or sharingUser/sharedWithMeTime in output."
+   },
+   {
+    "claim": "Full-text and shared-with-me filters",
+    "result": "partly",
+    "detail": "query 'pilot teams' plus fixture-parent filter returned files whose titles lack that phrase. Folder-scoped sharedWithMe=true returned []; no permitted shared specimen or shared drive."
+   },
+   {
+    "claim": "Copy keeps comments and suggestion",
+    "result": "no",
+    "detail": "Original read has 'Open questions and decisions go here.Open questions go here.' with suggested insertion/deletion IDs. Fresh copy read has only 'Open questions go here.' and no suggestion IDs; original [comment-id] absent from copied comments, only newly added probe comment remains."
+   },
+   {
+    "claim": "Exports and import",
+    "result": "partly",
+    "detail": "Exports returned file references and sizes PDF 144866, DOCX 785731, Markdown 6233 bytes. Downloading signed export URL via local urllib returned HTTP Error 403: Forbidden, so contents not inspected. Synthetic local DOCX imported as native Google Doc [doc-id] in fixture folder; readback 'SYNTHETIC WORD IMPORT 🚀'. No tab selector in export_file definition. Follow-up raw fetch route returned Markdown bytes containing main, Appendix and Sources text; raw DOCX from shared rich copy contains all six tab markers. The export_file signed URL remained inaccessible locally; raw fetch is a working alternative."
+   },
+   {
+    "claim": "Initial caller errors were corrected",
+    "result": "yes",
+    "detail": "First metadata call wrongly supplied id instead of fileId; first import referenced a file absent after failed download. Both verbatim errors retained in calls; valid calls subsequently succeeded."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "get_file_metadata",
+    "requests": [],
+    "seconds": 0.255465,
+    "ok": false,
+    "error": "{\"content\":[{\"type\":\"text\",\"text\":\"Parameters failed connector schema validation: fileId [required]: Missing required property (does not match constraints configured by your ChatGPT workspace admin. If the issue persists, instruct the user to contact their workspace admin.); fileId [required]: Missing required property (does not match constraints configured by your ChatGPT workspace admin. If the issue persists, instruct the user to contact their workspace admin.)\"}],\"structuredContent\":{\"error\":\"Parameters failed connector schema validation: fileId [required]: Missing required property (does not match constraints configured by your ChatGPT workspace admin. If the issue persists, instruct the user to contact their workspace admin.); fileId [required]: Missing required property (does not match constraints configured by your ChatGPT workspace admin. If the issue persists, instruct the user to contact their workspace admin.)\",\"error_code\":\"INVALID_ARGUMENT\",\"error_data\":{\"reason\":\"INVALID_PARAMETERS\",\"clamp_errors\":[{\"path\":[\"fileId\"],\"message\":\"Missing required property (does not match constraints configured by your ChatGPT workspace admin. If the issue persists, instruct the user to contact their workspace admin.)\",\"keyword\":\"required\"},{\"path\":[\"fileId\"],\"message\":\"Missing required property (does not match constraints configured by your ChatGPT workspace admin. If the issue persists, instruct the user to contact their workspace admin.)\",\"keyword\":\"required\"}],\"clamp_rewrites\":[]}},\"isError\":true}",
+    "evidence": "logs/worker1-drive-metadata.json"
+   },
+   {
+    "tool": "get_file_metadata",
+    "requests": [],
+    "seconds": 0.620841,
+    "ok": true,
+    "evidence": "logs/worker1-drive-metadata-valid.json"
+   },
+   {
+    "tool": "search",
+    "requests": [],
+    "seconds": 1.306285,
+    "ok": true,
+    "evidence": "logs/worker1-drive-search.json"
+   },
+   {
+    "tool": "search",
+    "requests": [],
+    "seconds": 0.731625,
+    "ok": true,
+    "evidence": "logs/worker1-drive-shared-search.json"
+   },
+   {
+    "tool": "copy_file",
+    "requests": [],
+    "seconds": 8.08843,
+    "ok": true,
+    "evidence": "logs/worker1-unicode-copy.json"
+   },
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.906043,
+    "ok": true,
+    "evidence": "logs/worker1-formatted-full.json"
+   },
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.563637,
+    "ok": true,
+    "evidence": "logs/worker1-unicode-full.json"
+   },
+   {
+    "tool": "get_document_comments",
+    "requests": [],
+    "seconds": 0.542783,
+    "ok": true,
+    "evidence": "logs/worker1-drive-copy-comments.json"
+   },
+   {
+    "tool": "export_file",
+    "requests": [],
+    "seconds": 1.861171,
+    "ok": true,
+    "evidence": "logs/worker1-drive-export-pdf.json"
+   },
+   {
+    "tool": "export_file",
+    "requests": [],
+    "seconds": 2.680117,
+    "ok": true,
+    "evidence": "logs/worker1-drive-export-docx.json"
+   },
+   {
+    "tool": "export_file",
+    "requests": [],
+    "seconds": 2.257085,
+    "ok": true,
+    "evidence": "logs/worker1-drive-export-md.json"
+   },
+   {
+    "tool": "import_document",
+    "requests": [],
+    "seconds": 0.123054,
+    "ok": false,
+    "error": "{\"content\":[{\"type\":\"text\",\"text\":\"tool call error: failed to upload `~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/logs/worker1-export.docx` for `source_file`: No such file or directory (os error 2)\"}],\"isError\":true}",
+    "evidence": "logs/worker1-drive-import.json"
+   },
+   {
+    "tool": "import_document",
+    "requests": [],
+    "seconds": 5.507021,
+    "ok": true,
+    "evidence": "logs/worker1-drive-import-valid.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 0.933195,
+    "ok": true,
+    "evidence": "logs/worker1-drive-import-read.json"
+   },
+   {
+    "tool": "fetch",
+    "requests": [],
+    "seconds": 2.183777,
+    "ok": true,
+    "evidence": "logs/worker1-drive-raw-markdown.json"
+   },
+   {
+    "tool": "fetch",
+    "requests": [],
+    "seconds": 2.054219,
+    "ok": true,
+    "evidence": "logs/worker1-images-raw-docx.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc info; app full/text/comments; synthetic DOCX readback"
+ },
+ {
+  "id": "edit-next-to-inline-objects",
+  "status": "partial",
+  "summary": "Edits on both sides of the existing footnote reference, person chips and inline image preserved those objects and their paragraph attachment. Footnote body was unchanged. Date/file chips, equation, drawing and unknown embed were not-run: needs UI.",
+  "findings": [
+   {
+    "claim": "Existing inline objects survive adjacent rewording",
+    "result": "yes",
+    "detail": "'this week[footnote]. See the'→'next month[footnote]. Consult the' kept footnoteId kix.1l1ugpn1gon9 and identical footnote body. 'Last updated by the team[person][person] after people'→'Last reviewed by the crew[person][person] after reviewers' retained both person IDs. 'Before image [image]Open questions'→'Above illustration [image]Unresolved questions' retained image objectId kix.tkt9472uql02. Indices shifted with new text lengths; objects stayed between corresponding phrases."
+   },
+   {
+    "claim": "UI-only object types tested",
+    "result": "no",
+    "detail": "not-run: needs UI for date chip, file chip, equation, drawing, unknown embed and person chip on checklist."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "replaceAllText",
+     "replaceAllText",
+     "replaceAllText",
+     "replaceAllText",
+     "replaceAllText",
+     "replaceAllText"
+    ],
+    "seconds": 0.872,
+    "wall_before": "1791213421.158475000",
+    "wall_after": "1791213422.139359000",
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python preview; objects-before/after"
+ },
+ {
+  "id": "edit-target-table-cells",
+  "status": "ran",
+  "summary": "Native table reads expose row/column cell indexes, and indexed writes target normal, merged, repeated-value and empty cells. Editing the second paragraph of a merged cell leaves its first paragraph intact. Cell styles and fixed column width survive.",
+  "findings": [
+   {
+    "claim": "Address cells by row/column lookup and native range edit",
+    "result": "yes",
+    "detail": "get_document_tables returns one-based rowNumber/columnNumber with startIndex/endIndex/tabId. First update changed Draft→Ready, Friday→Filled, merged cell second paragraph Monday→Tuesday while Ben stayed. All tableCellStyle values were unchanged."
+   },
+   {
+    "claim": "Repeated values and empty cells target independently",
+    "result": "yes",
+    "detail": "Verified corrected setup: R2C1=Final,R2C2=Final,R2C3 empty; column0 FIXED_WIDTH width=140PT. Native edits produced R2C1=Complete,R2C2=Final,R2C3=Friday. All cell styles remained identical, column0 remained140PT, merged R3C2 retained columnSpan2."
+   },
+   {
+    "claim": "Setup attempts and intermediate edits distinguishable",
+    "result": "yes",
+    "detail": "Two CLI setup batches failed due to wrong schema fields columnProperties/columnWidth, so they made no changes. An intermediate native call consequently produced FridayFilled. Corrected setup used tableColumnProperties.width and was read back before the final call; cells-corrected-setup/cells-verified-final are authoritative."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "mcp__codex_apps__google_drive_copy_file",
+    "requests": [],
+    "seconds": 3.793555,
+    "ok": true,
+    "timestamps": [
+     "1791214126.525143000",
+     "1791214130.318698000"
+    ],
+    "tool_only_seconds": 3.59,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_get_document_tables",
+    "requests": [],
+    "seconds": 0.644427,
+    "ok": true,
+    "timestamps": [
+     "1791214148.763684000",
+     "1791214149.408111000"
+    ],
+    "tool_only_seconds": 0.563,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "deleteContentRange",
+     "insertText",
+     "deleteContentRange",
+     "insertText",
+     "deleteContentRange",
+     "insertText"
+    ],
+    "seconds": 1.089613,
+    "ok": true,
+    "timestamps": [
+     "1791214149.605906000",
+     "1791214150.695519000"
+    ],
+    "tool_only_seconds": 1.02,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "insertText",
+     "deleteContentRange",
+     "insertText"
+    ],
+    "seconds": 1.101467,
+    "ok": true,
+    "timestamps": [
+     "1791214176.359869000",
+     "1791214177.461336000"
+    ],
+    "tool_only_seconds": 1.029,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "insertText",
+     "deleteContentRange",
+     "insertText"
+    ],
+    "seconds": 0.596588,
+    "ok": true,
+    "timestamps": [
+     "1791214215.460632000",
+     "1791214216.057220000"
+    ],
+    "tool_only_seconds": 0.524,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs client; raw before/after JSON",
+  "evidence_files": [
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/edit-target-table-cells-1.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/edit-target-table-cells-2.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/edit-target-table-cells-3.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/edit-target-table-cells-4.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/edit-target-table-cells-5.json"
+  ]
+ },
+ {
+  "id": "footnote-edit-and-create",
+  "status": "ran",
+  "summary": "Segment-aware native writes edited the second main-tab footnote and the child-tab footnote, including italic linked text, without changing other bodies. New footnotes were created at a sentence, bullet, table cell and second repeated phrase in the child tab. Native footnote numbers renumber within each tab.",
+  "findings": [
+   {
+    "claim": "Edit specific footnote bodies, format and link",
+    "result": "yes",
+    "detail": "kix.8r2axqmgsths ' Second footnote.\\n'→' Edited source.\\n'; child kix.94z1ch8emaye ' ibid.\\n'→same. Segment range[1,7) 'Edited' gained italic:true and link https://example.com/source. Original pilot note and Third footnote stayed byte-equal in their footnote trees; main body unchanged during body-edit phase."
+   },
+   {
+    "claim": "Create footnotes in sentence, bullet, cell and second repeated child phrase",
+    "result": "yes",
+    "detail": "createFootnote at main sentence index45, Owners end206, Draft cell end; child index30 after second 'Repeat phrase.'. Native replies supplied4 footnote IDs, populated through segmentId/tabId insertText. Original pilot note number1→2, original second main note2→4, original third3→5; existing child note1→2 while new child note became1. Tables/body survive with index shifts from reference insertions."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "mcp__codex_apps__google_drive_copy_file",
+    "requests": [],
+    "seconds": 3.522712,
+    "ok": true,
+    "timestamps": [
+     "1791214375.803389000",
+     "1791214379.326101000"
+    ],
+    "tool_only_seconds": 3.456,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "deleteContentRange",
+     "insertText",
+     "updateTextStyle",
+     "deleteContentRange",
+     "insertText",
+     "updateTextStyle"
+    ],
+    "seconds": 0.640725,
+    "ok": true,
+    "timestamps": [
+     "1791214404.706405000",
+     "1791214405.347130000"
+    ],
+    "tool_only_seconds": 0.571,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_find_document_text_range",
+    "requests": [],
+    "seconds": 0.631451,
+    "ok": true,
+    "timestamps": [
+     "1791214434.386263000",
+     "1791214435.017714000"
+    ],
+    "tool_only_seconds": 0.515,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "createFootnote",
+     "createFootnote",
+     "createFootnote",
+     "createFootnote"
+    ],
+    "seconds": 0.710732,
+    "ok": true,
+    "timestamps": [
+     "1791214435.386170000",
+     "1791214436.096902000"
+    ],
+    "tool_only_seconds": 0.565,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "insertText",
+     "insertText",
+     "insertText",
+     "insertText"
+    ],
+    "seconds": 0.567002,
+    "ok": true,
+    "timestamps": [
+     "1791214436.305360000",
+     "1791214436.872362000"
+    ],
+    "tool_only_seconds": 0.469,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs client; raw before/after JSON",
+  "evidence_files": [
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/footnote-edit-and-create-1.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/footnote-edit-and-create-2.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/footnote-edit-and-create-3.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/footnote-edit-and-create-4.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/footnote-edit-and-create-5.json"
+  ]
+ },
+ {
+  "id": "full-replace-of-anchored-phrase",
+  "status": "ran",
+  "summary": "replaceAllText preserved live comment anchors through complete phrase replacement and carried the link onto new words. Explicit delete-then-insert and insertion-at-start-then-delete detached comments and lost links; inserting inside the old range before deleting old characters preserved both. Comment quote snapshots remained the old wording even when live anchors covered replacements.",
+  "findings": [
+   {
+    "claim": "Full replaceAllText preserves exact comment coverage and link",
+    "result": "yes",
+    "detail": "pilot teams[141,152)→early adopters[143,157); project page[173,185)→launch site[178,189); Status 1[75,83)→Open risks[75,85); Friday[352,358)→Wednesday[356,365). All original anchor IDs retained with new ranges. launch site still linked to https://example.com/project. PlainTextQuote still reported old phrases."
+   },
+   {
+    "claim": "Delete/insert ordering affects anchoring",
+    "result": "yes",
+    "detail": "Three child-tab linked/commented phrases were entirely replaced with 'replacement'. DELETE THEN INSERT and INSERT THEN DELETE(at old start) left comment anchorIds on threads but no corresponding live ranges, and replacement textStyle had bold only/no link. Insertion at old start+1 followed by deletion of old suffix and prefix retained anchor kix.jfeiva1j79lk [25,36), bold and https://example.com/order."
+   },
+   {
+    "claim": "Whole replacement preserves mixed inline formatting distinctions",
+    "result": "partly",
+    "detail": "replaceAllText early adopters inherited original first-character red/Georgia/highlight; original ' teams' had bold=true but new full phrase did not. Existing link on the first character of project page carried to all of launch site."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "replaceAllText",
+     "replaceAllText",
+     "replaceAllText",
+     "replaceAllText"
+    ],
+    "seconds": 19.375,
+    "wall_before": "1791213680.348736000",
+    "wall_after": "1791213699.824060000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "insertText",
+     "deleteContentRange",
+     "deleteContentRange",
+     "insertText",
+     "deleteContentRange",
+     "deleteContentRange",
+     "insertText"
+    ],
+    "seconds": 1.009,
+    "wall_before": "1791213722.769783000",
+    "wall_after": "1791213723.882854000",
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python preview; full-before/replaceAll/order-before/order-after"
+ },
+ {
+  "id": "header-footer-edit-and-create",
+  "status": "partial",
+  "summary": "Native segment-aware text, style, link and image writes worked in headers and footers, including a section-specific header and Appendix-only footer. Editing company text preserved the existing logo object. Page-number fields and a true first-page header have no creation request and were not run; toggling first-page mode did not create a first-page header.",
+  "findings": [
+   {
+    "claim": "Edit header text preserves neighbouring image",
+    "result": "yes",
+    "detail": "Default header kix.9i3132dsksxi 'Launch notes · internal'→'Updated company · internal'; first15 characters bold and linked to https://example.com/company. Logo kix.f2v7scjmjk54 stayed the same object, width68PT; text moved its index23→26."
+   },
+   {
+    "claim": "Create section header and tab-specific footers",
+    "result": "yes",
+    "detail": "createFooter at sectionBreakLocation index0/tabId produced main kix.19ne3qr87orl ('Confidential', italic) and Appendix kix.7q9l9vid5mj1 ('Appendix footer' plus34PT image). NEXT_PAGE break at384 got independent default header containing 'Section two header'."
+   },
+   {
+    "claim": "Create page-number field / first-page header",
+    "result": "no",
+    "detail": "Request schema has no insertAutoText/page-number-field operation; createHeader/CreateFooter only accept DEFAULT. updateDocumentStyle useFirstPageHeaderFooter:true succeeded, but firstPageHeaderId remained absent. First-page-only edit and preserving an existing page-number field: not-run: needs UI fixture."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "mcp__codex_apps__google_drive_copy_file",
+    "requests": [],
+    "seconds": 3.537931,
+    "ok": true,
+    "timestamps": [
+     "1791214438.259235000",
+     "1791214441.797166000"
+    ],
+    "tool_only_seconds": 3.468,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "createFooter",
+     "createFooter",
+     "insertInlineImage",
+     "insertSectionBreak",
+     "updateDocumentStyle"
+    ],
+    "seconds": 1.261284,
+    "ok": true,
+    "timestamps": [
+     "1791214454.453041000",
+     "1791214455.714325000"
+    ],
+    "tool_only_seconds": 1.189,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "createHeader",
+     "insertText",
+     "insertText",
+     "deleteContentRange",
+     "insertText",
+     "updateTextStyle"
+    ],
+    "seconds": 0.912819,
+    "ok": true,
+    "timestamps": [
+     "1791214481.863485000",
+     "1791214482.776304000"
+    ],
+    "tool_only_seconds": 0.784,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "insertText",
+     "updateTextStyle",
+     "insertInlineImage"
+    ],
+    "seconds": 1.435732,
+    "ok": true,
+    "timestamps": [
+     "1791214482.929296000",
+     "1791214484.365028000"
+    ],
+    "tool_only_seconds": 1.357,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs client; raw before/after JSON",
+  "evidence_files": [
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/header-footer-edit-and-create-1.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/header-footer-edit-and-create-2.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/header-footer-edit-and-create-3.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/header-footer-edit-and-create-4.json"
+  ]
+ },
+ {
+  "id": "insert-images-and-chips",
+  "status": "partial",
+  "summary": "Public-URL images inserted at requested widths in a separate paragraph, a table cell and the Sources child tab. Date and file chips became native elements in a heading, cell and checklist. Alt text has no native write route here; local/private-Drive image staging and person mentions were not attempted.",
+  "findings": [
+   {
+    "claim": "Insert URL image at precise paragraph/cell/child locations",
+    "result": "yes",
+    "detail": "Using existing public Google logo URL: body image kix.joojt48v666m120x40.588235PT in its own paragraph below Launch notes; cell image kix.pn9avw3xbdxx50x16.911765PT after Draft; Sources image kix.ypc6vwyylwq5 80x27.058824PT in own paragraph. Existing kix.tkt9472uql02 remained136x46PT. No description/alt field appeared."
+   },
+   {
+    "claim": "Native date/file chips",
+    "result": "yes",
+    "detail": "Heading dateElement at13..14 displays2026-10-05 from ISO8601 timestamp. Table richLink at343..344 resolves synthetic fixture title with mimeType application/vnd.google-apps.kix. Sources checkbox paragraph has richLink3..4 and dateElement4..5. No person chip inserted per no-mention rule."
+   },
+   {
+    "claim": "Alt text and private/local image inputs",
+    "result": "partly",
+    "detail": "insertInlineImage has uri/objectSize/location only; no alt-text or embedded-object update request exists. Connector sidecar image_uris supports local files but local-image insertion is prohibited by task, so not-run. Docs URI input requires public reachability; private Drive-file insertion/public staging not run, no permissions changed."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "mcp__codex_apps__google_drive_copy_file",
+    "requests": [],
+    "seconds": 4.222368,
+    "ok": true,
+    "timestamps": [
+     "1791214641.655793000",
+     "1791214645.878161000"
+    ],
+    "tool_only_seconds": 4.145,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "insertInlineImage",
+     "insertRichLink",
+     "insertText",
+     "insertInlineImage",
+     "insertDate",
+     "insertText",
+     "insertInlineImage",
+     "createParagraphBullets",
+     "insertDate",
+     "insertRichLink"
+    ],
+    "seconds": 1.390642,
+    "ok": true,
+    "timestamps": [
+     "1791214670.669972000",
+     "1791214672.060614000"
+    ],
+    "tool_only_seconds": 1.317,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs client; raw before/after JSON",
+  "evidence_files": [
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/insert-images-and-chips-1.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/insert-images-and-chips-2.json"
+  ]
+ },
+ {
+  "id": "insert-list-item-into-existing-list",
+  "status": "partial",
+  "summary": "Inserting newline-delimited items inside existing lists retained list IDs and nesting for numbered, nested bullet, lettered sublist and checkbox items. The native data supports continued numbering rather than a restarted list. Checked-state preservation and rendered markers were not run because they require UI.",
+  "findings": [
+   {
+    "claim": "Middle/end numbered items join existing list",
+    "result": "yes",
+    "detail": "Confirm the schedule / Middle step / Send the summary / Final step all retained listId kix.6b6lehltb8d4 with DECIMAL startNumber1. Added middle at index300, end by inserting '\\nFinal step' before original final item's newline316."
+   },
+   {
+    "claim": "Nested, lettered and checkbox insertions inherit list properties",
+    "result": "yes",
+    "detail": "New nested item inherited kix.2xh36siddpnb nesting1. Sources New lettered item inherited kix.c2ntmr9sq1vj nesting1 (ALPHA); New checklist item inherited checkbox list kix.cnfcj9f98fjz. Neighbour texts were not retyped."
+   },
+   {
+    "claim": "Checked items stay checked / rendered numbers verified",
+    "result": "partly",
+    "detail": "No checked-state write/read field in exposed request model; checkbox setup was unchecked. Checked fixture and screenshots not-run: needs UI; browser prohibited."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "mcp__codex_apps__google_drive_copy_file",
+    "requests": [],
+    "seconds": 4.047843,
+    "ok": true,
+    "timestamps": [
+     "1791214557.689943000",
+     "1791214561.737786000"
+    ],
+    "tool_only_seconds": 3.975,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "insertText",
+     "insertText",
+     "insertText",
+     "insertText",
+     "insertText"
+    ],
+    "seconds": 0.910743,
+    "ok": true,
+    "timestamps": [
+     "1791214581.026837000",
+     "1791214581.937580000"
+    ],
+    "tool_only_seconds": 0.831,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs client; raw before/after JSON",
+  "evidence_files": [
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/insert-list-item-into-existing-list-1.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/insert-list-item-into-existing-list-2.json"
+  ]
+ },
+ {
+  "id": "insert-new-paragraph-at-anchor",
+  "status": "partial",
+  "summary": "Paragraphs inherit the paragraph style at their insertion location, which can unexpectedly make a new paragraph a heading. Explicit native style, bullet and table requests succeeded without retyping anchors. Section-end and all combinations of anchor/block type were not exhaustively tested.",
+  "findings": [
+   {
+    "claim": "New paragraphs inherit destination styles",
+    "result": "yes",
+    "detail": "Insert before Status 1 at 75 created 'Between paragraphs.\\n' as HEADING_2 h.f2w9iybjuiaj; insert after table/before Notes at 383 created 'After-table paragraph.\\n' as HEADING_2 h.wx5uj6xy62g4. At 14 and 84 new paragraphs were NORMAL_TEXT, inheriting Georgia and foreground RGB(0.8,0.101960786,0.101960786), yellow highlight. After-list paragraph at 317 was NORMAL_TEXT without a bullet."
+   },
+   {
+    "claim": "Explicit heading/list/table creation preserves anchors",
+    "result": "yes",
+    "detail": "New heading candidate changed to HEADING_3; After-heading paragraph received native bullet; 2x2 native table inserted between paragraphs at index98. Original Launch notes/Status 1/Notes heading IDs remain h.b4u630uz69jh/h.5g6j5365iucy/h.laxddr9eoewm and original texts remain."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "mcp__codex_apps__google_drive_copy_file",
+    "requests": [],
+    "seconds": 3.16671,
+    "ok": true,
+    "timestamps": [
+     "1791214098.816189000",
+     "1791214101.982899000"
+    ],
+    "tool_only_seconds": 3.094,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "insertText",
+     "insertText",
+     "insertText",
+     "insertText",
+     "insertText"
+    ],
+    "seconds": 0.642173,
+    "ok": true,
+    "timestamps": [
+     "1791214103.079406000",
+     "1791214103.721579000"
+    ],
+    "tool_only_seconds": 0.564,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "updateParagraphStyle",
+     "createParagraphBullets",
+     "insertTable"
+    ],
+    "seconds": 0.903398,
+    "ok": true,
+    "timestamps": [
+     "1791214124.364777000",
+     "1791214125.268175000"
+    ],
+    "tool_only_seconds": 0.826,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs client; raw before/after JSON",
+  "evidence_files": [
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/insert-new-paragraph-at-anchor-1.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/insert-new-paragraph-at-anchor-2.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/insert-new-paragraph-at-anchor-3.json"
+  ]
+ },
+ {
+  "id": "markdown-update-applies-minimal-changes",
+  "status": "definition",
+  "summary": "No Markdown update/import/diff input exists: batch_update_document takes raw native requests, so it provides no automatic minimal Markdown reconciliation or preservation guarantee.",
+  "findings": [
+   {
+    "claim": "Markdown update with automatic minimal changes",
+    "result": "no",
+    "detail": "batch_update_document accepts requests/write_control/image_uris, with no Markdown snapshot or reconciliation mode. import_document accepts a source_file in DOC/DOCX/ODT/RTF/HTML/TXT and creates a new file; update_file replaces raw bytes but explicitly excludes native Google Workspace content. None defines updating an existing Doc from Markdown."
+   }
+  ],
+  "calls": [],
+  "copy": null,
+  "inspected_with": "definitions.json",
+  "evidence_files": []
+ },
+ {
+  "id": "markdown-update-preview-and-conflicts",
+  "status": "definition",
+  "summary": "No Markdown update, preview/diff or apply-as-suggestions route exists. Raw native batch_update_document separately exposes requiredRevisionId for stale-write failure and targetRevisionId for provider merging; neither is a Markdown preview or loss report.",
+  "findings": [
+   {
+    "claim": "Markdown preview/conflict/loss report or suggestion write",
+    "result": "no",
+    "detail": "No tool accepts Markdown or preview/suggestion-mode parameters. Request schema has no suggestion creation/accept/reject operation. Raw write_control supports requiredRevisionId/targetRevisionId only; no live Markdown conflict probe is possible."
+   }
+  ],
+  "calls": [],
+  "copy": null,
+  "inspected_with": "definitions.json",
+  "evidence_files": []
+ },
+ {
+  "id": "markdown-update-structural-changes",
+  "status": "definition",
+  "summary": "No Markdown update operation exists, so the connector cannot automatically translate Markdown structural changes into minimal native edits or report what a Markdown roundtrip loses.",
+  "findings": [
+   {
+    "claim": "Native structural reconciliation from Markdown input",
+    "result": "no",
+    "detail": "batch_update_document requires caller-authored Docs requests; no Markdown parser, structural diff or update-from-file tool is exposed."
+   }
+  ],
+  "calls": [],
+  "copy": null,
+  "inspected_with": "definitions.json",
+  "evidence_files": []
+ },
+ {
+  "id": "modify-existing-images",
+  "status": "partial",
+  "summary": "Native replaceImage preserved object IDs, sizes and an image-only comment anchor across body, table-cell and child-tab images. Paragraph centering and targeted image deletion worked. Existing-image resize, arbitrary crop, wrap and alt-text updates have no exposed native request; custom alt/crop preservation was not tested.",
+  "findings": [
+   {
+    "claim": "Replace image in place preserves ID, size and anchor",
+    "result": "yes",
+    "detail": "CENTER_CROP replacement with the same permitted public logo URL retained body kix.tkt9472uql02 136x46PT, cell kix.6szrm3ntlwpa50x16.911765PT and child kix.q56k3jfmkwy6 80x27.058824PT; crop remained{}. Image-only comment [comment-id] retained live anchor kix.c0g5bgysoy9g range390..391. This checks native replacement mechanics, not different-source aspect ratios or pre-existing alt/crop."
+   },
+   {
+    "claim": "Centre paragraph and delete one image",
+    "result": "yes",
+    "detail": "updateParagraphStyle alignment:CENTER affected body paragraph390..415 (image plus Open questions text) and Sources paragraph1..47. deleteContentRange[345,346) removed only table-cell image; other image IDs remained in final snapshot."
+   },
+   {
+    "claim": "Resize/crop/wrap/alt text without reinsertion",
+    "result": "no",
+    "detail": "Docs Request schema has no updateEmbeddedObject/inlineObject/imageProperties request; replaceImage only has CENTER_CROP and preserves original bounds. InsertInlineImage size applies at creation only. Non-default crop/alt fixture not available without UI/import; no misleading preservation claim."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "mcp__codex_apps__google_drive_copy_file",
+    "requests": [],
+    "seconds": 3.250392,
+    "ok": true,
+    "timestamps": [
+     "1791214698.430794000",
+     "1791214701.681186000"
+    ],
+    "tool_only_seconds": 3.17,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "replaceImage",
+     "replaceImage",
+     "replaceImage",
+     "updateParagraphStyle",
+     "updateParagraphStyle"
+    ],
+    "seconds": 1.316009,
+    "ok": true,
+    "timestamps": [
+     "1791214745.574683000",
+     "1791214746.890692000"
+    ],
+    "tool_only_seconds": 1.242,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "deleteContentRange"
+    ],
+    "seconds": 0.910423,
+    "ok": true,
+    "timestamps": [
+     "1791214748.727951000",
+     "1791214749.638374000"
+    ],
+    "tool_only_seconds": 0.833,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs client; raw before/after JSON",
+  "evidence_files": [
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/modify-existing-images-1.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/modify-existing-images-2.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/modify-existing-images-3.json"
+  ]
+ },
+ {
+  "id": "move-paragraphs-and-sections",
+  "status": "definition",
+  "summary": "There is no native move/cut/copy content request for paragraphs, sections, list items or ranges across tabs/documents; the connector exposes raw insert/delete/style requests only.",
+  "findings": [
+   {
+    "claim": "Native content move preserving identity",
+    "result": "no",
+    "detail": "Docs Request schema has insertText/deleteContentRange and tab reordering, but no moveText/moveRange/copyRange/content-move operation. Agent reconstruction would need separate native requests and cannot claim automatic preservation of heading IDs, comments, suggestions, chips or objects; no reconstruction was run."
+   }
+  ],
+  "calls": [],
+  "copy": null,
+  "inspected_with": "definitions.json and installed gdoc Docs discovery Request schema",
+  "evidence_files": []
+ },
+ {
+  "id": "partial-replace-inside-styled-linked-commented-span",
+  "status": "ran",
+  "summary": "Preservation depends on the raw request chosen: replaceAllText preserved the styled link and full comment anchor, while deleteContentRange then insertText dropped styles on the replacement and shrank the anchor to surviving characters. Both changed only the selected word.",
+  "findings": [
+   {
+    "claim": "delete then insert preserves formatting and anchor coverage",
+    "result": "partly",
+    "detail": "'pilot teams' t.0[141,152), bold=true/red≈0.8/link=https://example.com/pilot, became 'pilot groups'; 'pilot ' retained styling, 'groups' textStyle={}, anchor kix.r42tclgucm95 shrank from [141,152) to [141,147)."
+   },
+   {
+    "claim": "replaceAllText preserves styling and anchor coverage",
+    "result": "yes",
+    "detail": "After resetting full-span bold/red/link and adding new full-span comment, replaceAllText 'groups'→'squads' changed one occurrence; run ' squads' remained bold=true, red=0.8 and linked; anchor kix.6brf188clkg9 remained [141,153) covering 'pilot squads'."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "deleteContentRange",
+     "insertText"
+    ],
+    "seconds": 0.798,
+    "wall_before": "1791213106.891805000",
+    "wall_after": "1791213107.759687000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "replaceAllText"
+    ],
+    "seconds": 0.525,
+    "wall_before": "1791213125.178710000",
+    "wall_after": "1791213125.777565000",
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python preview read; partial-before/after and partial-replaceAll-before/after"
+ },
+ {
+  "id": "publish-markdown-footnotes",
+  "status": "definition",
+  "summary": "No documented Markdown publishing route: import_document accepts DOC/DOCX/ODT/RTF/HTML/TXT, while upload_file stores raw files and batch_update_document takes native requests.",
+  "findings": [
+   {
+    "claim": "Built-in Markdown publishing/conversion for this probe",
+    "result": "no",
+    "detail": "The import_document definition lists DOC/DOCX/ODT/RTF/HTML/TXT, not Markdown; source_file MIME must be an accepted document-import MIME. upload_file is raw upload, create_file creates an empty native document, and batch_update_document requires native requests. Converting Markdown to HTML/DOCX or native requests externally would measure that converter, not a documented connector Markdown parser. No live Markdown import attempted."
+   }
+  ],
+  "calls": [],
+  "copy": null,
+  "inspected_with": "definitions.json",
+  "evidence_files": []
+ },
+ {
+  "id": "publish-markdown-links-and-images",
+  "status": "definition",
+  "summary": "No documented Markdown publishing route: import_document accepts DOC/DOCX/ODT/RTF/HTML/TXT, while upload_file stores raw files and batch_update_document takes native requests.",
+  "findings": [
+   {
+    "claim": "Built-in Markdown publishing/conversion for this probe",
+    "result": "no",
+    "detail": "The import_document definition lists DOC/DOCX/ODT/RTF/HTML/TXT, not Markdown; source_file MIME must be an accepted document-import MIME. upload_file is raw upload, create_file creates an empty native document, and batch_update_document requires native requests. Converting Markdown to HTML/DOCX or native requests externally would measure that converter, not a documented connector Markdown parser. No live Markdown import attempted."
+   }
+  ],
+  "calls": [],
+  "copy": null,
+  "inspected_with": "definitions.json",
+  "evidence_files": []
+ },
+ {
+  "id": "publish-markdown-lists",
+  "status": "definition",
+  "summary": "No documented Markdown publishing route: import_document accepts DOC/DOCX/ODT/RTF/HTML/TXT, while upload_file stores raw files and batch_update_document takes native requests.",
+  "findings": [
+   {
+    "claim": "Built-in Markdown publishing/conversion for this probe",
+    "result": "no",
+    "detail": "The import_document definition lists DOC/DOCX/ODT/RTF/HTML/TXT, not Markdown; source_file MIME must be an accepted document-import MIME. upload_file is raw upload, create_file creates an empty native document, and batch_update_document requires native requests. Converting Markdown to HTML/DOCX or native requests externally would measure that converter, not a documented connector Markdown parser. No live Markdown import attempted."
+   }
+  ],
+  "calls": [],
+  "copy": null,
+  "inspected_with": "definitions.json",
+  "evidence_files": []
+ },
+ {
+  "id": "publish-markdown-tables",
+  "status": "definition",
+  "summary": "No documented Markdown publishing route: import_document accepts DOC/DOCX/ODT/RTF/HTML/TXT, while upload_file stores raw files and batch_update_document takes native requests.",
+  "findings": [
+   {
+    "claim": "Built-in Markdown publishing/conversion for this probe",
+    "result": "no",
+    "detail": "The import_document definition lists DOC/DOCX/ODT/RTF/HTML/TXT, not Markdown; source_file MIME must be an accepted document-import MIME. upload_file is raw upload, create_file creates an empty native document, and batch_update_document requires native requests. Converting Markdown to HTML/DOCX or native requests externally would measure that converter, not a documented connector Markdown parser. No live Markdown import attempted."
+   }
+  ],
+  "calls": [],
+  "copy": null,
+  "inspected_with": "definitions.json",
+  "evidence_files": []
+ },
+ {
+  "id": "publish-markdown-text-headings-blocks",
+  "status": "definition",
+  "summary": "No documented Markdown publishing route: import_document accepts DOC/DOCX/ODT/RTF/HTML/TXT, while upload_file stores raw files and batch_update_document takes native requests.",
+  "findings": [
+   {
+    "claim": "Built-in Markdown publishing/conversion for this probe",
+    "result": "no",
+    "detail": "The import_document definition lists DOC/DOCX/ODT/RTF/HTML/TXT, not Markdown; source_file MIME must be an accepted document-import MIME. upload_file is raw upload, create_file creates an empty native document, and batch_update_document requires native requests. Converting Markdown to HTML/DOCX or native requests externally would measure that converter, not a documented connector Markdown parser. No live Markdown import attempted."
+   }
+  ],
+  "calls": [],
+  "copy": null,
+  "inspected_with": "definitions.json",
+  "evidence_files": []
+ },
+ {
+  "id": "read-change-detection-and-revisions",
+  "status": "ran",
+  "summary": "Reads return a changing revision ID but no automatic 'since last read' warning or diff; comments/replies require a separate read and comparison. Revision listing includes editor/time and previousRevisionId. Fetching revision 1 returned the original text while the live document had collaborator edits and suggestions.",
+  "findings": [
+   {
+    "claim": "Change detection and comment updates",
+    "result": "partly",
+    "detail": "Before revisionId ANLCKQm-Kh8a... changed to ANLCKQl0RrAf... after gdoc replaced pilot teams→collaborator teams and added suggestion [suggestion-id]. Read returns fresh text but no changed flag, diff, modifiedTime, comment or reply; separate comments read added [comment-id] and reply [comment-id] (createdTime 2026-10-05T15:21:00.048Z)."
+   },
+   {
+    "claim": "Revision history and previous text",
+    "result": "yes",
+    "detail": "Before: revision1 only. After: revisions1 and5, currentRevisionId:5 previousRevisionId:1, modifiedTime and lastModifyingUser the test account/[email]. fetch revision1 returned 'pilot teams' and 'Open questions go here.' rather than current 'collaborator teams' and suggested replacement."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "copy_file",
+    "requests": [],
+    "seconds": 3.431228,
+    "ok": true,
+    "evidence": "logs/worker1-revisions-copy.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 0.726234,
+    "ok": true,
+    "evidence": "logs/worker1-revisions-before.json"
+   },
+   {
+    "tool": "get_document_comments",
+    "requests": [],
+    "seconds": 0.56248,
+    "ok": true,
+    "evidence": "logs/worker1-revisions-comments-before.json"
+   },
+   {
+    "tool": "list_file_revisions",
+    "requests": [],
+    "seconds": 0.595685,
+    "ok": true,
+    "evidence": "logs/worker1-revisions-list-before.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 1.129555,
+    "ok": true,
+    "evidence": "logs/worker1-revisions-after.json"
+   },
+   {
+    "tool": "get_document_comments",
+    "requests": [],
+    "seconds": 0.854505,
+    "ok": true,
+    "evidence": "logs/worker1-revisions-comments-after.json"
+   },
+   {
+    "tool": "list_file_revisions",
+    "requests": [],
+    "seconds": 0.913047,
+    "ok": true,
+    "evidence": "logs/worker1-revisions-list-after.json"
+   },
+   {
+    "tool": "fetch_file_revision",
+    "requests": [],
+    "seconds": 1.656319,
+    "ok": true,
+    "evidence": "logs/worker1-revisions-fetch.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc edit/suggest/reply/comment; gdoc revisions"
+ },
+ {
+  "id": "read-character-and-paragraph-formatting",
+  "status": "ran",
+  "summary": "Full get_document preserved every tested character and paragraph property at native ranges, including colours/fonts, baseline offsets, alignment, indentation and RTL. It distinguishes a real Summary heading from a bold normal Summary paragraph. get_document_text discards character and paragraph formatting except named style.",
+  "findings": [
+   {
+    "claim": "Character formatting and exact extents",
+    "result": "yes",
+    "detail": "Strike [54,60) strikethrough:true; Under[61,66) underline:true; 2[69,70) SUBSCRIPT; ²[72,73) SUPERSCRIPT; Highlight\\n[74,84) red foreground/yellow background. Existing Georgia/Roboto Mono/Arial runs, bold pilot-team runs and italic Book title footnote runs are preserved."
+   },
+   {
+    "claim": "Paragraph properties and heading distinction",
+    "result": "yes",
+    "detail": "Probe title[1,13) TITLE; Probe subtitle[13,28) SUBTITLE; Summary[28,36) HEADING_2 with headingId h.jdn9zdha2yki; Summary[36,44) NORMAL_TEXT plus bold:true. Centered REVISED paragraph[84,112) alignment:CENTER,lineSpacing:150; Indented paragraph[112,131) indentStart:36PT,indentEnd:18PT; Arabic[131,145) direction:RIGHT_TO_LEFT."
+   },
+   {
+    "claim": "Convenience text includes these properties",
+    "result": "no",
+    "detail": "Text paragraph objects only have text/startIndex/endIndex/tabId/namedStyleType/isListItem; no character run styling, alignment, indentation, spacing or direction."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.591571,
+    "ok": true,
+    "evidence": "logs/worker1-links-full.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 0.58616,
+    "ok": true,
+    "evidence": "logs/worker1-lists-text.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc raw rich-links-inspection snapshot versus app full/text reads"
+ },
+ {
+  "id": "read-chips-equations-unknown",
+  "status": "partial",
+  "summary": "Full get_document exposes person chips with type, ID, name, email and one-unit native positions. get_document_text silently drops the person-chip labels, while generic fetch flattens them to names. Date/file/dropdown chips, equations and unknown embeds were not-run: needs UI.",
+  "findings": [
+   {
+    "claim": "Person chip type and referent",
+    "result": "yes",
+    "detail": "Rich full read includes person at[518,519) id kix.pzeuey4hxa7y and[519,520) id kix.odnbmuu72vvg; both name the test account, email [email]. These were inherited fixture chips, not inserted/mentioned by this probe."
+   },
+   {
+    "claim": "Convenience reads mark chips",
+    "result": "no",
+    "detail": "get_document_text returns 'This document tracks the launch. Last updated by the team.' with both chip labels omitted. Generic fetch returns 'Last updated by the teamthe test accountthe test account.' as plain names without chip type or referent metadata."
+   },
+   {
+    "claim": "Other chip/equation/unknown types",
+    "result": "partly",
+    "detail": "No date chip, file chip, dropdown, equation or unknown embed was provisioned; not-run: needs UI. No inference made from raw object passthrough about untested types."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.626692,
+    "ok": true,
+    "evidence": "logs/worker1-images-full.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 0.58616,
+    "ok": true,
+    "evidence": "logs/worker1-lists-text.json"
+   },
+   {
+    "tool": "fetch",
+    "requests": [],
+    "seconds": 1.336797,
+    "ok": true,
+    "evidence": "logs/worker1-images-fetch.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc raw fixture and rich copy structure; app full/text/fetch"
+ },
+ {
+  "id": "read-comment-anchors",
+  "status": "partial",
+  "summary": "Comment reads expose stored quotes and opaque anchor IDs, not current anchored text or its location. Deleted/replaced anchors still look attached, while a document-level comment is only distinguishable by null anchor/quote. UI-only repeated-occurrence, image and footnote anchors were not run.",
+  "findings": [
+   {
+    "claim": "Live edited anchor text is returned",
+    "result": "no",
+    "detail": "After inserting ' REVISED' inside anchored 'Centered paragraph', gdoc reports 'Centered REVISED paragraph'; connector comment still quotes 'Centered paragraph' with opaque kix anchor. No current text, start/end, tab or location fields."
+   },
+   {
+    "claim": "Detached anchor identified",
+    "result": "no",
+    "detail": "gdoc cat marks [comment-id] and [comment-id] [detached] after full anchor deletion/replacement. Connector returns original quotes 'Anchor deleted original' and 'Anchor edited original', non-null anchor IDs, deleted:false, with no detached indicator."
+   },
+   {
+    "claim": "Cell and child-tab anchors located; document-level marked",
+    "result": "partly",
+    "detail": "Cell second and Sources: supporting comments both return stored text and opaque kix anchor only, no table coordinates or tabId. Document-level [comment-id] returns anchor:null and quotedFileContent:null, but no explicit document-level classification."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "get_document_comments",
+    "requests": [],
+    "seconds": 0.519862,
+    "ok": true,
+    "evidence": "logs/worker1-anchors-fixture.json"
+   },
+   {
+    "tool": "copy_file",
+    "requests": [],
+    "seconds": 3.547907,
+    "ok": true,
+    "evidence": "logs/worker1-rich-copy.json"
+   },
+   {
+    "tool": "get_document_comments",
+    "requests": [],
+    "seconds": 0.584675,
+    "ok": true,
+    "evidence": "logs/worker1-anchors-rich.json"
+   },
+   {
+    "tool": "get_document_comments",
+    "requests": [],
+    "seconds": 0.558485,
+    "ok": true,
+    "evidence": "logs/worker1-anchors-live-changed.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc comment/edit setup, cat --comments --all; app get_document_comments"
+ },
+ {
+  "id": "read-footnotes",
+  "status": "ran",
+  "summary": "Full get_document pairs footnote references with IDs, displayed numbers and positions, and returns formatted/link-bearing bodies per tab. All four footnotes were present, including one in a table cell and one in Sources. get_document_text omits both reference markers and footnote bodies.",
+  "findings": [
+   {
+    "claim": "Reference/body pairing and displayed number",
+    "result": "yes",
+    "detail": "Reference objects include footnoteId and footnoteNumber. Four references map to bodies: new centered paragraph footnote1 kix.z8bnbs9l77tj, original this-week footnote2 kix.1l1ugpn1gon9, table-cell footnote3 kix.ikk8lvo0vcbr, and Sources footnote kix.2j16xsfr5vk. Exact ranges/number values are in full-call evidence."
+   },
+   {
+    "claim": "Body formatting and links",
+    "result": "yes",
+    "detail": "Added bodies 'Book title and source.' contain italic Book title[1,11) and source link[16,22) https://example.com/footnote, preserved in tab footnotes maps; original body 'Pilot teams were chosen in March.' remains."
+   },
+   {
+    "claim": "Text convenience read complete for footnotes",
+    "result": "no",
+    "detail": "Plain paragraphs omit the superscript references and no footnotes/body map is returned. Original 'this week' is followed directly by punctuation; body texts absent."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.931009,
+    "ok": true,
+    "evidence": "logs/worker1-layout-complete.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 0.58616,
+    "ok": true,
+    "evidence": "logs/worker1-lists-text.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python footnote setup; raw structure; gdoc cat --comments --all footnote rendering"
+ },
+ {
+  "id": "read-headers-footers-layout",
+  "status": "partial",
+  "summary": "Full get_document includes header/footer bodies and links, section/page breaks, dimensions/margins, orientation, columns and pageless mode per tab. A per-section header was returned with its section association. Page-number fields and separate first-page header content were not-run: needs UI.",
+  "findings": [
+   {
+    "claim": "Header/footer content and section association",
+    "result": "yes",
+    "detail": "Default header kix.9i3132dsksxi text 'Launch notes · internal\\n', footer kix.cvjvqc6zfuid 'Synthetic footer link\\n', both with stored web links. Section break[892,893) associates defaultHeaderId:kix.mhvikvrjmoxv, whose body is 'Landscape section header\\n'."
+   },
+   {
+    "claim": "Layout properties preserved",
+    "result": "yes",
+    "detail": "PAGES read returns pageSize 612×792PT; marginTop/Bottom54PT,left/right72PT; NEXT_PAGE section has flipPageOrientation:true and two columnProperties of width315PT with paddingEnd18PT/0PT. pageBreak element at[893,894) is preserved."
+   },
+   {
+    "claim": "Pageless and per-tab properties",
+    "result": "yes",
+    "detail": "After setup switches first tab to PAGELESS, full read returns tabs[0].documentStyle.documentFormat.documentMode:PAGELESS while other five tabs remain PAGES."
+   },
+   {
+    "claim": "First-page variants and page-number field",
+    "result": "partly",
+    "detail": "pageNumberStart:1 is returned, but no actual page-number field or first-page header specimen provisioned. CreateHeaderRequest setup schema only supports DEFAULT; these subcases not-run: needs UI."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.897353,
+    "ok": true,
+    "evidence": "logs/worker1-layout-full.json"
+   },
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.931009,
+    "ok": true,
+    "evidence": "logs/worker1-layout-complete.json"
+   },
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.546221,
+    "ok": true,
+    "evidence": "logs/worker1-layout-pageless.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python API raw layout/pageless snapshots"
+ },
+ {
+  "id": "read-images-drawings-charts",
+  "status": "partial",
+  "summary": "Full get_document retains inline-image anchors and object metadata in body, table cells and headers, including dimensions, source/content URLs and crop properties. Embedded bytes can be obtained indirectly by raw DOCX fetch and archive extraction, whereas text fetch omits image content. Alt text, nonempty crop, positioned images, drawings and linked charts were not-run: needs UI.",
+  "findings": [
+   {
+    "claim": "Inline object positions and properties",
+    "result": "yes",
+    "detail": "Three inline objects returned: cell kix.89kbw1m0m0yx at[860,861), body kix.tkt9472uql02 at[902,903), header kix.e4qj4x7y2oln at[23,24). Original size136×46PT; added cell/header68×23PT. Each object has contentUri, sourceUri public Google logo URL, cropProperties:{} and margins."
+   },
+   {
+    "claim": "Embedded image bytes",
+    "result": "partly",
+    "detail": "get_document supplies contentUri but no inline bytes or dedicated image download. Raw DOCX fetch returned b64_string length333836, file_size_bytes250377. Independent ZIP extraction found word/media/image1.png,5969 bytes,PNG signature89504e470d0a1a0a (three uses of the same source image are deduplicated)."
+   },
+   {
+    "claim": "Text read marks images and exotic objects",
+    "result": "no",
+    "detail": "Generic text fetch renders image locations as blank whitespace, not informative placeholders. No specimens for wrapped images, alt text, changed crop, drawing labels or chart source; those subcases not-run: needs UI."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.626692,
+    "ok": true,
+    "evidence": "logs/worker1-images-full.json"
+   },
+   {
+    "tool": "fetch",
+    "requests": [],
+    "seconds": 1.336797,
+    "ok": true,
+    "evidence": "logs/worker1-images-fetch.json"
+   },
+   {
+    "tool": "fetch",
+    "requests": [],
+    "seconds": 2.054219,
+    "ok": true,
+    "evidence": "logs/worker1-images-raw-docx.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc images --json and raw structure; DOCX archive inspection"
+ },
+ {
+  "id": "read-link-destinations",
+  "status": "partial",
+  "summary": "Full get_document preserves link labels, exact text ranges and destinations across body, table, list, header, footer and footnote segments, including heading and tab targets. Text reads strip all link destinations. Bookmark links were not-run: needs UI.",
+  "findings": [
+   {
+    "claim": "External and internal link targets",
+    "result": "yes",
+    "detail": "'Heading link' [200,212) returns link.heading={id:h.jdn9zdha2yki,tabId:t.0}; 'Tab link' [215,223) returns tabId:t.s26rxitwwju3. Mail link preserves mailto:[email]; Doc link points to the separate short fixture; both 'Repeated phrase' runs preserve https://example.com/repeated."
+   },
+   {
+    "claim": "Links in every tested segment",
+    "result": "yes",
+    "detail": "Friday cell → https://example.com/cell; Owners list → https://example.com/list; header Launch → /header; footer footer → /footer; footnote source [16,22) → /footnote in main and child Sources tabs. Project page remains split across two formatted runs with same URL."
+   },
+   {
+    "claim": "Text convenience read retains destinations",
+    "result": "no",
+    "detail": "get_document_text returns only displayed paragraph text and indices, with no link map or URL per run. Bookmark target not tested because bookmark insertion needs UI."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.591571,
+    "ok": true,
+    "evidence": "logs/worker1-links-full.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 0.58616,
+    "ok": true,
+    "evidence": "logs/worker1-lists-text.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs API setup/raw snapshot; app full/text reads"
+ },
+ {
+  "id": "read-list-structure",
+  "status": "partial",
+  "summary": "Full reads preserve list IDs, nesting, start numbers and per-level glyph definitions, allowing callers to infer restarts and continuation; they do not report each rendered item number. Text reads only expose isListItem, losing nesting and marker style. Checkbox setup succeeded but full reads expose GLYPH_TYPE_UNSPECIFIED with no checked state; ticking checkboxes was not-run: needs UI.",
+  "findings": [
+   {
+    "claim": "Native list structure and typed-number distinction",
+    "result": "yes",
+    "detail": "Procedure one/two listId kix.hinzo3z29md5; restarted pair kix.3l69qnpjn6lh; each startNumber:1. Continue one/two share kix.1oya0qk09npz across non-list Continue note. Letter child has nestingLevel:1 and its level glyphType:ALPHA, glyphFormat:%1.; '1. Typed one' etc have no bullet and isListItem:false."
+   },
+   {
+    "claim": "Rendered item numbers and nesting in text helper",
+    "result": "no",
+    "detail": "Text helper returns 'Procedure one', 'Procedure two', 'Letter child' with isListItem:true but no number, list ID, nesting or glyph. Full read exposes definitions rather than rendered item numbers."
+   },
+   {
+    "claim": "Checkbox identity and checked state",
+    "result": "partly",
+    "detail": "BULLET_CHECKBOX setup created Checkbox one/two, listId kix.9zjzj8vhoxug. Full list level reports glyphType:GLYPH_TYPE_UNSPECIFIED and glyphFormat:%0; no checkbox/checked fields. Checked variants not-run: needs UI."
+   },
+   {
+    "claim": "Generic text fetch renders list numbers accurately",
+    "result": "partly",
+    "detail": "Generic fetch returned Procedure one/two as 1./2., restarted pair as 1./2., continued pair as 1./2. across note; however Letter child with native ALPHA glyph appeared as 1., and checkbox items were generic asterisk bullets."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.541717,
+    "ok": true,
+    "evidence": "logs/worker1-lists-full.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 0.58616,
+    "ok": true,
+    "evidence": "logs/worker1-lists-text.json"
+   },
+   {
+    "tool": "fetch",
+    "requests": [],
+    "seconds": 1.336797,
+    "ok": true,
+    "evidence": "logs/worker1-images-fetch.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs API list setup and rich-lists-inspection snapshot"
+ },
+ {
+  "id": "read-long-documents",
+  "status": "ran",
+  "summary": "The 40-section fixture and ten-tab copy were returned without truncation or pagination at the tested size. All 1,820 nonempty paragraphs across ten tabs, including nine added end markers, were present. A late-section edit changed only Status 39; the comment was quote-only, not live-anchored.",
+  "findings": [
+   {
+    "claim": "Complete long and ten-tab text",
+    "result": "yes",
+    "detail": "Original: 722 nonempty paragraphs through Status 40 and final Monday [12329,12335). Ten-tab copy: 1,820 paragraphs, ten distinct tab IDs, END 2 through END 10 all present; no continuation token."
+   },
+   {
+    "claim": "Late edit targets intended text",
+    "result": "yes",
+    "detail": "find Status 39 returned [11723,11732); replaceAllText returned occurrencesChanged:1. Independent before/after full-text comparison exactly equals replacing only 'Status 39' with 'Status 39 VERIFIED'."
+   },
+   {
+    "claim": "Late comment has live anchor",
+    "result": "no",
+    "detail": "Comment [comment-id] quoted 'Status 39 VERIFIED', returned anchor:null."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 2.046905,
+    "ok": true,
+    "evidence": "logs/worker1-long-read.json"
+   },
+   {
+    "tool": "copy_file",
+    "requests": [],
+    "seconds": 3.534577,
+    "ok": true,
+    "evidence": "logs/worker1-long-copy.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 1.891155,
+    "ok": true,
+    "evidence": "logs/worker1-long-ten-read.json"
+   },
+   {
+    "tool": "find_document_text_range",
+    "requests": [],
+    "seconds": 1.27602,
+    "ok": true,
+    "evidence": "logs/worker1-long-find.json"
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "replaceAllText"
+    ],
+    "seconds": 0.902779,
+    "ok": true,
+    "evidence": "logs/worker1-long-update.json"
+   },
+   {
+    "tool": "bulk_update_file_comments",
+    "requests": [],
+    "seconds": 0.991475,
+    "ok": true,
+    "evidence": "logs/worker1-long-comment.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs API full before/after comparison"
+ },
+ {
+  "id": "read-outline-and-sections",
+  "status": "ran",
+  "summary": "Full get_document returns headings with levels, stable IDs, tab IDs and native positions, enough to compute section boundaries including tables/lists. The text convenience read preserves heading level but drops heading ID; paragraph-range lookup resolves just the heading paragraph, not its section. The 40-section fixture returned all 41 headings.",
+  "findings": [
+   {
+    "claim": "Heading outline is complete and attributable",
+    "result": "yes",
+    "detail": "Long document H1 Launch notes archive at1 (h.tv6s3zwnptob), H2 Status 1 at66 (h.hcth4efbbx00) through H2 Status 40 at12030 (h.zbirx6m9nmx). Rich copy includes H2 Summary and nested H3 Nested H3; full style marks distinguish bold-normal Summary from H2 Summary."
+   },
+   {
+    "claim": "Section range includes table and list",
+    "result": "yes",
+    "detail": "Status39 heading h.6110okbie2rz at11723, Status40 at12030, so section [11723,12030) can be sliced from full body. All nested list paragraphs and table before Status40 are inside that range; last table is the section's final substantive block."
+   },
+   {
+    "claim": "Direct section endpoint",
+    "result": "no",
+    "detail": "get_document_paragraph_range at11723 returns only [11723,11732), matchedText='Status 39'. No section read tool; caller derives section from full heading levels/indexes. Text read omits headingId."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 1.45079,
+    "ok": true,
+    "evidence": "logs/worker1-outline-long-full.json"
+   },
+   {
+    "tool": "get_document_paragraph_range",
+    "requests": [],
+    "seconds": 1.167438,
+    "ok": true,
+    "evidence": "logs/worker1-outline-paragraph.json"
+   },
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.829364,
+    "ok": true,
+    "evidence": "logs/worker1-suggestions-full.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 2.046905,
+    "ok": true,
+    "evidence": "logs/worker1-long-read.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc toc; gdoc structure; section slice of app full body"
+ },
+ {
+  "id": "read-pending-suggestions",
+  "status": "partial",
+  "summary": "Full get_document preserves suggested insertion/deletion IDs and exact runs/ranges, including table cells and child tabs; get_document_text merges inserted and deleted text with no markers. Neither read exposes suggestion author metadata, and no suggestions-view input exists to request accepted/rejected previews. Style-only and footnote suggestions require additional setup and were not run.",
+  "findings": [
+   {
+    "claim": "Insertion/deletion IDs and locations",
+    "result": "yes",
+    "detail": "Full read has suggestedInsertionIds/suggestedDeletionIds for [suggestion-id] (body), [suggestion-id] (table cell), [suggestion-id] (Sources). Runs stay inside table and tab structures with startIndex/endIndex."
+   },
+   {
+    "claim": "Plain read distinguishes suggestions",
+    "result": "no",
+    "detail": "Text output literally includes 'Cell revised suggestionCell second', 'Open questions and decisions go here.Open questions go here.', and 'Sources: suggested supportingSources: supporting material for the launch.' No suggestion IDs/kinds on these paragraph objects."
+   },
+   {
+    "claim": "Authors and preview modes available",
+    "result": "no",
+    "detail": "get_document reports suggestionsViewMode:SUGGESTIONS_INLINE but neither get_document nor get_document_text accepts a suggestions-view-mode parameter. No author in suggestion runs/maps. Independent gdoc inline/accepted/without snapshots demonstrate alternate preview views exist upstream."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.906043,
+    "ok": true,
+    "evidence": "logs/worker1-formatted-full.json"
+   },
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.829364,
+    "ok": true,
+    "evidence": "logs/worker1-suggestions-full.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 0.817134,
+    "ok": true,
+    "evidence": "logs/worker1-suggestions-text.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc suggest; gdoc structure in all three suggestion modes"
+ },
+ {
+  "id": "read-tab-hierarchy",
+  "status": "partial",
+  "summary": "The full read flattens every tab while retaining IDs, titles, parent IDs and sibling order; per-tab text reads exclude child content. Six tabs including two nested tabs and an emoji title were read together in depth-first order. Duplicate titles could not be provisioned: Google Docs setup rejected 'Tab title must be unique'.",
+  "findings": [
+   {
+    "claim": "Hierarchy and order available",
+    "result": "yes",
+    "detail": "Main index0; Appendix t.wschzhhelw7v index1; Sources t.s26rxitwwju3 parent=t.wschzhhelw7v index0; Appendix duplicate attempt t.8w1zdzm6fhzd index2; Notes t.81tju6cpbhz4 parent=t.8w1zdzm6fhzd index0; 🚀 Emoji tab t.vf4611h01x2n index3. Full get_document returns all six in depth-first order."
+   },
+   {
+    "claim": "Read only requested parent by ID",
+    "result": "yes",
+    "detail": "tabs-parent returns only 'Appendix: supporting material for the launch.'; tabs-second returns only 'SECOND APPENDIX unique text.' Neither includes child Sources/Notes content."
+   },
+   {
+    "claim": "Same-title tabs distinguishable in practice",
+    "result": "partly",
+    "detail": "All APIs select by tab ID, but duplicate-title setup failed Google Docs HTTP 400: Invalid requests[3].addDocumentTab: Tab title must be unique. Tested unique substitute title instead."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.584891,
+    "ok": true,
+    "evidence": "logs/worker1-rich-full.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 0.894903,
+    "ok": true,
+    "evidence": "logs/worker1-tabs-parent.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 1.036441,
+    "ok": true,
+    "evidence": "logs/worker1-tabs-second.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 0.840125,
+    "ok": true,
+    "evidence": "logs/worker1-rich-text.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs API tabProperties and app reads"
+ },
+ {
+  "id": "read-table-of-contents",
+  "status": "not-run",
+  "summary": "Not-run: needs UI to insert a native table of contents and then make it stale. No supplied fixture contains a native TOC, so heading reads cannot settle native-TOC entries, levels, links or staleness.",
+  "findings": [
+   {
+    "claim": "Native TOC read and stale-entry detection tested",
+    "result": "no",
+    "detail": "No tableOfContents element exists in original formatted/short/long or shared read copy snapshots. Google Drive app has no dedicated TOC read; generic raw get_document could expose one, but this was not verified without a specimen."
+   }
+  ],
+  "calls": [],
+  "copy": "",
+  "inspected_with": "Fixture/full-response inspection; definitions"
+ },
+ {
+  "id": "read-table-structure",
+  "status": "ran",
+  "summary": "Full get_document preserves the tested native table structure, spans, empty cells, paragraph/list structure, fills and fixed widths. get_document_tables is a lossy convenience view: it preserves cell coordinates and newline-separated text but loses spans/styles/lists and returns null tab IDs unless an explicit tab is requested. The second of 40 identical-header tables remains identifiable by number and indices.",
+  "findings": [
+   {
+    "claim": "Full native table detail",
+    "result": "yes",
+    "detail": "Rich table: 3×3; row3 col2 columnSpan:2 while the extra empty row3 col3 object retains columnSpan:1; row2 col2 empty; row2 col1 has four separate paragraphs with bullets on Cell list one/two. Header background rgb(.8509804,.9019608,1), red row2 col3 rgb(1,0,0), three FIXED_WIDTH columns at 100 PT."
+   },
+   {
+    "claim": "Convenience table view preserves all semantics",
+    "result": "no",
+    "detail": "get_document_tables row3 col2 text='Ben\\nMonday', col3 text='', but no merged-span data. No cellStyle, columnWidths or list metadata; multi-paragraph text joined by newline. Without a tab selector, tables/cells have tabId:null; with explicit tab_id:t.0 both correctly return t.0."
+   },
+   {
+    "claim": "Repeated table targeting",
+    "result": "yes",
+    "detail": "Long fixture returns tableNumber 1..40. Second table startIndex:614,endIndex:678; header cell ranges Item[617,621), Owner[623,628), Due[630,633)."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.829364,
+    "ok": true,
+    "evidence": "logs/worker1-suggestions-full.json"
+   },
+   {
+    "tool": "get_document_tables",
+    "requests": [],
+    "seconds": 0.577745,
+    "ok": true,
+    "evidence": "logs/worker1-tables-rich.json"
+   },
+   {
+    "tool": "get_document_tables",
+    "requests": [],
+    "seconds": 0.817102,
+    "ok": true,
+    "evidence": "logs/worker1-tables-explicit.json"
+   },
+   {
+    "tool": "get_document_tables",
+    "requests": [],
+    "seconds": 1.778947,
+    "ok": true,
+    "evidence": "logs/worker1-tables-long.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs API rich setup/structure; app full and table reads"
+ },
+ {
+  "id": "retry-after-uncertain-write",
+  "status": "partial",
+  "summary": "Repeating insert, table-row, comment, reply and copy calls duplicates the work; no idempotency key or already-applied detection is exposed. Repeating a named tab creation fails the provider's unique-title constraint instead of reporting an idempotent success. Suggestion creation has no exposed mode/tool; blank-document retry was not run because create_file documents its folder parameter as unsupported for OAuth.",
+  "findings": [
+   {
+    "claim": "Blind retries deduplicated",
+    "result": "no",
+    "detail": "Two identical batch calls: RETRY PARAGRAPH appears twice and table grows 3→5 rows. Identical comments get [comment-id] and [comment-id]; identical replies get [comment-id] and [comment-id]. Two copy calls return distinct IDs (see evidence) with same title in fixture folder."
+   },
+   {
+    "claim": "Same-title tab retry",
+    "result": "partly",
+    "detail": "First addDocumentTab creates t.f52syw3e8hvy title Retry tab. Second fails HTTP400 INVALID_ARGUMENT: 'Invalid requests[0].addDocumentTab: Tab title must be unique'. Independent inspection shows one Retry tab."
+   },
+   {
+    "claim": "Outcome-unknown vs refused and missing routes",
+    "result": "partly",
+    "detail": "Observed invalid request error is explicit, but tool schemas expose no idempotency key or commit-status/unknown-outcome contract; actual lost-response transport fault not injected. No suggestion mode on batch_update_document. create_file repeated creation not-run to keep all artifacts in required folder."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "copy_file",
+    "requests": [],
+    "seconds": 3.330314,
+    "ok": true,
+    "evidence": "logs/worker1-retry-copy.json"
+   },
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 1.119321,
+    "ok": true,
+    "evidence": "logs/worker1-retry-before.json"
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "insertTableRow",
+     "insertText"
+    ],
+    "seconds": 0.849776,
+    "ok": true,
+    "evidence": "logs/worker1-retry-write-1.json"
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "insertTableRow",
+     "insertText"
+    ],
+    "seconds": 0.831244,
+    "ok": true,
+    "evidence": "logs/worker1-retry-write-2.json"
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "addDocumentTab"
+    ],
+    "seconds": 0.882892,
+    "ok": true,
+    "evidence": "logs/worker1-retry-tab-1.json"
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "addDocumentTab"
+    ],
+    "seconds": 1.87178,
+    "ok": false,
+    "error": "{\"content\":[{\"type\":\"text\",\"text\":\"HTTPError: 400: \\n\\n\\n\\nBad Request\\n\\nContent:\\n{'code': 400,\\n 'message': 'Invalid requests[0].addDocumentTab: Tab title must be unique',\\n 'status': 'INVALID_ARGUMENT'}\\n\\nRequest URL:\\nhttps://docs.googleapis.com/v1/documents/[doc-id]:batchUpdate (Response: {'error': {'code': 400, 'message': 'Invalid requests[0].addDocumentTab: Tab title must be unique', 'status': 'INVALID_ARGUMENT'}})\"}],\"structuredContent\":{\"error\":\"HTTPError: 400: \\n\\n\\n\\nBad Request\\n\\nContent:\\n{'code': 400,\\n 'message': 'Invalid requests[0].addDocumentTab: Tab title must be unique',\\n 'status': 'INVALID_ARGUMENT'}\\n\\nRequest URL:\\nhttps://docs.googleapis.com/v1/documents/[doc-id]:batchUpdate (Response: {'error': {'code': 400, 'message': 'Invalid requests[0].addDocumentTab: Tab title must be unique', 'status': 'INVALID_ARGUMENT'}})\",\"error_code\":\"INVALID_ARGUMENT\"},\"isError\":true}",
+    "evidence": "logs/worker1-retry-tab-2.json"
+   },
+   {
+    "tool": "bulk_update_file_comments",
+    "requests": [],
+    "seconds": 0.874053,
+    "ok": true,
+    "evidence": "logs/worker1-retry-comment-1.json"
+   },
+   {
+    "tool": "bulk_update_file_comments",
+    "requests": [],
+    "seconds": 0.606572,
+    "ok": true,
+    "evidence": "logs/worker1-retry-comment-2.json"
+   },
+   {
+    "tool": "bulk_update_file_comments",
+    "requests": [],
+    "seconds": 0.599962,
+    "ok": true,
+    "evidence": "logs/worker1-retry-reply-1.json"
+   },
+   {
+    "tool": "bulk_update_file_comments",
+    "requests": [],
+    "seconds": 0.671104,
+    "ok": true,
+    "evidence": "logs/worker1-retry-reply-2.json"
+   },
+   {
+    "tool": "copy_file",
+    "requests": [],
+    "seconds": 3.496752,
+    "ok": true,
+    "evidence": "logs/worker1-retry-copy-repeat-1.json"
+   },
+   {
+    "tool": "copy_file",
+    "requests": [],
+    "seconds": 4.486279,
+    "ok": true,
+    "evidence": "logs/worker1-retry-copy-repeat-2.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs API row/paragraph/tab counts; gdoc comments"
+ },
+ {
+  "id": "set-paragraph-style-in-place",
+  "status": "ran",
+  "summary": "updateParagraphStyle changes named styles and paragraph properties in place, preserving text, an existing heading ID and live comment anchor when promoting H3 to H2. However named-style changes cleared tested direct inline formatting, including bold and colour. Alignment, spacing, indentation, direction, keep-with-next and page-break-before updates stayed confined to selected paragraphs.",
+  "findings": [
+   {
+    "claim": "Promote heading without losing ID/comment/link",
+    "result": "yes",
+    "detail": "Budget H3→H2 retained headingId h.ce62eaceemrp and anchor [1,7); project-page link to that heading was unchanged."
+   },
+   {
+    "claim": "Named-style change preserves inline formatting",
+    "result": "no",
+    "detail": "Retest baseline Budget bold=true/red=0.8 at H3 and Next steps bold=true at NORMAL_TEXT; after H2 both textStyle={}, same text/ranges. Next steps gained headingId h.dh5go0deaaw3."
+   },
+   {
+    "claim": "Other paragraph properties update precisely",
+    "result": "yes",
+    "detail": "Tagline alignment=CENTER, spaceAbove=8PT, spaceBelow=12PT; indentStart 72PT and firstLine90PT→0; Arabic RIGHT_TO_LEFT; code lineSpacing150→200, keepWithNext=true, pageBreakBefore=true. All paragraphs after the first six were byte-equal in the first batch."
+   },
+   {
+    "claim": "Title and Normal styles are supported",
+    "result": "yes",
+    "detail": "Launch notes changed HEADING_1→TITLE retaining h.b4u630uz69jh; Status 1 changed HEADING_2→NORMAL_TEXT and lost headingId h.5g6j5365iucy. Text stayed unchanged; final paragraphStyle in paragraph-final.json."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "updateParagraphStyle",
+     "updateParagraphStyle",
+     "updateParagraphStyle",
+     "updateParagraphStyle",
+     "updateParagraphStyle",
+     "updateParagraphStyle"
+    ],
+    "seconds": 0.878,
+    "wall_before": "1791213298.647762000",
+    "wall_after": "1791213299.596999000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "updateParagraphStyle",
+     "updateParagraphStyle"
+    ],
+    "seconds": 0.885,
+    "wall_before": "1791213316.859000000",
+    "wall_after": "1791213317.814077000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "updateParagraphStyle",
+     "updateParagraphStyle"
+    ],
+    "seconds": 2.288,
+    "wall_before": "1791213340.398509000",
+    "wall_after": "1791213342.772007000",
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python preview; paragraph-before/after/reset-before/reset-after/final"
+ },
+ {
+  "id": "suggest-insertions-structure-format-and-regions",
+  "status": "definition",
+  "summary": "There is no suggest tool and write_control has no writeMode field, so pure insertions, structural changes, style changes and regional edits cannot be submitted as suggestions through this connector. Raw edit requests are available, but passing writeMode:SUGGEST is rejected at argument binding (verified in the first probe).",
+  "findings": [
+   {
+    "claim": "Create suggestions for insertion/structure/style/regions",
+    "result": "no",
+    "detail": "batch_update_document accepts arbitrary request objects but write_control only requiredRevisionId/targetRevisionId; writeMode:SUGGEST produced InvalidActionArgumentsError: Invalid action arguments, schema_validation/argument_binding. This is independent of target region or request type."
+   }
+  ],
+  "calls": [],
+  "copy": "",
+  "inspected_with": "45 tool definitions plus first probe live schema rejection"
+ },
+ {
+  "id": "suggest-replacement-preserving-context",
+  "status": "definition",
+  "summary": "The connector cannot create suggested replacements: batch_update_document.write_control exposes only requiredRevisionId and targetRevisionId. Passing writeMode:SUGGEST was tested in comment-and-suggestion-preview-requests and rejected at argument binding; no suggestion-preservation or UI acceptance test is possible through this surface.",
+  "findings": [
+   {
+    "claim": "Create a real pending suggested replacement",
+    "result": "no",
+    "detail": "No dedicated suggest tool; structured write_control rejects writeMode with InvalidActionArgumentsError: Invalid action arguments (reason schema_validation; failure_stage argument_binding). Raw acceptSuggestion/rejectSuggestion do work for existing suggestions, as tested separately."
+   }
+  ],
+  "calls": [],
+  "copy": "",
+  "inspected_with": "45 tool definitions and live writeMode schema rejection in comment-and-suggestion-preview-requests"
+ },
+ {
+  "id": "tab-create-place-and-reorganize",
+  "status": "ran",
+  "summary": "Native tab create, rename, reorder, reparent and recursive delete worked, preserving content, IDs, a live comment and an incoming tab link. Emoji titles and iconEmoji persisted. There is no duplicate-tab request.",
+  "findings": [
+   {
+    "claim": "Create/place/rename/reorder/reparent tabs",
+    "result": "yes",
+    "detail": "Created 🧪 Probe parent at root index1; moved Appendix t.wschzhhelw7v to index0, renamed Appendix renamed and set iconEmoji 📚. Sources t.s26rxitwwju3 was renamed Sources 🔎 and moved under new parent t.a8e365ybgdo9 at index0, retaining original supporting-material text; then moved back under Appendix."
+   },
+   {
+    "claim": "Delete parent removes its children only",
+    "result": "yes",
+    "detail": "After restoring Sources, deleteTab t.a8e365ybgdo9 removed that parent plus Disposable child. Final topology: Appendix renamed index0 with Sources 🔎 child; Tab1 index1. Main and existing tab contents remained."
+   },
+   {
+    "claim": "Duplicate tab preserving identity-bearing contents",
+    "result": "no",
+    "detail": "No duplicateDocumentTab/duplicateTab request or tool exists in the exposed API schema; copy_file copies the whole file."
+   },
+   {
+    "claim": "Reparent keeps live child comment and incoming link",
+    "result": "yes",
+    "detail": "After adding child comment [comment-id] and main Link.tabId=t.s26rxitwwju3 at14..18, moved Sources under Tab1 with iconEmoji🔎. All original documentTab trees compare equal excluding contentUri; incoming link remained unchanged and comment retained live child range1..8. Appendix retained 📚 icon and index0, Tab1 index1; child ID unchanged."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "mcp__codex_apps__google_drive_copy_file",
+    "requests": [],
+    "seconds": 8.337469,
+    "ok": true,
+    "timestamps": [
+     "1791214178.680067000",
+     "1791214187.017536000"
+    ],
+    "tool_only_seconds": 8.257,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "addDocumentTab",
+     "updateDocumentTabProperties"
+    ],
+    "seconds": 0.694912,
+    "ok": true,
+    "timestamps": [
+     "1791214217.651263000",
+     "1791214218.346175000"
+    ],
+    "tool_only_seconds": 0.626,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "updateDocumentTabProperties",
+     "addDocumentTab"
+    ],
+    "seconds": 0.911536,
+    "ok": true,
+    "timestamps": [
+     "1791214243.202092000",
+     "1791214244.113628000"
+    ],
+    "tool_only_seconds": 0.862,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "updateDocumentTabProperties",
+     "deleteTab"
+    ],
+    "seconds": 0.856324,
+    "ok": true,
+    "timestamps": [
+     "1791214244.734755000",
+     "1791214245.591079000"
+    ],
+    "tool_only_seconds": 0.787,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "updateDocumentTabProperties"
+    ],
+    "seconds": 0.909866,
+    "ok": true,
+    "timestamps": [
+     "1791214981.844291000",
+     "1791214982.754157000"
+    ],
+    "tool_only_seconds": 0.837,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs client; raw before/after JSON",
+  "evidence_files": [
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/tab-create-place-and-reorganize-1.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/tab-create-place-and-reorganize-2.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/tab-create-place-and-reorganize-3.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/tab-create-place-and-reorganize-4.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/tab-create-place-and-reorganize-5.json"
+  ]
+ },
+ {
+  "id": "tab-scoped-write-targets-child-and-isolates-others",
+  "status": "partial",
+  "summary": "Native text/style edits and raw insertComment target the Sources child tab by ID while other tabs remain unchanged. The separate bulk comment tool creates quote metadata with no native anchor, but raw batch_update_document supports the undocumented insertComment request and produces a live child-tab anchor. Markdown tab replacement and suggestion-writing mode have no exposed route.",
+  "findings": [
+   {
+    "claim": "Child-tab text and style edits isolate other tabs",
+    "result": "yes",
+    "detail": "Inserted 'Child-only edit.\\n' at index1/tab t.s26rxitwwju3 and set HEADING_2 h.rg3ejf3lcium. Tab1 and Appendix documentTab trees were exactly unchanged excluding expiring image contentUri; Sources original supporting-material text survived. Existing main comment [comment-id] remains live on pilot teams[141,152)."
+   },
+   {
+    "claim": "True child-tab comment via raw native request",
+    "result": "yes",
+    "detail": "Raw insertComment content/range{startIndex:1,endIndex:16,tabId:t.s26rxitwwju3} succeeded. Comment [comment-id] anchor kix.e30fvw19bd5g has live range1..16 in Sources; quote Child-only edit. This developer-preview request is absent from public discovery schema but accepted through connector."
+   },
+   {
+    "claim": "Bulk comment quoted text implies live anchor",
+    "result": "no",
+    "detail": "bulk_update_file_comments created [comment-id] with anchor:null; it appears in no live commentAnchors tree even after quoted text was inserted. No tab-ID selector on that tool."
+   },
+   {
+    "claim": "Combined request failure is recoverable",
+    "result": "partly",
+    "detail": "Initial insertText+updateParagraphStyle batch returned 'tool call error: tool call failed for `codex_apps/google_drive.batch_update_document`\\n\\nCaused by:\\n    Mcp error: -32603: Internal error',24.768s, no changes. Same two requests succeeded separately."
+   },
+   {
+    "claim": "Child scoped replacement preserves main suggestion and incoming tab link",
+    "result": "yes",
+    "detail": "Copy initially had no pending suggestions despite source fixture description; re-added main suggestion [suggestion-id] with gdoc and incoming Link.tabId=t.s26rxitwwju3 on main range14..18. replaceAllText with tabsCriteria changed supporting material→revised sources only in Sources. Main and Appendix documentTab trees match exactly before/after excluding contentUri; suggestion ID, heading IDs, header, comment and incoming link survive."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "mcp__codex_apps__google_drive_copy_file",
+    "requests": [],
+    "seconds": 4.547193,
+    "ok": true,
+    "timestamps": [
+     "1791213946.661171000",
+     "1791213951.208364000"
+    ],
+    "tool_only_seconds": 4.477,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "insertText",
+     "updateParagraphStyle"
+    ],
+    "seconds": 24.867777,
+    "ok": false,
+    "error": "tool call error: tool call failed for `codex_apps/google_drive.batch_update_document`\n\nCaused by:\n    Mcp error: -32603: Internal error",
+    "timestamps": [
+     "1791213989.678651000",
+     "1791214014.546428000"
+    ],
+    "tool_only_seconds": 24.768,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_bulk_update_file_comments",
+    "requests": [],
+    "seconds": 1.360449,
+    "ok": true,
+    "timestamps": [
+     "1791214014.702717000",
+     "1791214016.063166000"
+    ],
+    "tool_only_seconds": 1.29,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "insertText"
+    ],
+    "seconds": 0.969848,
+    "ok": true,
+    "timestamps": [
+     "1791214027.437951000",
+     "1791214028.407799000"
+    ],
+    "tool_only_seconds": 0.885,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "updateParagraphStyle"
+    ],
+    "seconds": 0.912166,
+    "ok": true,
+    "timestamps": [
+     "1791214049.631298000",
+     "1791214050.543464000"
+    ],
+    "tool_only_seconds": 0.843,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "insertComment"
+    ],
+    "seconds": 1.605199,
+    "ok": true,
+    "timestamps": [
+     "1791214788.324454000",
+     "1791214789.929653000"
+    ],
+    "tool_only_seconds": 1.53,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "replaceAllText"
+    ],
+    "seconds": 0.947067,
+    "ok": true,
+    "timestamps": [
+     "1791214865.066217000",
+     "1791214866.013284000"
+    ],
+    "tool_only_seconds": 0.874,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Docs client before/after; gdoc get_comment_anchors and _comments_view_get live ranges",
+  "evidence_files": [
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/tab-scoped-write-targets-child-and-isolates-others-1.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/tab-scoped-write-targets-child-and-isolates-others-2.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/tab-scoped-write-targets-child-and-isolates-others-3.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/tab-scoped-write-targets-child-and-isolates-others-4.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/tab-scoped-write-targets-child-and-isolates-others-5.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/tab-scoped-write-targets-child-and-isolates-others-6.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/tab-scoped-write-targets-child-and-isolates-others-7.json"
+  ]
+ },
+ {
+  "id": "table-cell-styling-merge-move",
+  "status": "ran",
+  "summary": "Native table style, merge/unmerge and deletion requests worked in the main and child tabs. Unmerging restored cell boundaries but kept all merged text in the first cell. No native row/column/table move request exists.",
+  "findings": [
+   {
+    "claim": "Set targeted cell/row/column styles including merged and child cells",
+    "result": "yes",
+    "detail": "Header fill became RGB(0.9019608,0.8,0.4), bottom border2PT RGB(0.8,0.2,0.101960786), top padding12PT, contentAlignment MIDDLE, minRowHeight40PT, tableHeader:true; column1 FIXED_WIDTH180PT. Existing merged Ben/Monday cell became green; merged Overview cell blue. Sources table first row became red/BOTTOM."
+   },
+   {
+    "claim": "Merge/unmerge retains text but does not restore original cell allocation",
+    "result": "partly",
+    "detail": "Merging first row made cell1 columnSpan3 with paragraphs Item,Owner,Due. Unmerge returned spans1/1/1 but text remained Item\\nOwner\\nDue\\n entirely in cell1; cells2/3 stayed empty. Bold text and cell styles survived."
+   },
+   {
+    "claim": "Delete second table keeps neighbours; move without rebuilding",
+    "result": "partly",
+    "detail": "deleteContentRange removed the separate Overview table, preserving main table and surrounding text. No native moveTable/moveTableRow/moveTableColumn or generic content-move request exists; movement/reordering would require reconstruction and was not run."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "mcp__codex_apps__google_drive_copy_file",
+    "requests": [],
+    "seconds": 3.891735,
+    "ok": true,
+    "timestamps": [
+     "1791214485.438171000",
+     "1791214489.329906000"
+    ],
+    "tool_only_seconds": 3.817,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "updateTableCellStyle",
+     "updateTableColumnProperties",
+     "updateTableRowStyle",
+     "pinTableHeaderRows",
+     "updateTableCellStyle",
+     "updateTableCellStyle",
+     "updateTableCellStyle",
+     "mergeTableCells"
+    ],
+    "seconds": 0.975044,
+    "ok": true,
+    "timestamps": [
+     "1791214523.775807000",
+     "1791214524.750851000"
+    ],
+    "tool_only_seconds": 0.907,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "unmergeTableCells"
+    ],
+    "seconds": 0.878737,
+    "ok": true,
+    "timestamps": [
+     "1791214525.387177000",
+     "1791214526.265914000"
+    ],
+    "tool_only_seconds": 0.813,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "deleteContentRange"
+    ],
+    "seconds": 0.909229,
+    "ok": true,
+    "timestamps": [
+     "1791214527.190708000",
+     "1791214528.099937000"
+    ],
+    "tool_only_seconds": 0.834,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs client; raw before/after JSON",
+  "evidence_files": [
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/table-cell-styling-merge-move-1.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/table-cell-styling-merge-move-2.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/table-cell-styling-merge-move-3.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/table-cell-styling-merge-move-4.json"
+  ]
+ },
+ {
+  "id": "table-of-contents-and-page-layout-writes",
+  "status": "partial",
+  "summary": "Native page size, orientation, margins, colour, sections/columns, page-break insertion/removal and pageless mode worked with explicit tab targeting. There is no native TOC insert/refresh request. TOC creation and refresh were therefore definition-only, with UI setup not run.",
+  "findings": [
+   {
+    "claim": "Page layout styles apply only to target tab",
+    "result": "yes",
+    "detail": "Main pageSize requested595x842PT normalized to595.2755905511812x841.8897637795277PT (A4), flipPageOrientation:true, left/right margins36PT and top/bottom40PT; background RGB(1,0.9490196,0.9019608). Appendix/Sources retained612x792PT,72PT margins and PAGES. Final main documentFormat.documentMode PAGELESS; others PAGES."
+   },
+   {
+    "claim": "Section orientation/columns and page breaks",
+    "result": "yes",
+    "detail": "NEXT_PAGE section inserted near Notes; second section set flipPageOrientation:false,2 columnProperties with18PT gap and BETWEEN_EACH_COLUMN. insertPageBreak at84 created pageBreak84..85 plus a newline paragraph; deleting[84,85) removed the pageBreak while leaving that paragraph newline. Sections survive pageless switch in raw JSON."
+   },
+   {
+    "claim": "Native TOC insert/refresh",
+    "result": "no",
+    "detail": "Request schema has no insertTableOfContents/updateTableOfContents/refresh request; no connector tool adds one. Existing-TOC fixture not-run: needs UI."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "mcp__codex_apps__google_drive_copy_file",
+    "requests": [],
+    "seconds": 3.335833,
+    "ok": true,
+    "timestamps": [
+     "1791214594.758133000",
+     "1791214598.093966000"
+    ],
+    "tool_only_seconds": 3.267,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "updateDocumentStyle",
+     "insertSectionBreak",
+     "insertPageBreak"
+    ],
+    "seconds": 0.92736,
+    "ok": true,
+    "timestamps": [
+     "1791214612.857767000",
+     "1791214613.785127000"
+    ],
+    "tool_only_seconds": 0.854,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "updateSectionStyle",
+     "deleteContentRange"
+    ],
+    "seconds": 1.111586,
+    "ok": true,
+    "timestamps": [
+     "1791214637.559716000",
+     "1791214638.671302000"
+    ],
+    "tool_only_seconds": 1.039,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "updateDocumentStyle"
+    ],
+    "seconds": 0.871658,
+    "ok": true,
+    "timestamps": [
+     "1791214639.677207000",
+     "1791214640.548865000"
+    ],
+    "tool_only_seconds": 0.802,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs client; raw before/after JSON",
+  "evidence_files": [
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/table-of-contents-and-page-layout-writes-1.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/table-of-contents-and-page-layout-writes-2.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/table-of-contents-and-page-layout-writes-3.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/table-of-contents-and-page-layout-writes-4.json"
+  ]
+ },
+ {
+  "id": "table-row-and-column-insert-delete",
+  "status": "ran",
+  "summary": "Native row/column operations preserved existing cell styling and expanded merged spans, without rebuilding the table. Inserting above the header created another header row, and new columns inherited fixed widths and nearby merge patterns. Deleting a row through a vertically merged cell deleted all four rows that cell spanned.",
+  "findings": [
+   {
+    "claim": "Insert rows/columns preserves geometry and styles",
+    "result": "yes",
+    "detail": "Setup 3x4 table with 120PT fixed columns,1PT grey borders,1 pinned header,vertical R2C1:R3C1 merge and existing horizontal merge. Six native inserts produced7x6; original Draft/Review merged cell rowSpan2→4, new middle column also inherited rowSpan4, Ben/Monday retained columnSpan2. All6 columns became FIXED_WIDTH120PT. Header insertion yielded tableHeader:true for first2 rows."
+   },
+   {
+    "claim": "Comment anchor survives insertions",
+    "result": "yes",
+    "detail": "Synthetic Ana comment [comment-id] retained native anchor kix.j44dgqr90z2c after six inserts; text Ana stayed in its moved cell."
+   },
+   {
+    "claim": "Delete one row via merged reference removes all rows it spans",
+    "result": "yes",
+    "detail": "deleteTableRow at zero-based row2,column0 removed all4 spanned rows:7→3 rows; deleting empty end column6→5 columns. Thus Ana/Friday/Ben/Monday and commented target were intentionally deleted, while header text and formatting remained."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "mcp__codex_apps__google_drive_copy_file",
+    "requests": [],
+    "seconds": 2.59417,
+    "ok": true,
+    "timestamps": [
+     "1791214294.857779000",
+     "1791214297.451949000"
+    ],
+    "tool_only_seconds": 2.529,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "insertTableRow",
+     "insertTableRow",
+     "insertTableRow",
+     "insertTableColumn",
+     "insertTableColumn",
+     "insertTableRow"
+    ],
+    "seconds": 0.594759,
+    "ok": true,
+    "timestamps": [
+     "1791214335.187141000",
+     "1791214335.781900000"
+    ],
+    "tool_only_seconds": 0.521,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_get_document_comments",
+    "requests": [],
+    "seconds": 0.55604,
+    "ok": true,
+    "timestamps": [
+     "1791214353.279054000",
+     "1791214353.835094000"
+    ],
+    "tool_only_seconds": 0.48,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   },
+   {
+    "tool": "mcp__codex_apps__google_drive_batch_update_document",
+    "requests": [
+     "deleteTableRow",
+     "deleteTableColumn"
+    ],
+    "seconds": 0.958969,
+    "ok": true,
+    "timestamps": [
+     "1791214372.788249000",
+     "1791214373.747218000"
+    ],
+    "tool_only_seconds": 0.884,
+    "timing_note": "Wall time between date +%s.%N calls immediately before/after; includes orchestration overhead."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs client; raw before/after JSON",
+  "evidence_files": [
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/table-row-and-column-insert-delete-1.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/table-row-and-column-insert-delete-2.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/table-row-and-column-insert-delete-3.json",
+   "~/best/tools/active/gdoc/design-review/.supervise/tool-matrix/openai/evidence-worker3/table-row-and-column-insert-delete-4.json"
+  ]
+ },
+ {
+  "id": "target-one-of-repeated-matches",
+  "status": "ran",
+  "summary": "Occurrence and tab selection work, and raw ranges allow an exact one-occurrence edit. An ambiguous find silently returns the first occurrence; a nonexistent occurrence returns null rather than an error. Suggesting is unavailable because writeMode is not exposed.",
+  "findings": [
+   {
+    "claim": "Find and edit one repeated occurrence",
+    "result": "yes",
+    "detail": "Default DUPLICATE resolved t.0[1,10); instance=2 resolved [13,22). Range edit produced 'DUPLICATE / SECOND\\nDUPLICATE\\n', preserving the other body occurrences."
+   },
+   {
+    "claim": "Tab scope restricts both find and replaceAllText",
+    "result": "yes",
+    "detail": "tab_id=t.s26rxitwwju3 resolved child [1,10); scoped replaceAllText changed only that occurrence to CHILD, occurrencesChanged=1."
+   },
+   {
+    "claim": "Ambiguity is refused",
+    "result": "no",
+    "detail": "Four DUPLICATE occurrences existed across main and child tab; default finder returned the first with no warning. instance=99 returned resolvedRange:null, isError:false."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "find_document_text_range",
+    "requests": [],
+    "seconds": 0.778,
+    "wall_before": "1791213152.999925000",
+    "wall_after": "1791213153.845817000",
+    "ok": true
+   },
+   {
+    "tool": "find_document_text_range",
+    "requests": [],
+    "seconds": 0.722,
+    "wall_before": "1791213153.910715000",
+    "wall_after": "1791213154.701517000",
+    "ok": true
+   },
+   {
+    "tool": "find_document_text_range",
+    "requests": [],
+    "seconds": 0.82,
+    "wall_before": "1791213154.767881000",
+    "wall_after": "1791213155.665860000",
+    "ok": true
+   },
+   {
+    "tool": "find_document_text_range",
+    "requests": [],
+    "seconds": 0.82,
+    "wall_before": "1791213155.736702000",
+    "wall_after": "1791213156.624435000",
+    "ok": true
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "deleteContentRange",
+     "insertText",
+     "replaceAllText"
+    ],
+    "seconds": 0.97,
+    "wall_before": "1791213172.997436000",
+    "wall_after": "1791213174.043709000",
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python preview read; repeated-before/after"
+ },
+ {
+  "id": "text-edit-keeps-paragraph-style-and-heading-id",
+  "status": "partial",
+  "summary": "Six replaceAllText edits preserved every paragraphStyle and bullet object, including title/heading IDs, centred alignment, nested-bullet and numbered-list identity, and a table-cell paragraph. Checked checklist state, bookmarks and native TOC were not-run: needs UI.",
+  "findings": [
+   {
+    "claim": "Text edits preserve paragraph identity and formatting",
+    "result": "yes",
+    "detail": "Status 1→Status one retained HEADING_2 h.5g6j5365iucy; Launch notes→Launch summary retained TITLE h.b4u630uz69jh; document tracks→document follows retained CENTER; Design review→Design check retained nested bullet listId and nestingLevel1; Confirm the schedule→Confirm timing retained numbered bullet; Friday→Thursday retained cell paragraph style. All paragraphStyle/bullet pairs before/after were equal."
+   },
+   {
+    "claim": "Incoming heading link survives",
+    "result": "yes",
+    "detail": "Notes link still points to h.5g6j5365iucy, whose heading now reads Status one."
+   },
+   {
+    "claim": "Checked item/bookmark/TOC behavior tested",
+    "result": "no",
+    "detail": "not-run: needs UI for fixtures; browser prohibited."
+   },
+   {
+    "claim": "Tab-scoped replaceAllText also reaches headers",
+    "result": "yes",
+    "detail": "Launch notes→Launch summary returned occurrencesChanged=2: it renamed the body title and the same phrase in that tab's header. The tab selector does not limit replacements to body text."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "replaceAllText",
+     "replaceAllText",
+     "replaceAllText",
+     "replaceAllText",
+     "replaceAllText",
+     "replaceAllText"
+    ],
+    "seconds": 0.637,
+    "wall_before": "1791213388.328188000",
+    "wall_after": "1791213389.037663000",
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python preview; text-paragraph-before/after"
+ },
+ {
+  "id": "unicode-and-whitespace-exactness",
+  "status": "partial",
+  "summary": "Unicode and literal internal whitespace survived the tested reads and writes, and UTF-16 formatting landed correctly after an emoji and combining character. Text reads omit paragraph terminators and blank paragraphs; full reads were separately captured. Comments preserve the Unicode quote but create no live anchor.",
+  "findings": [
+   {
+    "claim": "Unicode, spaces, tab and soft break preserved",
+    "result": "yes",
+    "detail": "get_document_text returned '✅ 🚀 TARGET é AFTER', '日本語の文章です。', 'José García', 'مرحبا بالعالم', '  code  x\\t y  ', and 'Address one\\u000bAddress two' exactly; paragraph newline is omitted."
+   },
+   {
+    "claim": "UTF-16 positions and cell replacement",
+    "result": "yes",
+    "detail": "find returned TARGET [6,12); gdoc inspection confirms bold run TARGET [6,12), italic AFTER\\n [16,22), and one 🟡→🟢 replacement in the table. Tab title changed to '🚀 Appendix 日本語'."
+   },
+   {
+    "claim": "Unicode comments are live-anchored",
+    "result": "no",
+    "detail": "Created comment [comment-id] preserved quote 'TARGET é AFTER' and Unicode comment text but returned anchor:null. Did not test a UI-created live anchor or monospace code style."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "copy_file",
+    "requests": [],
+    "seconds": 8.08843,
+    "ok": true,
+    "evidence": "logs/worker1-unicode-copy.json"
+   },
+   {
+    "tool": "get_document_text",
+    "requests": [],
+    "seconds": 0.830988,
+    "ok": true,
+    "evidence": "logs/worker1-unicode-read.json"
+   },
+   {
+    "tool": "find_document_text_range",
+    "requests": [],
+    "seconds": 0.936627,
+    "ok": true,
+    "evidence": "logs/worker1-unicode-find.json"
+   },
+   {
+    "tool": "batch_update_document",
+    "requests": [
+     "updateTextStyle",
+     "updateTextStyle",
+     "replaceAllText",
+     "updateDocumentTabProperties"
+    ],
+    "seconds": 1.242883,
+    "ok": true,
+    "evidence": "logs/worker1-unicode-update.json"
+   },
+   {
+    "tool": "bulk_update_file_comments",
+    "requests": [],
+    "seconds": 0.600249,
+    "ok": true,
+    "evidence": "logs/worker1-unicode-comment.json"
+   },
+   {
+    "tool": "get_document",
+    "requests": [],
+    "seconds": 0.563637,
+    "ok": true,
+    "evidence": "logs/worker1-unicode-full.json"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc Python Docs API before/after structure; app get_document/text and comment response"
+ }
+]

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Google Docs agent tools</title>
+    <link rel="stylesheet" href="matrix.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./">Google Docs agent tools <small>/ capability matrix</small></a>
+      <nav aria-label="Views">
+        <button data-view="grid" class="active">Grid</button>
+        <button data-view="tasks">Tasks</button>
+        <button data-view="commands">Timed commands</button>
+      </nav>
+      <a class="topbar-note" href="e2e.html">End-to-end runs →</a> <span class="topbar-note" id="counts"></span>
+    </header>
+    <main>
+      <div id="banner"></div>
+      <section class="intro">
+        <h1>gog, Claude native and Codex native against 1,238 everyday Docs tasks</h1>
+        <p>
+          Rows are document items and columns are purposes, both from
+          <a href="https://github.com/alejoacelas/google-docs-agent-tools/blob/main/data/ACCEPTANCE.md">the acceptance taxonomy</a>. Each cell holds
+          every graded task for that pair; each task is one sentence.
+          Coverage and invocations for gog come from reading its code at a pinned commit; for the two hosted connectors, whose code is closed, from their tool definitions and live probes. Timings exist only for gog's commands. Method: <a href="https://github.com/alejoacelas/google-docs-agent-tools/blob/main/METHODOLOGY.md">METHODOLOGY.md</a>.
+        </p>
+      </section>
+      <div class="controls" id="controls"></div>
+      <div class="legend" id="legend"></div>
+      <div id="view"></div>
+      <footer>
+        Synthetic documents only · <a href="https://github.com/alejoacelas/google-docs-agent-tools">Repository and method</a>
+      </footer>
+    </main>
+    <aside id="drawer" aria-label="Details" hidden>
+      <button class="close" id="drawer-close" aria-label="Close details">×</button>
+      <div id="drawer-content"></div>
+    </aside>
+    <div id="tip" role="tooltip" hidden></div>
+    <script src="matrix.js"></script>
+  </body>
+</html>

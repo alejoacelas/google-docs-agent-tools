@@ -1,0 +1,2455 @@
+{
+ "tool": "gog",
+ "aliases": {
+  "docs tabs list": "docs list-tabs",
+  "docs tabs add": "docs add-tab",
+  "docs tabs rename": "docs rename-tab",
+  "docs tabs delete": "docs delete-tab",
+  "drive comments list": "docs comments list",
+  "drive comments create": "docs comments add",
+  "drive comments reply": "docs comments reply"
+ },
+ "commands": [
+  {
+   "command": "docs cat",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "cat",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Plain text of the default tab."
+  },
+  {
+   "command": "docs raw",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "raw",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Lossless documents.get JSON (compact, default tab in legacy body)."
+  },
+  {
+   "command": "docs structure",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "structure",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Numbered paragraph list of the default tab (indices used by sed addresses)."
+  },
+  {
+   "command": "api call",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gog",
+    "api",
+    "call",
+    "docs",
+    "v1",
+    "docs.documents.get",
+    "--params",
+    "{\"documentId\":\"{doc}\"}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Raw passthrough read: Discovery fetch + documents.get. --params is a JSON object; the harness must substitute {doc} literally (not via str.format, which would choke on the JSON braces)."
+  },
+  {
+   "command": "docs headings list",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "headings",
+    "list",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Heading paragraphs with ranges."
+  },
+  {
+   "command": "docs tables list",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "tables",
+    "list",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Native tables with sizes and header row."
+  },
+  {
+   "command": "docs paragraphs list",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "paragraphs",
+    "list",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "All paragraphs with ranges and styles."
+  },
+  {
+   "command": "docs find-range",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "find-range",
+    "{doc}",
+    "pilot teams",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Index range of the first 'pilot teams' (present in all three fixtures; 40 matches in long, first returned)."
+  },
+  {
+   "command": "docs list-tabs",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "list-tabs",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Tab tree (long has a single tab)."
+  },
+  {
+   "command": "docs export",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "export",
+    "{doc}",
+    "--format",
+    "md",
+    "--out",
+    "-",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Drive Markdown export streamed to stdout so the counted tokens are the content an agent would read."
+  },
+  {
+   "command": "docs suggestions list",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "suggestions",
+    "list",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Pending suggestions in the first tab (one in short/formatted, none in long)."
+  },
+  {
+   "command": "docs images list",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "images",
+    "list",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Inline/positioned images (one in short/formatted)."
+  },
+  {
+   "command": "docs header list",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "header",
+    "list",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Header segment IDs and text."
+  },
+  {
+   "command": "docs footer list",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "footer",
+    "list",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Footer segment IDs and text (none in fixtures)."
+  },
+  {
+   "command": "drive download",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gog",
+    "drive",
+    "download",
+    "{doc}",
+    "--format",
+    "md",
+    "--out",
+    "-",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Drive export of the Doc as Markdown streamed to stdout."
+  },
+  {
+   "command": "docs info",
+   "kind": "lookup",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "info",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "id, title, link, revision."
+  },
+  {
+   "command": "docs comments list",
+   "kind": "lookup",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "comments",
+    "list",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Open comments (fixture thread plus any open probe comments)."
+  },
+  {
+   "command": "docs comments get",
+   "kind": "lookup",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "comments",
+    "get",
+    "{doc}",
+    "{comment_id}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Fixture comment thread with replies."
+  },
+  {
+   "command": "docs comments locate",
+   "kind": "lookup",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "comments",
+    "locate",
+    "{doc}",
+    "{comment_id}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Resolves the fixture comment's quote 'pilot teams' to index ranges (comments.get + documents.get all tabs)."
+  },
+  {
+   "command": "docs update",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "update",
+    "{doc}",
+    "--at",
+    "alpha build",
+    "--text",
+    "beta build",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "update",
+    "{doc}",
+    "--at",
+    "beta build",
+    "--text",
+    "alpha build",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Anchored replace of the marker phrase. Revision lock is taken from gog's own resolving GET inside the same invocation, so no pre read is needed."
+  },
+  {
+   "command": "docs insert",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "insert",
+    "{doc}",
+    "ZQX probe sentence. ",
+    "--at",
+    "Last updated by the team",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete",
+    "{doc}",
+    "--at",
+    "ZQX probe sentence. ",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete",
+   "notes": "Inserts an inline probe sentence before 'Last updated by the team' (anchored, locked). Inline rather than a new paragraph because --at cannot match across a paragraph break, so a probe paragraph could not be removed exactly; latency path is identical (1 GET + 1 locked batchUpdate). Undo times docs delete."
+  },
+  {
+   "command": "docs format",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "format",
+    "{doc}",
+    "--match",
+    "alpha build",
+    "--bold",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "format",
+    "{doc}",
+    "--match",
+    "alpha build",
+    "--no-bold",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Bolds the first 'alpha build' (unlocked GET + batchUpdate). Undo writes bold=false explicitly, which renders identically to the original inherited non-bold."
+  },
+  {
+   "command": "docs find-replace",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "find-replace",
+    "{doc}",
+    "alpha build",
+    "beta build",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "find-replace",
+    "{doc}",
+    "beta build",
+    "alpha build",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Replace-all (ReplaceAllText across all tabs; marker exists only in Tab 1)."
+  },
+  {
+   "command": "docs sed",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "sed",
+    "{doc}",
+    "s/alpha build/beta build/g",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "sed",
+    "{doc}",
+    "s/beta build/alpha build/g",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Global sed substitution takes gog's native path (one regex ReplaceAllText)."
+  },
+  {
+   "command": "docs write",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "write",
+    "{doc}",
+    "--tab",
+    "{child_tab_id}",
+    "--text",
+    "ZQX probe body.",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "write",
+    "{doc}",
+    "--tab",
+    "{child_tab_id}",
+    "--text",
+    "Sources: supporting material for the launch.\n",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Plain write without --append replaces the whole body of the child tab 'Sources' (GET + unlocked delete/insert batchUpdate). Undo rewrites the original text; the fixture inserted exactly 'Sources: supporting material for the launch.\\n' into an empty tab, so this restores it. The no-tab '--replace --markdown' Drive-conversion path cannot be timed reversibly on the fixture."
+  },
+  {
+   "command": "docs cell-update",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "cell-update",
+    "{doc}",
+    "--table-index",
+    "1",
+    "--row",
+    "2",
+    "--col",
+    "3",
+    "--content",
+    "Thursday",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "cell-update",
+    "{doc}",
+    "--table-index",
+    "1",
+    "--row",
+    "2",
+    "--col",
+    "3",
+    "--content",
+    "Friday",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Replaces 'Friday' (row 2, col 3; row 1 is the header, merged cell is row 3) using the default markdown format; locked by gog's own GET."
+  },
+  {
+   "command": "docs table-row insert",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "table-row",
+    "insert",
+    "{doc}",
+    "--table",
+    "1",
+    "--at",
+    "2",
+    "--values-json",
+    "[\"ZQX\",\"Probe\",\"Today\"]",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "table-row",
+    "delete",
+    "{doc}",
+    "--table",
+    "1",
+    "--row",
+    "2",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs table-row delete",
+   "notes": "Inserts a filled row before row 2 (GET, locked InsertTableRow, GET, locked cell fill). Undo deletes that row."
+  },
+  {
+   "command": "docs add-tab",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "add-tab",
+    "{doc}",
+    "--title",
+    "ZQX probe tab {run}",
+    "--account",
+    "{account}"
+   ],
+   "capture": {
+    "new_tab": "(?m)^tabId\\s+(\\S+)"
+   },
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "{new_tab}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Adds a top-level probe tab; undo deletes it by captured ID (delete-tab needs --force when stdin is not a TTY)."
+  },
+  {
+   "command": "docs rename-tab",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "rename-tab",
+    "{doc}",
+    "--tab",
+    "{tab_id}",
+    "--title",
+    "Appendix ZQX",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "rename-tab",
+    "{doc}",
+    "--tab",
+    "{tab_id}",
+    "--title",
+    "{tab_title}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Renames the Appendix tab and back."
+  },
+  {
+   "command": "docs comments add",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "comments",
+    "add",
+    "{doc}",
+    "ZQX latency probe comment {run}",
+    "--quoted",
+    "pilot teams",
+    "--account",
+    "{account}"
+   ],
+   "capture": {
+    "probe_comment": "(?m)^id\\s+(\\S+)"
+   },
+   "undo": [
+    "gog",
+    "docs",
+    "comments",
+    "resolve",
+    "{doc}",
+    "{probe_comment}",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs comments resolve",
+   "notes": "Creates a Drive comment with quoted text; undo resolves it (resolve = reply with action). Resolved probe comments accumulate."
+  },
+  {
+   "command": "batch begin",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "batch",
+    "begin",
+    "--doc",
+    "{doc}",
+    "--name",
+    "zqx-latency-{run}",
+    "--account",
+    "{account}"
+   ],
+   "capture": {
+    "batch": "([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"
+   },
+   "undo": [
+    "gog",
+    "batch",
+    "abort",
+    "{batch}",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "batch abort",
+   "notes": "Local only (writes a batch file under gog's state dir; no Google call). Undo aborts the empty batch."
+  },
+  {
+   "command": "docs insert-footnote",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "insert-footnote",
+    "{doc}",
+    "--tab",
+    "ZQX fn {run}",
+    "--at",
+    "anchor text",
+    "--text",
+    "ZQX probe footnote.",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX fn {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX fn {run}",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX fn {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "CreateFootnote (locked by anchor) + populate. gog cannot delete a footnote reference by text, so it is placed in a throwaway tab. Runs in a throwaway tab created in pre (add-tab + anchor text); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs insert-image",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "insert-image",
+    "{doc}",
+    "--tab",
+    "ZQX img {run}",
+    "--url",
+    "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
+    "--after",
+    "anchor text.",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX img {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX img {run}",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX img {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Public HTTPS URL path (no upload). --file is avoided because it temporarily shares the uploaded image publicly. Runs in a throwaway tab created in pre (add-tab + anchor text); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs insert-table",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "insert-table",
+    "{doc}",
+    "--tab",
+    "ZQX tbl {run}",
+    "--rows",
+    "2",
+    "--cols",
+    "3",
+    "--at-end",
+    "--values-json",
+    "[[\"Item\",\"Owner\",\"Due\"],[\"Draft\",\"Ana\",\"Friday\"]]",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX tbl {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX tbl {run}",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX tbl {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "InsertTable + GET + cell fill (unlocked). Runs in a throwaway tab created in pre (add-tab + anchor text); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs insert-section-break",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "insert-section-break",
+    "{doc}",
+    "--tab",
+    "ZQX sb {run}",
+    "--at",
+    "anchor text",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX sb {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX sb {run}",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX sb {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Default next-page section break at the anchor. Runs in a throwaway tab created in pre (add-tab + anchor text); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs insert-date-chip",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "insert-date-chip",
+    "{doc}",
+    "--tab",
+    "ZQX date {run}",
+    "--date",
+    "2026-10-02",
+    "--at-end",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX date {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX date {run}",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX date {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Date smart chip at end of the probe tab. Runs in a throwaway tab created in pre (add-tab + anchor text); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs page-layout",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "page-layout",
+    "{doc}",
+    "--tab",
+    "ZQX layout {run}",
+    "--layout",
+    "pageless",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX layout {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX layout {run}",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX layout {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "UpdateDocumentStyle is per tab, so the probe tab isolates it. Runs in a throwaway tab created in pre (add-tab + anchor text); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs cell-style",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "cell-style",
+    "{doc}",
+    "--tab",
+    "ZQX cs {run}",
+    "--table-index",
+    "1",
+    "--row",
+    "1",
+    "--col",
+    "1",
+    "--background-color",
+    "#FFF2CC",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX cs {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX cs {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert-table",
+     "{doc}",
+     "--tab",
+     "ZQX cs {run}",
+     "--rows",
+     "2",
+     "--cols",
+     "2",
+     "--at-end",
+     "--values-json",
+     "[[\"R1C1\", \"R1C2\"], [\"R2C1\", \"R2C2\"]]",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX cs {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Cell background (locked). gog has no flag to clear a cell background, hence the probe tab. Runs in a throwaway tab created in pre (add-tab + anchor text + table); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs table-row pin-header",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "table-row",
+    "pin-header",
+    "{doc}",
+    "--tab",
+    "ZQX pin {run}",
+    "--table",
+    "1",
+    "--rows",
+    "1",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX pin {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX pin {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert-table",
+     "{doc}",
+     "--tab",
+     "ZQX pin {run}",
+     "--rows",
+     "2",
+     "--cols",
+     "2",
+     "--at-end",
+     "--values-json",
+     "[[\"R1C1\", \"R1C2\"], [\"R2C1\", \"R2C2\"]]",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX pin {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Pins one header row (locked). The fixture table's original pin state is unknown, so it is not used. Runs in a throwaway tab created in pre (add-tab + anchor text + table); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs table-column insert",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "table-column",
+    "insert",
+    "{doc}",
+    "--tab",
+    "ZQX colins {run}",
+    "--table",
+    "1",
+    "--at",
+    "end",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX colins {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX colins {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert-table",
+     "{doc}",
+     "--tab",
+     "ZQX colins {run}",
+     "--rows",
+     "2",
+     "--cols",
+     "2",
+     "--at-end",
+     "--values-json",
+     "[[\"R1C1\", \"R1C2\"], [\"R2C1\", \"R2C2\"]]",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX colins {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Locked InsertTableColumn. Probe table avoids leaving explicit column widths on the fixture table. Runs in a throwaway tab created in pre (add-tab + anchor text + table); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs table-column delete",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "table-column",
+    "delete",
+    "{doc}",
+    "--tab",
+    "ZQX coldel {run}",
+    "--table",
+    "1",
+    "--col",
+    "2",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX coldel {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX coldel {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert-table",
+     "{doc}",
+     "--tab",
+     "ZQX coldel {run}",
+     "--rows",
+     "2",
+     "--cols",
+     "3",
+     "--at-end",
+     "--values-json",
+     "[[\"R1C1\", \"R1C2\", \"R1C3\"], [\"R2C1\", \"R2C2\", \"R2C3\"]]",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX coldel {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Locked DeleteTableColumn on a 2x3 probe table. Runs in a throwaway tab created in pre (add-tab + anchor text + table); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs insert-page-break",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "insert-page-break",
+    "{doc}",
+    "--tab",
+    "ZQX pb {run}",
+    "--at",
+    "anchor text",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX pb {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX pb {run}",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX pb {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Page break at the anchor (fewer than 3 route uses). Runs in a throwaway tab created in pre (add-tab + anchor text); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs insert-horizontal-rule",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "insert-horizontal-rule",
+    "{doc}",
+    "--tab",
+    "ZQX hr {run}",
+    "--at",
+    "anchor text",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX hr {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX hr {run}",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX hr {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Paragraph-border rule (fewer than 3 route uses). Runs in a throwaway tab created in pre (add-tab + anchor text); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs section-columns",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "section-columns",
+    "{doc}",
+    "--tab",
+    "ZQX cols {run}",
+    "--count",
+    "2",
+    "--at",
+    "anchor text",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX cols {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX cols {run}",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX cols {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Two-column section (fewer than 3 route uses). Runs in a throwaway tab created in pre (add-tab + anchor text); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs table-merge",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "table-merge",
+    "{doc}",
+    "--tab",
+    "ZQX merge {run}",
+    "--table",
+    "1",
+    "--range",
+    "1,1:1,2",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX merge {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX merge {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert-table",
+     "{doc}",
+     "--tab",
+     "ZQX merge {run}",
+     "--rows",
+     "2",
+     "--cols",
+     "2",
+     "--at-end",
+     "--values-json",
+     "[[\"R1C1\", \"R1C2\"], [\"R2C1\", \"R2C2\"]]",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX merge {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Locked merge (fewer than 3 route uses). Runs in a throwaway tab created in pre (add-tab + anchor text + table); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs table-unmerge",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "table-unmerge",
+    "{doc}",
+    "--tab",
+    "ZQX unmerge {run}",
+    "--table",
+    "1",
+    "--cell",
+    "1,1",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX unmerge {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX unmerge {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert-table",
+     "{doc}",
+     "--tab",
+     "ZQX unmerge {run}",
+     "--rows",
+     "2",
+     "--cols",
+     "2",
+     "--at-end",
+     "--values-json",
+     "[[\"R1C1\", \"R1C2\"], [\"R2C1\", \"R2C2\"]]",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "table-merge",
+     "{doc}",
+     "--tab",
+     "ZQX unmerge {run}",
+     "--table",
+     "1",
+     "--range",
+     "1,1:1,2",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX unmerge {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Locked unmerge of a region merged in pre (fewer than 3 route uses). Runs in a throwaway tab created in pre (add-tab + anchor text + table); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs table-column-width",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "table-column-width",
+    "{doc}",
+    "--tab",
+    "ZQX width {run}",
+    "--table-index",
+    "1",
+    "--col",
+    "1",
+    "--width",
+    "120",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX width {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX width {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert-table",
+     "{doc}",
+     "--tab",
+     "ZQX width {run}",
+     "--rows",
+     "2",
+     "--cols",
+     "2",
+     "--at-end",
+     "--values-json",
+     "[[\"R1C1\", \"R1C2\"], [\"R2C1\", \"R2C2\"]]",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX width {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Locked column width (fewer than 3 route uses). Runs in a throwaway tab created in pre (add-tab + anchor text + table); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs table-row style",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "table-row",
+    "style",
+    "{doc}",
+    "--tab",
+    "ZQX rowstyle {run}",
+    "--table",
+    "1",
+    "--row",
+    "1",
+    "--min-height",
+    "30",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX rowstyle {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX rowstyle {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert-table",
+     "{doc}",
+     "--tab",
+     "ZQX rowstyle {run}",
+     "--rows",
+     "2",
+     "--cols",
+     "2",
+     "--at-end",
+     "--values-json",
+     "[[\"R1C1\", \"R1C2\"], [\"R2C1\", \"R2C2\"]]",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX rowstyle {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Row min height (fewer than 3 route uses). Runs in a throwaway tab created in pre (add-tab + anchor text + table); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs insert-person",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "insert-person",
+    "{doc}",
+    "--tab",
+    "ZQX person {run}",
+    "--email",
+    "{account}",
+    "--at-end",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX person {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX person {run}",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX person {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Person chip for the account itself (fewer than 3 route uses). Runs in a throwaway tab created in pre (add-tab + anchor text); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs insert-file-chip",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "insert-file-chip",
+    "{doc}",
+    "--tab",
+    "ZQX filechip {run}",
+    "--file-id",
+    "{doc}",
+    "--at-end",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX filechip {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX filechip {run}",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX filechip {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Drive file chip pointing at the fixture itself (fewer than 3 route uses). Runs in a throwaway tab created in pre (add-tab + anchor text); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs header create",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "header",
+    "create",
+    "{doc}",
+    "--tab",
+    "ZQX header {run}",
+    "--text",
+    "ZQX probe header",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX header {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX header {run}",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX header {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Default header in the probe tab's own section (Tab 1 already has one; fewer than 3 route uses). Runs in a throwaway tab created in pre (add-tab + anchor text); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs footer create",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "footer",
+    "create",
+    "{doc}",
+    "--tab",
+    "ZQX footer {run}",
+    "--text",
+    "ZQX probe footer",
+    "--account",
+    "{account}"
+   ],
+   "pre": [
+    [
+     "gog",
+     "docs",
+     "add-tab",
+     "{doc}",
+     "--title",
+     "ZQX footer {run}",
+     "--account",
+     "{account}"
+    ],
+    [
+     "gog",
+     "docs",
+     "insert",
+     "{doc}",
+     "ZQX probe anchor text.",
+     "--tab",
+     "ZQX footer {run}",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "undo": [
+    "gog",
+    "docs",
+    "delete-tab",
+    "{doc}",
+    "--tab",
+    "ZQX footer {run}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "docs delete-tab",
+   "notes": "Default footer in the probe tab (fewer than 3 route uses). Runs in a throwaway tab created in pre (add-tab + anchor text); undo deletes that tab, so Tab 1 is never touched."
+  },
+  {
+   "command": "docs create",
+   "kind": "create",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "create",
+    "ZQX latency create gog {run}",
+    "--parent",
+    "{folder}",
+    "--file",
+    "{file:probe.md}",
+    "--account",
+    "{account}"
+   ],
+   "files": {
+    "probe.md": "# Probe\n\nCreated by the latency harness.\n\n- one\n- two\n"
+   },
+   "notes": "New Doc from Markdown inside the test folder; accumulates (no Drive deletion allowed)."
+  },
+  {
+   "command": "docs copy",
+   "kind": "create",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "copy",
+    "{doc}",
+    "ZQX latency copy gog {run}",
+    "--parent",
+    "{folder}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Drive files.copy of the short fixture into the test folder; accumulates."
+  },
+  {
+   "command": "drive upload",
+   "kind": "create",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "drive",
+    "upload",
+    "{file:probe.md}",
+    "--parent",
+    "{folder}",
+    "--name",
+    "ZQX latency upload gog {run}",
+    "--convert",
+    "--account",
+    "{account}"
+   ],
+   "files": {
+    "probe.md": "# Probe\n\nUploaded by the latency harness.\n"
+   },
+   "notes": "Uploads and converts a Markdown file to a Doc in the test folder. --convert infers the target from the file extension, so the temp file must keep the .md suffix."
+  },
+  {
+   "command": "docs comments reply",
+   "kind": "create",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "docs",
+    "comments",
+    "reply",
+    "{doc}",
+    "{comment_id}",
+    "ZQX latency probe reply {run}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Reply on the fixture thread; replies accumulate (gog has no reply delete)."
+  },
+  {
+   "command": "drive search",
+   "kind": "drive",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "drive",
+    "search",
+    "Latency fixture short",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Full-text search; matches the fixtures by title/content."
+  },
+  {
+   "command": "drive ls",
+   "kind": "drive",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "drive",
+    "ls",
+    "--parent",
+    "{folder}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Lists the test folder."
+  },
+  {
+   "command": "drive get",
+   "kind": "drive",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "drive",
+    "get",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "File metadata."
+  },
+  {
+   "command": "drive permissions",
+   "kind": "drive",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "drive",
+    "permissions",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Read-only permission listing (no change)."
+  },
+  {
+   "command": "drive revisions list",
+   "kind": "drive",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "drive",
+    "revisions",
+    "list",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Revision metadata (grows as runs edit the fixture)."
+  },
+  {
+   "command": "drive audit sharing",
+   "kind": "drive",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "drive",
+    "audit",
+    "sharing",
+    "--file",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Read-only audit of one file's permissions."
+  },
+  {
+   "command": "drive raw",
+   "kind": "drive",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "drive",
+    "raw",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Raw files.get JSON (fewer than 3 route uses)."
+  },
+  {
+   "command": "drive url",
+   "kind": "drive",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "drive",
+    "url",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Web URL for the file (fewer than 3 route uses)."
+  },
+  {
+   "command": "drive drives",
+   "kind": "drive",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "drive",
+    "drives",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Shared drives list; likely empty on a personal account (fewer than 3 route uses)."
+  },
+  {
+   "command": "drive rename",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "drive",
+    "rename",
+    "{doc}",
+    "Latency fixture short (gog) ZQX",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gog",
+    "drive",
+    "rename",
+    "{doc}",
+    "Latency fixture short (gog)",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Renames the fixture and back to its fixtures.py title (fewer than 3 route uses; explicitly allowed)."
+  },
+  {
+   "command": "drive move",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gog",
+    "drive",
+    "move",
+    "{doc}",
+    "--parent",
+    "{folder2}",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gog",
+    "drive",
+    "move",
+    "{doc}",
+    "--parent",
+    "{folder}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Moves the fixture to folder2 (removes all current parents) and back to folder (fewer than 3 route uses; explicitly allowed)."
+  }
+ ],
+ "skipped": [
+  {
+   "command": "drive share",
+   "reason": "Permission change; forbidden."
+  },
+  {
+   "command": "drive unshare",
+   "reason": "Permission change; forbidden."
+  },
+  {
+   "command": "drive bulk update-role",
+   "reason": "Permission change; forbidden."
+  },
+  {
+   "command": "drive bulk remove-public",
+   "reason": "Permission change; forbidden."
+  },
+  {
+   "command": "drive delete",
+   "reason": "Deletes (trashes) a Drive file; forbidden."
+  },
+  {
+   "command": "batch end",
+   "reason": "Needs a batch ID and a queued request created in the same run; the spec captures only from argv's stdout, and ending an empty batch errors ('batch has no requests'). It sends one locked documents.batchUpdate, so docs update's write phase is the closest proxy."
+  },
+  {
+   "command": "batch show",
+   "reason": "Same batch-ID dependency as batch end; local only (1 route use)."
+  },
+  {
+   "command": "docs replace-image",
+   "reason": "1 route use; needs an image object ID in a probe tab that the spec cannot capture from pre."
+  },
+  {
+   "command": "docs comments reopen",
+   "reason": "1 route use; needs a resolved comment ID from the same run."
+  },
+  {
+   "command": "docs comments delete",
+   "reason": "1 route use; permanent deletion of a comment."
+  },
+  {
+   "command": "drive comments update",
+   "reason": "1 route use; would rewrite the fixture comment's text."
+  },
+  {
+   "command": "drive mkdir",
+   "reason": "1 route use; creates folders, outside the allowed effects (documents/copies only)."
+  },
+  {
+   "command": "sheets get",
+   "reason": "Sheets, not Docs/Drive (1 route use); no spreadsheet fixture."
+  },
+  {
+   "command": "sheets chart get",
+   "reason": "Sheets, not Docs/Drive (1 route use); no spreadsheet fixture."
+  },
+  {
+   "command": "drive activity query",
+   "reason": "The stored gog token lacks the Drive Activity scope (403 insufficientPermissions); timing it would need a re-authorization. 2 route uses."
+  }
+ ]
+}

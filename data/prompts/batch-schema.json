@@ -1,0 +1,36 @@
+{
+  "type": "object",
+  "properties": {
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "task": { "type": "string" },
+          "coverage": { "type": "string", "enum": ["native", "lossy", "cannot-target", "no-route"] },
+          "route": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": { "command": { "type": "string" }, "optional": { "type": "boolean" } },
+              "required": ["command", "optional"]
+            }
+          },
+          "flags": { "type": "array", "items": { "type": "string", "enum": ["caller-mechanics", "depends-on-google"] } },
+          "note": { "type": "string", "description": "one or two plain sentences: why this level, naming the loss or missing capability" },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": { "claim": { "type": "string" }, "ref": { "type": "string", "description": "path#Lstart-Lend" }, "url": { "type": "string" } },
+              "required": ["claim", "ref", "url"]
+            }
+          }
+        },
+        "required": ["task", "coverage", "route", "flags", "note", "evidence"]
+      }
+    },
+    "changes": { "type": "string", "description": "verifier only: what you changed and why, briefly; grader: empty string" }
+  },
+  "required": ["results", "changes"]
+}

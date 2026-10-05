@@ -1,0 +1,224 @@
+{
+  "tool": "taylor",
+  "aliases": {},
+  "definition_note": "Count the tools/list response of exactly `workspace-mcp --single-user --tools docs drive` (no --tool-tier flag, USER_GOOGLE_EMAIL unset). Tokenize, per tool, the JSON of {name, description, inputSchema}: that is what MCP clients forward to the model; drop title, annotations and outputSchema, which clients keep out of the prompt. Record the per-tool counts as well as the sum. By source count, no tier flag gives 37 tools: 18 in gdocs/docs_tools.py, the 2 document-comment tools, 16 in gdrive/drive_tools.py, and start_google_auth from core/server.py. The user's real configuration runs `--tool-tier complete`, which drops debug_docs_runtime_info (in no tier) and start_google_auth (listed only under gmail), so report the sum both for all tools and without those two. Because USER_GOOGLE_EMAIL is unset, user_google_email stays a required property in every schema, matching the user's setup. The server sends no instructions block in this mode, so there is nothing else to add.",
+  "commands": [
+    {
+      "command": "get_doc_content",
+      "kind": "read",
+      "fixtures": ["short", "long", "formatted"],
+      "call": {"tool": "get_doc_content", "arguments": {"user_google_email": "{account}", "document_id": "{doc}"}},
+      "notes": "Whole-document plain-text read with default suggestion view; all tabs are concatenated with --- TAB --- separators. Drive files.get + Docs documents.get."
+    },
+    {
+      "command": "get_doc_as_markdown",
+      "kind": "read",
+      "fixtures": ["short", "long", "formatted"],
+      "call": {"tool": "get_doc_as_markdown", "arguments": {"user_google_email": "{account}", "document_id": "{doc}"}},
+      "notes": "Defaults: include_comments=true, comment_mode=inline, include_resolved=false, so it also pages Drive comments.list. Resolved probe comments from manage_document_comment are excluded from the output."
+    },
+    {
+      "command": "debug_table_structure",
+      "kind": "read",
+      "fixtures": ["short", "long", "formatted"],
+      "call": {"tool": "debug_table_structure", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "table_index": 0}},
+      "notes": "Graders use this as the index source because inspect_doc_structure fails. It fetches the whole first-tab document but prints only table 0, so output size is constant while latency grows with document size."
+    },
+    {
+      "command": "get_drive_file_content",
+      "kind": "read",
+      "fixtures": ["short", "long", "formatted"],
+      "call": {"tool": "get_drive_file_content", "arguments": {"user_google_email": "{account}", "file_id": "{doc}"}},
+      "notes": "Drive-side plain-text export of the native Doc."
+    },
+    {
+      "command": "get_drive_file_download_url",
+      "kind": "read",
+      "fixtures": ["short", "long", "formatted"],
+      "call": {"tool": "get_drive_file_download_url", "arguments": {"user_google_email": "{account}", "file_id": "{doc}"}},
+      "notes": "Exports the Doc as PDF (default) and, in stdio mode, saves it into the server's local attachment directory; returns the local path. Only local disk is written; nothing is created in Drive."
+    },
+    {
+      "command": "list_document_comments",
+      "kind": "lookup",
+      "fixtures": ["short"],
+      "call": {"tool": "list_document_comments", "arguments": {"user_google_email": "{account}", "document_id": "{doc}"}},
+      "notes": "Lists every comment including resolved ones. Run it before manage_document_comment: each manage_document_comment run leaves one resolved probe comment that this listing then includes, inflating output tokens."
+    },
+    {
+      "command": "search_drive_files",
+      "kind": "lookup",
+      "fixtures": ["short"],
+      "call": {"tool": "search_drive_files", "arguments": {"user_google_email": "{account}", "query": "name contains 'Latency fixture'"}},
+      "notes": "Structured name query, default page_size 10 and detailed output. Matches the five fixture documents; probe files created by this spec use other names so the result set stays stable."
+    },
+    {
+      "command": "search_docs",
+      "kind": "lookup",
+      "fixtures": ["short"],
+      "call": {"tool": "search_docs", "arguments": {"user_google_email": "{account}", "query": "Latency fixture"}},
+      "notes": "Name-contains search restricted to Google Docs."
+    },
+    {
+      "command": "list_drive_items",
+      "kind": "lookup",
+      "fixtures": ["short"],
+      "call": {"tool": "list_drive_items", "arguments": {"user_google_email": "{account}", "folder_id": "{folder}"}},
+      "notes": "Lists the fixture folder. Every create command below adds files to {folder}, so run this before the create commands or record the item count with the result."
+    },
+    {
+      "command": "get_drive_file_permissions",
+      "kind": "drive",
+      "fixtures": ["short"],
+      "call": {"tool": "get_drive_file_permissions", "arguments": {"user_google_email": "{account}", "file_id": "{doc}"}},
+      "notes": "Read-only permission listing of the fixture document."
+    },
+    {
+      "command": "get_drive_shareable_link",
+      "kind": "drive",
+      "fixtures": ["short"],
+      "call": {"tool": "get_drive_shareable_link", "arguments": {"user_google_email": "{account}", "file_id": "{doc}"}},
+      "notes": "Read-only (2 route uses); returns the existing link and sharing summary without changing permissions."
+    },
+    {
+      "command": "batch_update_doc",
+      "kind": "pair",
+      "fixtures": ["short"],
+      "call": {"tool": "batch_update_doc", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "operations": [
+        {"type": "insert_text", "index": 1, "text": "Probe batch {run}. "},
+        {"type": "format_text", "start_index": 1, "end_index": 16, "bold": true}
+      ]}},
+      "undo": {"tool": "find_and_replace_doc", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "find_text": "Probe batch {run}. ", "replace_text": "", "match_case": true}},
+      "undo_command": "find_and_replace_doc",
+      "notes": "Typical two-operation batch: insert a 15-character probe at the start of the first tab body and bold it ([1,16) assumes {run} is one digit). The post-write snapshot read fails silently in this build, so the output has no affected-range lines. Undo removes only the exact probe string, so it cannot touch fixture text even if the call failed."
+    },
+    {
+      "command": "modify_doc_text",
+      "kind": "pair",
+      "fixtures": ["short"],
+      "call": {"tool": "modify_doc_text", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "start_index": 1, "text": "Probe sentence {run}. "}},
+      "undo": {"tool": "find_and_replace_doc", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "find_text": "Probe sentence {run}. ", "replace_text": "", "match_case": true}},
+      "undo_command": "find_and_replace_doc",
+      "notes": "Inserts a probe sentence at body index 1 of the first tab (start of the title paragraph); index 1 is always the first writable body position, so no pre read is needed. modify_doc_text cannot delete without inserting replacement text, so undo deletes the exact probe string with find_and_replace_doc."
+    },
+    {
+      "command": "find_and_replace_doc",
+      "kind": "pair",
+      "fixtures": ["short"],
+      "call": {"tool": "find_and_replace_doc", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "find_text": "alpha build", "replace_text": "beta build", "match_case": true}},
+      "undo": {"tool": "find_and_replace_doc", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "find_text": "beta build", "replace_text": "alpha build", "match_case": true}},
+      "notes": "Marker phrase 'alpha build' occurs once in the short fixture and 'beta build' does not occur, so the swap is exactly reversible."
+    },
+    {
+      "command": "update_paragraph_style",
+      "kind": "pair",
+      "fixtures": ["short"],
+      "call": {"tool": "update_paragraph_style", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "start_index": 1, "end_index": 2, "alignment": "CENTER"}},
+      "undo": {"tool": "update_paragraph_style", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "start_index": 1, "end_index": 2, "alignment": "START"}},
+      "notes": "Centers the title paragraph (any range inside a paragraph styles the whole paragraph), then sets it back to left. The restore writes an explicit START where the fixture probably inherited START from its named style; the rendered document is identical."
+    },
+    {
+      "command": "manage_doc_tab",
+      "kind": "pair",
+      "fixtures": ["short"],
+      "call": {"tool": "manage_doc_tab", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "action": "create", "title": "Probe tab {run}", "index": 2}},
+      "capture": {"new_tab": "\"tab_id\":\\s*\"([^\"]+)\""},
+      "undo": {"tool": "manage_doc_tab", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "action": "delete", "tab_id": "{new_tab}"}},
+      "notes": "Creates an empty top-level tab after Appendix (index 2 among Tab 1 and Appendix) and deletes it. The tool returns a dict, which arrives as JSON text containing \"tab_id\": \"t.…\"; the message field also says 'Tab ID: t.…'. If Google returns no tab ID the capture fails and the probe tab must be removed by hand."
+    },
+    {
+      "command": "manage_document_comment",
+      "kind": "pair",
+      "fixtures": ["short"],
+      "call": {"tool": "manage_document_comment", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "action": "create", "comment_content": "Latency probe comment {run}"}},
+      "capture": {"new_comment": "Comment ID: ([A-Za-z0-9_-]+)"},
+      "undo": {"tool": "manage_document_comment", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "action": "resolve", "comment_id": "{new_comment}"}},
+      "notes": "Creates an unanchored document-level comment (this server cannot anchor comments) and resolves it, which posts a visible 'This comment has been resolved.' reply. Comments cannot be deleted with this server, so one resolved probe comment remains per run. The capture is named new_comment to avoid the harness's {comment_id} placeholder, which names the fixture's own thread."
+    },
+    {
+      "command": "update_doc_headers_footers",
+      "kind": "pair",
+      "fixtures": ["short"],
+      "call": {"tool": "update_doc_headers_footers", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "section_type": "header", "content": "Launch notes · internal (probe {run})"}},
+      "undo": {"tool": "update_doc_headers_footers", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "section_type": "header", "content": "Launch notes · internal"}},
+      "notes": "Replaces the existing DEFAULT header text and restores the fixture's exact header text."
+    },
+    {
+      "command": "update_drive_file",
+      "kind": "pair",
+      "fixtures": ["short"],
+      "call": {"tool": "update_drive_file", "arguments": {"user_google_email": "{account}", "file_id": "{doc}", "name": "Launch notes renamed probe {run}"}},
+      "capture": {"orig_name": "Name: '(.+?)' → '"},
+      "undo": {"tool": "update_drive_file", "arguments": {"user_google_email": "{account}", "file_id": "{doc}", "name": "{orig_name}"}},
+      "notes": "Renames the fixture file and restores the name captured from the tool's change report (expected 'Latency fixture short (taylor)'). Only the name changes; no content re-import."
+    },
+    {
+      "command": "import_to_google_doc",
+      "kind": "create",
+      "fixtures": ["short"],
+      "call": {"tool": "import_to_google_doc", "arguments": {"user_google_email": "{account}", "file_name": "Latency import {run}", "content": "# Weekly update\n\nThe alpha build ships to **pilot teams** this week.\n\n- Confirm the schedule\n- Send the summary\n", "source_format": "md", "folder_id": "{folder}"}},
+      "notes": "Imports a short Markdown note as a new Google Doc in {folder}; the doc is retained."
+    },
+    {
+      "command": "create_doc",
+      "kind": "create",
+      "fixtures": ["short"],
+      "call": {"tool": "create_doc", "arguments": {"user_google_email": "{account}", "title": "Latency create {run}", "content": "Weekly update. The alpha build ships this week."}},
+      "capture": {"created_doc": "\\(ID: ([A-Za-z0-9_-]+)\\)"},
+      "undo": {"tool": "update_drive_file", "arguments": {"user_google_email": "{account}", "file_id": "{created_doc}", "add_parents": "{folder}", "remove_parents": "root"}},
+      "undo_command": "update_drive_file",
+      "notes": "create_doc has no folder parameter, so the new doc lands in My Drive root. The 'undo' is an untimed follow-up that moves it into {folder}; run it so no probe file is left outside the fixture folder."
+    },
+    {
+      "command": "export_doc_to_pdf",
+      "kind": "create",
+      "fixtures": ["short"],
+      "call": {"tool": "export_doc_to_pdf", "arguments": {"user_google_email": "{account}", "document_id": "{doc}", "pdf_filename": "Latency export {run}.pdf", "folder_id": "{folder}"}},
+      "notes": "Exports the fixture to PDF and uploads the PDF into {folder}; the PDF is retained."
+    },
+    {
+      "command": "copy_drive_file",
+      "kind": "create",
+      "fixtures": ["short"],
+      "call": {"tool": "copy_drive_file", "arguments": {"user_google_email": "{account}", "file_id": "{doc}", "new_name": "Latency copy {run}", "parent_folder_id": "{folder}"}},
+      "notes": "Copies the fixture into {folder} under a name that does not match the search lookups."
+    },
+    {
+      "command": "create_drive_file",
+      "kind": "create",
+      "fixtures": ["short"],
+      "call": {"tool": "create_drive_file", "arguments": {"user_google_email": "{account}", "file_name": "latency-note-{run}.txt", "content": "Probe note for latency timing.", "folder_id": "{folder}"}},
+      "notes": "Creates a small text/plain file in {folder}."
+    },
+    {
+      "command": "create_drive_folder",
+      "kind": "create",
+      "fixtures": ["short"],
+      "call": {"tool": "create_drive_folder", "arguments": {"user_google_email": "{account}", "folder_name": "Latency folder {run}", "parent_folder_id": "{folder}"}},
+      "notes": "One route use; included because it is a cheap create inside {folder}. Empty folders are retained."
+    },
+    {
+      "command": "create_table_with_data",
+      "kind": "create",
+      "fixtures": ["short"],
+      "pre": [
+        {"tool": "import_to_google_doc", "arguments": {"user_google_email": "{account}", "file_name": "Latency table target {run}", "content": "Table target.\n", "source_format": "md", "folder_id": "{folder}"}}
+      ],
+      "pre_capture": {"scratch_doc": "Document ID: ([A-Za-z0-9_-]+)"},
+      "call": {"tool": "create_table_with_data", "arguments": {"user_google_email": "{account}", "document_id": "{scratch_doc}", "table_data": [["Item", "Owner", "Due"], ["Draft", "Ana", "Friday"], ["Review", "Ben", "Monday"]], "index": 1}},
+      "notes": "Removing a table needs its end index, which no output reports, so the timed call writes into a scratch doc created by the untimed pre call in {folder} instead of the fixture. The call itself makes 3 API calls (insert table, re-read, populate cells)."
+    }
+  ],
+  "skipped": [
+    {"command": "manage_drive_access", "reason": "Sharing and permission writes are forbidden (18 route uses)."},
+    {"command": "set_drive_file_permissions", "reason": "Permission writes are forbidden (10 route uses)."},
+    {"command": "inspect_doc_structure", "reason": "Fails with HTTP 400 on every call in v1.26.0 and appears in no graded route."},
+    {"command": "insert_doc_elements", "reason": "No graded route uses it."},
+    {"command": "insert_doc_image", "reason": "No graded route uses it."},
+    {"command": "list_docs_in_folder", "reason": "No graded route uses it."},
+    {"command": "check_drive_file_public_access", "reason": "No graded route uses it."},
+    {"command": "import_to_google_slides", "reason": "Not a Docs task; no graded route uses it."},
+    {"command": "import_to_google_sheets", "reason": "Not a Docs task; no graded route uses it."},
+    {"command": "debug_docs_runtime_info", "reason": "Diagnostic tool outside every tier; no graded route uses it."}
+  ]
+}

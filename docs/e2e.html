@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>End-to-end runs</title>
+<style>
+  :root { --bg:#fbfaf7; --fg:#1d1c1a; --muted:#6b6862; --line:#e4e1da; --card:#fff;
+          --pass:#2f7d4f; --partial:#b7791f; --fail:#b23b3b; --other:#6b6862; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#181816; --fg:#ecebe7; --muted:#a19d95; --line:#33322e; --card:#22211e;
+          --pass:#5fbf86; --partial:#e0a84a; --fail:#e07070; --other:#a19d95; } }
+  body { background:var(--bg); color:var(--fg); font:14px/1.5 system-ui, sans-serif; margin:0; padding:24px 16px; }
+  main { max-width:1100px; margin:auto; }
+  h1 { font-size:22px; margin:0 0 4px; } h2 { font-size:16px; margin:28px 0 8px; }
+  p.muted, .muted { color:var(--muted); }
+  table { border-collapse:collapse; width:100%; background:var(--card); }
+  th, td { border-bottom:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+  th { font-weight:600; font-size:12px; color:var(--muted); }
+  .wrap { overflow-x:auto; }
+  .o { font-weight:600; font-size:12px; white-space:nowrap; }
+  .pass { color:var(--pass); } .partial { color:var(--partial); } .fail { color:var(--fail); }
+  .asked, .off-route, .not-run { color:var(--other); }
+  tr.task { cursor:pointer; } tr.detail td { font-size:12px; color:var(--muted); background:var(--bg); }
+  select { font:inherit; padding:4px; background:var(--card); color:var(--fg); border:1px solid var(--line); }
+</style>
+</head>
+<body><main>
+<p><a href="./">← Capability matrix</a> · <a href="https://github.com/alejoacelas/google-docs-agent-tools/blob/main/METHODOLOGY.md">Method</a></p><h1>End-to-end runs</h1>
+<p class="muted">Assistants doing concrete Google Docs tasks on synthetic documents, graded by inspecting the document afterwards against a snapshot taken before the run. <b>pass</b>: every requested effect and reported fact is right and nothing that must survive was lost. <b>partial</b>: the change happened but something was lost or misreported. <b>fail</b>: not done, wrong, or declined. The surface check runs the same 30 tasks through a web app and its command-line twin to see whether the CLI stands in for the app.</p>
+<label>Suite <select id="suite"><option value="main">Main runs (90 tasks)</option><option value="surface">Surface check (30 tasks)</option></select></label>
+<h2>By category</h2><div class="wrap" id="summary"></div>
+<h2>By task</h2><p class="muted">Click a task for failed checks and notes.</p><div class="wrap" id="tasks"></div>
+</main>
+<script>
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let D;
+fetch("e2e.json").then((r) => r.json()).then((d) => { D = d; render(); });
+document.getElementById("suite").onchange = render;
+function render() {
+  const suite = document.getElementById("suite").value;
+  const configs = D.configs.filter((c) => c.suite === suite);
+  const tasks = D.tasks.filter((t) => t.suite === suite);
+  const res = {}; D.results.filter((r) => r.suite === suite).forEach((r) => (res[r.task + "|" + r.config] = r));
+  const cats = [...new Set(tasks.map((t) => t.category))];
+  const cell = (rows) => { const n = rows.length, p = rows.filter((r) => r && r.outcome === "pass").length;
+    return n ? `${p}/${n} <span class="muted">(${Math.round((100 * p) / n)}%)</span>` : "—"; };
+  document.getElementById("summary").innerHTML = `<table><tr><th>Category</th>${configs.map((c) => `<th>${esc(c.name)}<br><span class="muted">${esc(c.account)}</span></th>`).join("")}</tr>${
+    [...cats, "all"].map((cat) => `<tr><td>${cat === "all" ? "<b>All</b>" : esc(cat)}</td>${configs.map((c) =>
+      `<td>${cell(tasks.filter((t) => cat === "all" || t.category === cat).map((t) => res[t.id + "|" + c.id]).filter(Boolean))}</td>`).join("")}</tr>`).join("")}</table>`;
+  document.getElementById("tasks").innerHTML = `<table><tr><th>Task</th><th>Request</th>${configs.map((c) => `<th>${esc(c.name)}</th>`).join("")}</tr>${tasks.map((t) =>
+    `<tr class="task" data-id="${t.id}"><td>${t.id}<br><span class="muted">${esc(t.category)}</span></td><td>${esc(t.prompt.replace("{DOC_URL}", "[doc]")).slice(0, 220)}</td>${configs.map((c) => {
+      const r = res[t.id + "|" + c.id]; return `<td class="o ${r ? r.outcome : ""}">${r ? r.outcome : "—"}</td>`; }).join("")}</tr>
+     <tr class="detail" data-for="${t.id}" hidden><td colspan="${2 + configs.length}">${configs.map((c) => { const r = res[t.id + "|" + c.id]; if (!r) return "";
+      return `<p><b>${esc(c.name)}</b> — <span class="${r.outcome}">${r.outcome}</span>${r.calls != null ? ` · ${r.calls} calls` : ""}${r.seconds ? ` · ${Math.round(r.seconds)} s` : ""}<br>${
+        r.failed.length ? "Failed: " + r.failed.map(esc).join("; ") + "<br>" : ""}${r.damage ? "Damage: " + esc(r.damage) + "<br>" : ""}${esc(r.note)}</p>`; }).join("")}</td></tr>`).join("")}</table>`;
+  document.querySelectorAll("tr.task").forEach((tr) => (tr.onclick = () => { const d = document.querySelector(`tr.detail[data-for="${tr.dataset.id}"]`); d.hidden = !d.hidden; }));
+}
+</script>
+</body></html>

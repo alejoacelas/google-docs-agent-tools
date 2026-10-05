@@ -1,0 +1,648 @@
+{
+ "tool": "gdoc",
+ "version": "0.22.0",
+ "notes": [
+  "Every argv passes --account {account} after the subcommand, where gdoc's subparsers accept it.",
+  "Run read and lookup entries before the reply entry: reply adds probe replies to the fixture comment thread, which lengthens later comments, comment-info and cat output on short.",
+  "gdoc checks GitHub for updates at most once per 24 hours from any command (no environment switch disables it at 0.22.0); the dry run absorbs that request.",
+  "gdoc sends one extra pre-flight request (files.get name, owners) the first time it sees a document ID on this machine. The dry run absorbs it for fixtures; the new and cp entries' undo commands always pay it because they act on a document created moments earlier.",
+  "pre commands are untimed and must run before every timed argv run, not only once."
+ ],
+ "aliases": {
+  "unnest": "nest",
+  "move": "mv",
+  "history": "revisions"
+ },
+ "commands": [
+  {
+   "command": "cat",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gdoc",
+    "cat",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Default Markdown export of the whole document to stdout."
+  },
+  {
+   "command": "structure",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gdoc",
+    "structure",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Raw documents.get JSON for all tabs, compact."
+  },
+  {
+   "command": "tabs",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gdoc",
+    "tabs",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Lists tab IDs, titles and nesting. Also the lookup for tab IDs used by insert, write and suggest."
+  },
+  {
+   "command": "toc",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gdoc",
+    "toc",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Heading outline of the first tab with deep links."
+  },
+  {
+   "command": "info",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gdoc",
+    "info",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Title, owner, modified time and word count (exports text/plain to count words)."
+  },
+  {
+   "command": "images",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gdoc",
+    "images",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Lists inline images with object IDs. long and formatted may have none."
+  },
+  {
+   "command": "export",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gdoc",
+    "export",
+    "{doc}",
+    "--format",
+    "pdf",
+    "--out",
+    "{file:export}",
+    "--account",
+    "{account}"
+   ],
+   "files": {
+    "export": ""
+   },
+   "notes": "Exports a PDF to a local file; stdout is one status line. The harness's temp file is overwritten."
+  },
+  {
+   "command": "pull",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "argv": [
+    "gdoc",
+    "pull",
+    "{doc}",
+    "{file:pulled}",
+    "--account",
+    "{account}"
+   ],
+   "files": {
+    "pulled": ""
+   },
+   "notes": "Downloads Markdown with gdoc frontmatter into a local file; stdout is one status line, so output tokens exclude the file the agent would read next."
+  },
+  {
+   "command": "diff",
+   "kind": "read",
+   "fixtures": [
+    "short",
+    "long",
+    "formatted"
+   ],
+   "pre": [
+    [
+     "gdoc",
+     "pull",
+     "{doc}",
+     "{file:base}",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "argv": [
+    "gdoc",
+    "diff",
+    "{doc}",
+    "{file:base}",
+    "--account",
+    "{account}"
+   ],
+   "files": {
+    "base": ""
+   },
+   "expect_exit": [
+    0,
+    1
+   ],
+   "notes": "Compares the live document with a file just pulled from it, the usual check before pushing local edits. diff exits 1 when the two differ, and the pulled file's frontmatter always differs, so exit 1 is success here."
+  },
+  {
+   "command": "comments",
+   "kind": "lookup",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gdoc",
+    "comments",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Lists open comment threads with replies."
+  },
+  {
+   "command": "comment-info",
+   "kind": "lookup",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gdoc",
+    "comment-info",
+    "{doc}",
+    "{comment_id}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Fetches the fixture comment thread by ID."
+  },
+  {
+   "command": "revisions",
+   "kind": "lookup",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gdoc",
+    "revisions",
+    "{doc}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Lists retained revisions. Output grows slowly as the write entries create revisions."
+  },
+  {
+   "command": "find",
+   "kind": "drive",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gdoc",
+    "find",
+    "Latency fixture",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Drive name and full-text search matching the fixture titles."
+  },
+  {
+   "command": "ls",
+   "kind": "drive",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gdoc",
+    "ls",
+    "{folder}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Lists the fixture folder. Output grows as the new and cp entries add probe documents there."
+  },
+  {
+   "command": "edit",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gdoc",
+    "edit",
+    "{doc}",
+    "alpha build",
+    "beta build",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gdoc",
+    "edit",
+    "{doc}",
+    "beta build",
+    "alpha build",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Find and replace one marker phrase in the first tab, then back. edit only warns on a stale read baseline, so no pre read is needed."
+  },
+  {
+   "command": "suggest",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "pre": [
+    [
+     "gdoc",
+     "write",
+     "{doc}",
+     "{file:suggest_probe}",
+     "--tab",
+     "{child_tab_id}",
+     "--force",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "argv": [
+    "gdoc",
+    "suggest",
+    "{doc}",
+    "alpha draft",
+    "beta draft",
+    "--tab",
+    "{child_tab_id}",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gdoc",
+    "write",
+    "{doc}",
+    "{file:sources_tab}",
+    "--tab",
+    "{child_tab_id}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "write",
+   "files": {
+    "suggest_probe": "Suggestion probe: alpha draft.\n",
+    "sources_tab": "Sources: supporting material for the launch.\n"
+   },
+   "notes": "gdoc cannot accept or reject suggestions, and suggest refuses to overlap an existing suggestion, so each run targets fresh probe text in the Sources child tab. pre replaces that tab's paragraph with a probe sentence; undo rewrites the tab to its original single paragraph, which removes the pending suggestion with it."
+  },
+  {
+   "command": "write",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "pre": [
+    [
+     "gdoc",
+     "structure",
+     "{doc}",
+     "--fields",
+     "revisionId",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "argv": [
+    "gdoc",
+    "write",
+    "{doc}",
+    "{file:probe_tab}",
+    "--tab",
+    "{child_tab_id}",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gdoc",
+    "write",
+    "{doc}",
+    "{file:sources_tab}",
+    "--tab",
+    "{child_tab_id}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "files": {
+    "probe_tab": "Latency probe tab text.\n",
+    "sources_tab": "Sources: supporting material for the launch.\n"
+   },
+   "notes": "Replaces the Sources child tab (the per-tab form graders' notes mostly use), then restores its original paragraph. write refuses unless the document was read since its last change, so pre records a read baseline. A tab write does not advance that baseline, so the undo passes --force; --force skips only the local check and sends the same requests."
+  },
+  {
+   "command": "insert",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "pre": [
+    [
+     "gdoc",
+     "structure",
+     "{doc}",
+     "--fields",
+     "revisionId",
+     "--account",
+     "{account}"
+    ]
+   ],
+   "argv": [
+    "gdoc",
+    "insert",
+    "{doc}",
+    "{file:probe_para}",
+    "--tab",
+    "{tab_title}",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gdoc",
+    "edit",
+    "{doc}",
+    "Latency probe paragraph.\n",
+    "",
+    "--tab",
+    "{tab_id}",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "edit",
+   "files": {
+    "probe_para": "Latency probe paragraph.\n"
+   },
+   "notes": "Inserts a probe paragraph at the start of the Appendix tab, then deletes it (text plus its paragraph mark) with edit. insert refuses without a fresh read baseline, so pre records one."
+  },
+  {
+   "command": "insert-image",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gdoc",
+    "insert-image",
+    "{doc}",
+    "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
+    "--tab",
+    "{tab_title}",
+    "--after",
+    "Appendix: supporting",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gdoc",
+    "edit",
+    "{doc}",
+    "supporting material",
+    "supporting material",
+    "--tab",
+    "{tab_id}",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "edit",
+   "notes": "Inserts a public-URL image after 'supporting' in the Appendix tab. A URL is used because a local file makes gdoc upload a temporary anyone-with-link copy, a sharing change. edit's match on 'supporting material' spans the image, so replacing the phrase with itself deletes the image and restores the text."
+  },
+  {
+   "command": "nest",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gdoc",
+    "nest",
+    "{doc}",
+    "Send invitations",
+    "--account",
+    "{account}",
+    "--tab",
+    "Appendix"
+   ],
+   "undo": [
+    "gdoc",
+    "unnest",
+    "{doc}",
+    "Send invitations",
+    "--account",
+    "{account}",
+    "--tab",
+    "Appendix"
+   ],
+   "undo_command": "nest",
+   "notes": "Nests 'Send invitations' under 'Book the venue' in a default-preset numbered list in the Appendix tab, then unnests it. The fixture's Markdown-imported lists are refused by gdoc (non-default glyphs), so fixtures.py's gdoc copy carries this extra native list. unnest counts as nest."
+  },
+  {
+   "command": "comment",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gdoc",
+    "comment",
+    "{doc}",
+    "Latency probe comment {run}",
+    "--quote",
+    "pilot teams",
+    "--account",
+    "{account}"
+   ],
+   "capture": {
+    "probe_comment": "OK comment #(\\S+)"
+   },
+   "undo": [
+    "gdoc",
+    "resolve",
+    "{doc}",
+    "{probe_comment}",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "resolve",
+   "notes": "Adds an anchored probe comment, then resolves it. Resolved probe comments accumulate but are hidden from default comments output."
+  },
+  {
+   "command": "reply",
+   "kind": "create",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gdoc",
+    "reply",
+    "{doc}",
+    "{comment_id}",
+    "Latency probe reply {run}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Replies to the fixture thread. gdoc cannot delete replies, so probe replies accumulate on that thread; run this after the reads (see top-level notes)."
+  },
+  {
+   "command": "mv",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gdoc",
+    "mv",
+    "{doc}",
+    "{folder2}",
+    "--account",
+    "{account}"
+   ],
+   "undo": [
+    "gdoc",
+    "mv",
+    "{doc}",
+    "{folder}",
+    "--account",
+    "{account}"
+   ],
+   "notes": "Moves the fixture into the second test folder and back."
+  },
+  {
+   "command": "cp",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gdoc",
+    "cp",
+    "{doc}",
+    "Latency probe copy {run}",
+    "--account",
+    "{account}"
+   ],
+   "capture": {
+    "copy_doc": "([A-Za-z0-9_-]{25,})"
+   },
+   "undo": [
+    "gdoc",
+    "add-tab",
+    "{copy_doc}",
+    "Latency probe tab",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "add-tab",
+   "notes": "Copies the short fixture; Drive keeps the source's parent, so the copy lands in {folder}. The undo slot is used to time add-tab on that disposable copy, because gdoc has no command to delete a tab and add-tab on the fixture would leave probe tabs behind. Copies accumulate in {folder}."
+  },
+  {
+   "command": "new",
+   "kind": "pair",
+   "fixtures": [
+    "short"
+   ],
+   "argv": [
+    "gdoc",
+    "new",
+    "Latency probe new {run}",
+    "--folder",
+    "{folder}",
+    "--file",
+    "{file:new_md}",
+    "--account",
+    "{account}"
+   ],
+   "capture": {
+    "new_doc": "([A-Za-z0-9_-]{25,})"
+   },
+   "undo": [
+    "gdoc",
+    "write",
+    "{new_doc}",
+    "{file:push_md}",
+    "--force",
+    "--account",
+    "{account}"
+   ],
+   "undo_command": "push",
+   "files": {
+    "new_md": "# Launch notes\n\nThis document tracks the launch. Last updated by the team.\n\n## Status 1\n\nThe launch plan is on track and the alpha build ships to **pilot teams** this week.\n\n- Owners\n  - Budget sign-off\n\n## Notes\n\nOpen questions go here.\n",
+    "push_md": "# Launch notes\n\nThis document tracks the launch. Last updated by the team.\n\n## Status 1\n\nThe launch plan is on track and the beta build ships to **pilot teams** this week.\n\n- Owners\n  - Budget sign-off\n\n## Notes\n\nOpen questions go here.\n"
+   },
+   "notes": "Creates a document from Markdown in {folder}. The undo slot times push by proxy: whole-document `write DOC FILE --force` on the new single-tab doc sends exactly push's requests (pre-flight, documents.get to count tabs, files.update Markdown import). Real push needs a pulled file whose frontmatter names the document, and the spec cannot place a captured ID inside a file; pushing to a fixture would re-import it and lose its comments, footnote and tabs. New documents accumulate in {folder}."
+  }
+ ],
+ "skipped": [
+  {
+   "command": "share",
+   "reason": "Every invocation adds a permission, and an email share always sends Google's notification email. Both are forbidden effects, and gdoc has no command to remove a permission."
+  },
+  {
+   "command": "delete-comment",
+   "reason": "Needs a probe comment created in the same run; the comment entry's single undo slot resolves that comment as instructed, and pre commands cannot capture an ID. Its requests (pre-flight, comments.delete, files.get version) match resolve's count, so resolve's timing is a close stand-in. It could be timed as the comment entry's undo instead if permanently deleting probe comments is approved."
+  },
+  {
+   "command": "push",
+   "reason": "Timed by proxy through the new entry's undo (see its notes); no run invokes `gdoc push` itself."
+  }
+ ]
+}

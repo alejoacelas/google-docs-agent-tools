@@ -1,0 +1,42 @@
+[
+  {
+    "id": "gdoc",
+    "repo": "https://github.com/LucaDeLeo/gdoc",
+    "checkout": "gdoc",
+    "version": "0.22.0",
+    "sha": "9343b35c7cdcfc641611fced81712df8162c1f96",
+    "binary": "gdoc",
+    "surface_files": ["gdoc/cli.py", "gdoc/mcp.py"],
+    "surface_name": "gdoc (CLI)",
+    "grade_name": "gdoc (its CLI)",
+    "notes": "reference-only/inputs/references/gdoc.md and reference-only/inputs/CAPABILITIES-AND-EVIDENCE.md (same pin)",
+    "scope": "The gdoc CLI commands (gdoc --help lists them). Grade the CLI; mention where the gdoc MCP server differs.",
+    "extra": "Grade the CLI. gdoc has no raw write passthrough."
+  },
+  {
+    "id": "taylor",
+    "repo": "https://github.com/taylorwilsdon/google_workspace_mcp",
+    "checkout": "google_workspace_mcp",
+    "version": "v1.26.0",
+    "sha": "54b1c56f7f9912ce32681460d7ca38f9c2a37564",
+    "binary": "workspace-mcp",
+    "surface_name": "Taylor Wilsdon's Google Workspace MCP",
+    "grade_name": "Taylor Wilsdon's Google Workspace MCP",
+    "notes": "reference-only/inputs/references/workspace-mcp.md (pin 724ea91)",
+    "scope": "MCP tools in the docs and drive services, assuming the complete tool tier is enabled. Note which tier each tool belongs to.",
+    "extra": "Assume the complete tool tier with docs and drive services. At this version inspect_doc_structure fails on every call (bad field mask) and batch_update_doc's post-write snapshot silently fails; see the inventory's section 6.0 for working substitutes."
+  },
+  {
+    "id": "gog",
+    "repo": "https://github.com/openclaw/gogcli",
+    "checkout": "gogcli",
+    "version": "v0.35.0",
+    "sha": "402def5041d68dc65df04f8b082f2a2fd7750fb5",
+    "binary": "gog",
+    "surface_name": "gog (gogcli)",
+    "grade_name": "gog (gogcli, its CLI)",
+    "notes": "reference-only/inputs/references/gog.md (pin 174142b)",
+    "scope": "gog docs and drive CLI commands. Grade the CLI; mention what gog's MCP server exposes.",
+    "extra": "Grade the CLI. Raw passthrough exists as `gog api call ... --allow-write`; use it only when no named command works, and flag caller-mechanics."
+  }
+]

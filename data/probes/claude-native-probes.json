@@ -1,0 +1,3029 @@
+[
+ {
+  "id": "add-change-remove-links",
+  "status": "partial",
+  "summary": "updateTextStyle with a link field linked existing text in place to a web URL, mailto, another Doc, a heading, a tab, and a heading in another tab (native heading/tabId links, not URLs), changed a link destination and removed a link keeping text, including in a table cell, footnote and footer. Bookmark creation has no Docs API request; clicking internal links in the UI was not checked.",
+  "findings": [
+   {
+    "claim": "web/mailto/other Doc",
+    "result": "yes",
+    "detail": "'Company footer test.' url https://example.com/footer; 'Later' mailto:[email]; 'Budget details' docs.google.com/document/d/1vQZ64…/edit."
+   },
+   {
+    "claim": "native internal links",
+    "result": "yes",
+    "detail": "'Next steps' {heading:{id:h.84yvfy5nvk03,tabId:t.0}}; Sources 'supporting material' {tabId:t.9406whxnjbq1}; Sources 'Sources summary' -> main-tab heading h.uorlhxnhbz96; main 'Highlighted phrase' -> Sources heading h.92qknfqwzekv. Existing bg highlight and bold on the target runs kept; link colour applied automatically."
+   },
+   {
+    "claim": "change and remove",
+    "result": "yes",
+    "detail": "'pending' heading link -> url https://example.com/changed; 'Summary text' link removed (fields 'link', empty textStyle), text kept."
+   },
+   {
+    "claim": "cell/footnote/footer",
+    "result": "yes",
+    "detail": "'Alpha' cell, footnote 'March' (segmentId kix.7dzguvpy6xt8), footer 'Acme' (segmentId kix.t4l1r8hw8esw) all linked."
+   },
+   {
+    "claim": "bookmark",
+    "result": "no",
+    "detail": "definition: no createBookmark request exists in documents.batchUpdate."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateTextStyle x12"
+    ],
+    "seconds": 11.4,
+    "ok": true,
+    "error": null
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "documents.get via gdoc Python client"
+ },
+ {
+  "id": "apply-and-remove-text-style-in-place",
+  "status": "ran",
+  "summary": "updateTextStyle applies and removes styles in place with explicit field masks: bold on the linked commented phrase, unbold, clear highlight, italic keeping an inner bold word, subscript, Roboto Mono 9pt and strikethrough all landed without retyping, and the link and live comment anchor on 'pilot teams' survived.",
+  "findings": [
+   {
+    "claim": "bold linked commented phrase",
+    "result": "yes",
+    "detail": "'pilot' {link, Georgia, bg} -> {bold:true, link, Georgia, bg}; comment still on the phrase."
+   },
+   {
+    "claim": "unbold",
+    "result": "yes",
+    "detail": "'Key finding:' {bold:true} -> {} (fields:'bold', bold:false)."
+   },
+   {
+    "claim": "clear highlight",
+    "result": "yes",
+    "detail": "'Is the vendor contract signed?' backgroundColor removed (textStyle {} with fields 'backgroundColor')."
+   },
+   {
+    "claim": "italic keeps inner bold",
+    "result": "yes",
+    "detail": "'\"we '{italic} 'must'{bold,italic} ' act now\"'{italic}."
+   },
+   {
+    "claim": "subscript / font / size / strikethrough",
+    "result": "yes",
+    "detail": "'CO2' '2' SUBSCRIPT; 'Japanese' Roboto Mono 9pt; 'the launch' strikethrough, inner colour run kept."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateTextStyle x7",
+     "updateParagraphStyle x7",
+     "insertText x19",
+     "deleteContentRange x13",
+     "replaceAllText x1 (tabsCriteria)"
+    ],
+    "seconds": 21.3,
+    "ok": true,
+    "error": null,
+    "note": "one 47-request batch on copy A shared by probes 1,2,6,7,9,10; seconds include composing the long request"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "documents.get via gdoc's Python client (full textStyle/paragraphStyle dump) + gdoc cat --comments --all"
+ },
+ {
+  "id": "change-list-structure-and-checked-state",
+  "status": "partial",
+  "summary": "Re-running createParagraphBullets with a new preset over an existing list converts its type in place without retyping text, keeping the listId and every item's nesting level (bullets -> DECIMAL/ALPHA/ROMAN, numbers -> checkbox, back to discs), and one createParagraphBullets over two lists merged them into one listId. Indent/outdent is not possible on an existing list: leading tabs inserted before createParagraphBullets stayed as literal '\\t' text and nesting did not change, and there are no requests for restart/continue numbering, per-level glyphs or checked state.",
+  "findings": [
+   {
+    "claim": "Bullets -> numbers keeping nesting",
+    "result": "yes",
+    "detail": "createParagraphBullets NUMBERED_DECIMAL_ALPHA_ROMAN over kix.mb4mu0fkncr4: same listId, levels 0/1/1/1/0/1 unchanged, glyphs DECIMAL/ALPHA/ROMAN; text runs (Georgia first words) unchanged."
+   },
+   {
+    "claim": "Numbers -> checklist",
+    "result": "yes",
+    "detail": "BULLET_CHECKBOX over kix.7ri06gbf02yi: same listId, glyphType GLYPH_TYPE_UNSPECIFIED (checkbox)."
+   },
+   {
+    "claim": "Checklist -> paragraphs",
+    "result": "yes",
+    "detail": "deleteParagraphBullets: 5 items NORMAL_TEXT, paragraphStyle {namedStyleType, direction} only (indent removed), text unchanged."
+   },
+   {
+    "claim": "Paragraphs/lists -> bullets and merge two lists",
+    "result": "partly",
+    "detail": "BULLET_DISC_CIRCLE_SQUARE over 273-476: all 12 paragraphs in kix.mb4mu0fkncr4, glyphs ●○■; but the five former plain paragraphs landed at nestingLevel 1, not 0."
+   },
+   {
+    "claim": "Indent/outdent item with children",
+    "result": "no",
+    "detail": "Inserted '\\t' before Risks and '\\t\\t' before Vendor, then createParagraphBullets: text became '\\tRisks' (L0) and '\\t\\tVendor delay' (L1) - tabs kept as text, nesting unchanged. No nestingLevel field in any request."
+   },
+   {
+    "claim": "Restart/continue numbering, letters at one level, top-level glyph only",
+    "result": "no",
+    "detail": "No request edits list properties (no updateListProperties); only whole presets via createParagraphBullets."
+   },
+   {
+    "claim": "Set or keep checked state",
+    "result": "no",
+    "detail": "Not exposed in documents.get or batchUpdate."
+   },
+   {
+    "claim": "Comment anchors kept",
+    "result": "yes",
+    "detail": "#[comment-id] still on 'pilot teams'."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "createParagraphBullets x2"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "deleteParagraphBullets"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText(tabs) x2",
+     "createParagraphBullets"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure (lists, bullet.listId/nestingLevel), gdoc cat --comments"
+ },
+ {
+  "id": "comment-anchor-hard-targets",
+  "status": "definition",
+  "summary": "No comment creation route exists in the native connectors, so none of the hard anchor targets can be attempted. Reading is better than creating: read_doc commentsIncluded returns commentAnchors with live index ranges, which would let a caller identify which occurrence an existing comment covers.",
+  "findings": [
+   {
+    "claim": "attach to hard targets",
+    "result": "no",
+    "detail": "no tool; see comment-created-anchored-to-target."
+   },
+   {
+    "claim": "read exact anchor occurrence",
+    "result": "yes",
+    "detail": "read_doc commentsIncluded: commentAnchors {kix.t69ke88tai79: ranges [{startIndex:19,endIndex:30}]} for 'pilot teams'."
+   }
+  ],
+  "calls": [],
+  "copy": null,
+  "inspected_with": "definitions.json"
+ },
+ {
+  "id": "comment-and-suggestion-preview-requests",
+  "status": "ran",
+  "summary": "update_doc accepts the Docs API's Developer Preview comment and suggestion requests. insertComment anchored a new comment exactly to a chosen range (and accepts assigneeEmailAddress); addCommentReply added a reply; a reply with commentAction RESOLVE resolved the thread; acceptSuggestion and rejectSuggestion settled named suggestions, leaving none pending. Each write took 1.6-1.9 s.",
+  "findings": [
+   {
+    "claim": "Create a comment anchored to a chosen range",
+    "result": "yes",
+    "detail": "insertComment {range:{startIndex:171,endIndex:183,tabId:'t.0'}, content} -> commentThread with anchorId, plainTextQuote 'project page', status OPEN; a later read shows commentAnchors covering exactly 171-183. Any range the caller can compute works, so the second of two identical phrases, a heading, a table cell or a child tab (tabId) can be targeted. Request also takes assigneeEmailAddress (not exercised; it would notify the assignee)."
+   },
+   {
+    "claim": "Reply to a comment thread",
+    "result": "yes",
+    "detail": "addCommentReply {commentId, post:{content}} succeeded first try; the reply appears in the thread with author and createTime. The same request takes suggestionId to reply on a suggestion thread."
+   },
+   {
+    "claim": "Resolve a comment thread",
+    "result": "yes",
+    "detail": "No resolveComment request ('Cannot find field: resolveComment'); updateCommentPost changes content only. A reply sent with commentAction 'RESOLVE' resolves the thread (final status RESOLVED) and adds a 'Resolving.' reply. Reopen by the same mechanism is presumably commentAction REOPEN (not exercised)."
+   },
+   {
+    "claim": "Accept a suggestion by ID",
+    "result": "yes",
+    "detail": "acceptSuggestion {suggestionId:'[suggestion-id]'}: 'Owners and leads' became plain text with no suggestion IDs; suggestion status ACCEPTED."
+   },
+   {
+    "claim": "Reject a suggestion by ID",
+    "result": "yes",
+    "detail": "rejectSuggestion {suggestionId:'[suggestion-id]'}: 'Vendor delay' kept, 'Vendor slippage' removed; status REJECTED. No suggestion left pending."
+   },
+   {
+    "claim": "Other preview requests exist",
+    "result": "partly",
+    "detail": "The public Docs API (revision 20260928) also lists deleteComment, deleteCommentReply, updateCommentPost (edit own post text) and deleteSuggestion (author only). Not exercised."
+   },
+   {
+    "claim": "Claude finds these without being told",
+    "result": "yes",
+    "detail": "In a fresh Claude Code session with no hint, Claude used insertComment (first try with a wrong field name 'text', then 'content') and acceptSuggestion and completed the task. With a one-sentence hint giving request shapes it did both in one call."
+   },
+   {
+    "claim": "Comment on a Drive copy",
+    "result": "partly",
+    "detail": "copy_file still drops comments; they can be recreated on the copy with insertComment at the same ranges, but authorship, timestamps and replies' authors become the caller's."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertComment"
+    ],
+    "seconds": 1.72,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "addCommentReply"
+    ],
+    "seconds": 1.59,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "acceptSuggestion"
+    ],
+    "seconds": 1.74,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "rejectSuggestion"
+    ],
+    "seconds": 1.9,
+    "ok": true
+   }
+  ],
+  "inspected_with": "read_doc commentsIncluded; Drive comments.list"
+ },
+ {
+  "id": "comment-created-anchored-to-target",
+  "status": "definition",
+  "summary": "The native connectors cannot create comments at all: update_doc accepts only documents.batchUpdate requests (no comment request exists) and the Drive tools have no comment create/reply call. Every create.comment task is no-route with these tools.",
+  "findings": [
+   {
+    "claim": "connector can create an anchored comment",
+    "result": "no",
+    "detail": "definitions.json: no comment-creating tool among read_doc, update_doc and the 11 Drive tools."
+   }
+  ],
+  "calls": [],
+  "copy": null,
+  "inspected_with": "definitions.json"
+ },
+ {
+  "id": "comment-threads-lifecycle-and-mentions",
+  "status": "partial",
+  "summary": "read_doc with commentsIncluded returns full threads: author (displayName, me, users/ id), create/update times, replies in order, status OPEN/RESOLVED, commentAction RESOLVE on the resolving reply, unanchored file comments, and live anchor ranges in tab.commentAnchors. Drive read_file_content includeComments returns inline <comment_start/end> markers and threads but silently omits the unanchored file comment. Reply, resolve, reopen, edit and delete have no native tool (definition), and mentions/assignees and suggestion threads were not tested (no person may be notified).",
+  "findings": [
+   {
+    "claim": "read includes authors, timestamps, ordered replies, resolved state",
+    "result": "yes",
+    "detail": "[comment-id] status RESOLVED, replies 'First reply', 'Second reply', 'Resolving now'(commentAction RESOLVE) in order with createTime; author {displayName:'the test account', me:true, user:'users/112055465693964846249'}."
+   },
+   {
+    "claim": "anchors exposed",
+    "result": "yes",
+    "detail": "anchorId kix.qsji84162ckc -> ranges [80,86] 'budget'; plainTextQuote also given. Unanchored comment [comment-id] has no anchorId."
+   },
+   {
+    "claim": "read_file_content complete",
+    "result": "no",
+    "detail": "returns 2 of 3 threads: the unanchored 'Unanchored file comment' is missing; authorName only, modifiedTime only."
+   },
+   {
+    "claim": "reply/resolve/reopen/edit/delete",
+    "result": "no",
+    "detail": "definition: no tool."
+   },
+   {
+    "claim": "mentions/assignees, suggestion threads",
+    "result": "no",
+    "detail": "not-run: no person may be mentioned; suggestion reply threads need the Docs UI."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [
+     "documents.get commentsIncluded"
+    ],
+    "seconds": 1.4,
+    "ok": true,
+    "error": null
+   },
+   {
+    "tool": "read_file_content",
+    "requests": [
+     "includeComments"
+    ],
+    "seconds": null,
+    "ok": true,
+    "error": null
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc comments --json (which itself listed only 2 of 3 threads: it hid the resolved one)"
+ },
+ {
+  "id": "concurrent-collaborator-edit-between-read-and-write",
+  "status": "partial",
+  "summary": "update_doc passes the Docs API's writeControl through, so behaviour depends on what the caller sends. With requiredRevisionId from the earlier read, the write is refused with a clear 'does not match the latest revision' error; with targetRevisionId, Google transforms stale indices past a collaborator's insert and the edit lands on the intended word; with no writeControl (the default), stale indices hit the wrong text and destroyed a person chip and a paragraph break. Comment, suggestion-on-conflict and tab writes were not tested (no comment tool; suggestion and tab cases skipped for time).",
+  "findings": [
+   {
+    "claim": "Stale write without writeControl lands on intended text",
+    "result": "no",
+    "detail": "Read rev R0: 'track' at [105,110). Collaborator (gdoc insert) added 'Collaborator intro paragraph added.' (36 units) at top. update_doc delete [105,110) + insert 'STALE' with no writeControl → para 2 became 'This document tracks the launch. Last updated by the teSTALEStatus 1': deleted 'am', the person chip, '.' and the paragraph break, merging the body paragraph into the 'Status 1' heading. No warning in reply ({errors: [], warnings: []})."
+   },
+   {
+    "claim": "Refuses on revision mismatch",
+    "result": "yes",
+    "detail": "writeControl.requiredRevisionId=R0 after collaborator insert → error verbatim: 'Invalid argument: ... ExternalBadRequestException: The required revision ID 'AHj4eMTE7Hd3…' does not match the latest revision.;AppErrorCode=3'. Nothing applied."
+   },
+   {
+    "claim": "targetRevisionId re-resolves stale indices past collaborator insert",
+    "result": "yes",
+    "detail": "Same stale [105,110) with targetRevisionId=R0 → 'The launch plan is on TARGETED and the alpha build…'; collaborator paragraph intact."
+   },
+   {
+    "claim": "targetRevisionId when collaborator rewrote the same words",
+    "result": "partly",
+    "detail": "Rev R1; collaborator replaced 'alpha build ships'→'beta release goes'. Connector (targetRevisionId=R1): delete 'alpha' [158,163) + insert 'GAMMA' + italic 'pilot teams' [179,190). Result: 'GAMMAbeta release goes to *pilot teams*': collaborator's text survived, the delete of already-replaced 'alpha' was a silent no-op, insert landed at the merged position; italic landed exactly on 'pilot teams'. No conflict signal."
+   },
+   {
+    "claim": "revisionId available from the read",
+    "result": "yes",
+    "detail": "read_doc returns content.revisionId; the connector does not apply it automatically."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [],
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "deleteContentRange",
+     "insertText"
+    ],
+    "ok": false,
+    "error": "requiredRevisionId: The required revision ID '…' does not match the latest revision. AppErrorCode=3"
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "deleteContentRange",
+     "insertText"
+    ],
+    "seconds": 3.2,
+    "ok": true,
+    "error": "targetRevisionId"
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "deleteContentRange",
+     "insertText"
+    ],
+    "ok": true,
+    "error": "no writeControl; misplaced"
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateTextStyle",
+     "deleteContentRange",
+     "insertText"
+    ],
+    "ok": true,
+    "error": "targetRevisionId, same-paragraph conflict"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc cat --plain; documents.get via gdoc client (R1 revisionId taken from the API, not read_doc, to save context)"
+ },
+ {
+  "id": "delete-split-join-blocks",
+  "status": "partial",
+  "summary": "Deletes, splits and joins are plain deleteContentRange/insertText by index and neighbours keep their styles: deleting a heading, a whole table, and a bullet with its two sub-bullets left the surrounding paragraphs, list items and runs unchanged, and splitting before 'See' kept every run's style and the link on both halves. Joining two paragraphs by deleting the newline keeps the first paragraph's style, so joining a body paragraph with the 'Status 1' heading silently turned the heading into body text and dropped its headingId. The blank-line-above-image and section-break cases were not set up.",
+  "findings": [
+   {
+    "claim": "Delete a sentence",
+    "result": "yes",
+    "detail": "deleteContentRange 14-47 removed 'This document tracks the launch. '; remaining runs ('updated' Georgia/colour, person chip) kept."
+   },
+   {
+    "claim": "Delete a heading keeping its paragraphs",
+    "result": "yes",
+    "detail": "Deleting 'Summary' H2 (395-403) left 'Notes' H2 with headingId h.bsw71m3nhkjk."
+   },
+   {
+    "claim": "Delete a table",
+    "result": "yes",
+    "detail": "deleteContentRange 330-395 removed the 3x3 table; empty paragraph before it and the next heading intact."
+   },
+   {
+    "claim": "Delete bullet with sub-bullets",
+    "result": "yes",
+    "detail": "199-259 removed 'Owners','Design review…','Budget sign-off'; 'Risks' L0 and 'Vendor delay' L1 keep kix.mb4mu0fkncr4."
+   },
+   {
+    "claim": "Split a paragraph",
+    "result": "yes",
+    "detail": "replace ' ' at 163 with '\\n' -> '…this week<fn>.' and 'See the project page for details.' both NORMAL_TEXT; 'See' style and 'project page' link/underline kept; footnote ref stayed in first half."
+   },
+   {
+    "claim": "Join paragraphs",
+    "result": "partly",
+    "detail": "Deleting the newline between 'This document…' and H2 'Status 1' -> one NORMAL_TEXT paragraph 'Last updated by the team<person>.Status 1'; the heading style and headingId h.i59egoftapij are lost (first paragraph's style wins)."
+   },
+   {
+    "claim": "Comment anchors",
+    "result": "yes",
+    "detail": "#[comment-id] still on 'pilot teams'."
+   },
+   {
+    "claim": "Blank line above image / before section break; section with subsections",
+    "result": "no",
+    "detail": "not-run: setup not done in time."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "deleteContentRange x6",
+     "insertText"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure, gdoc cat --comments"
+ },
+ {
+  "id": "direct-edit-keeps-pending-suggestions",
+  "status": "partial",
+  "summary": "Direct edits next to a pending suggestion kept it pending under the same ID ([suggestion-id]); a heading-level change on the section heading did not touch it. A replaceAllText that hit text inside the suggested insertion silently rewrote it ('decisions' -> 'choices', still marked as the same suggested insertion), with no warning; text inside the suggested deletion is invisible to replaceAllText ('questions go' matched 0). Heading, table-cell and footnote suggestions need the Docs UI and were not run.",
+  "findings": [
+   {
+    "claim": "adjacent direct edit keeps suggestion",
+    "result": "yes",
+    "detail": "'Note: ' inserted right before the suggested insertion and ' Thanks.' right after the suggested deletion; both are plain (no suggestion IDs); suggestion ranges 405-440 insert / 440-463 delete, same ID."
+   },
+   {
+    "claim": "heading-level change keeps suggestion",
+    "result": "yes",
+    "detail": "'Notes' H2 -> H3 (headingId h.bsw71m3nhkjk kept), suggestion unchanged."
+   },
+   {
+    "claim": "edit inside suggested text refused or warned",
+    "result": "no",
+    "detail": "replaceAllText 'decisions'->'choices' returned occurrencesChanged:1, errors:[], warnings:[]; 'choices' carries suggestedInsertionIds [[suggestion-id]], i.e. the collaborator's suggestion text was altered under their name."
+   },
+   {
+    "claim": "suggested-deleted text matchable",
+    "result": "no",
+    "detail": "replaceAllText 'questions go'->'queries go' returned {} (0 changes) although 'questions go' exists in the suggested deletion."
+   },
+   {
+    "claim": "Drive copy keeps pending suggestions",
+    "result": "no",
+    "detail": "copy_file of the formatted fixture dropped its pending suggestion [suggestion-id]; the probe suggestion was re-created with gdoc suggest (same account, so author = caller)."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText x2",
+     "updateParagraphStyle"
+    ],
+    "seconds": 3.4,
+    "ok": true,
+    "error": null
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "replaceAllText x2"
+    ],
+    "seconds": 3.1,
+    "ok": true,
+    "error": null
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "documents.get (suggestions inline) via gdoc Python client"
+ },
+ {
+  "id": "drive-files-search-and-access-read",
+  "status": "partial",
+  "summary": "File metadata gives owner email, created/modified/viewedByMe times, parentId, viewUrl and size, but not last modifier, the caller's own role/capabilities, or a sharer for shared-with-me files (only sharedWithMeTime). Search supports fullText, parentId, owner, sharedWithMe and dates with paging but has no shared-drive term; permissions list type/role/email. copy_file into a folder works but the copy drops comments and the pending suggestion; Markdown export covers every tab with no per-tab option, and a .docx upload is converted to a Google Doc.",
+  "findings": [
+   {
+    "claim": "Metadata: owner, modified time, parent, link",
+    "result": "partly",
+    "detail": "get_file_metadata keys: canAddChildren, contentSnippet (Markdown-ish text of all tabs), createdTime, fileSize, id, mimeType, modifiedTime, owner (email), parentId, title, viewUrl, viewedByMeTime. Missing: lastModifyingUser, caller's role/capabilities (canEdit/canComment), parent folder name."
+   },
+   {
+    "claim": "Full-text search",
+    "result": "yes",
+    "detail": "fullText contains 'Vendor delay' and parentId = FOLDER → 15 docs incl. copies made minutes earlier (indexing was immediate)."
+   },
+   {
+    "claim": "Shared-with-me with sharer and date",
+    "result": "partly",
+    "detail": "sharedWithMe = true returns sharedWithMeTime and owner email, but no sharingUser; nextPageToken given."
+   },
+   {
+    "claim": "Shared drives",
+    "result": "no",
+    "detail": "Search term list has no driveId/corpora; no list-drives tool."
+   },
+   {
+    "claim": "Permission read lists users, roles, link and domain sharing",
+    "result": "partly",
+    "detail": "get_file_permissions on fixture → [{displayName, emailAddress, role: owner, type: user}]. Format includes type so anyone/domain entries would presumably show, but none exist on unshared fixtures (not tested; sharing changes not authorized)."
+   },
+   {
+    "claim": "Copy keeps comments and pending suggestion",
+    "result": "no",
+    "detail": "copy_file(fixture, parentId=FOLDER) ~3.8 s; copy has 0 comments (gdoc comments --all: 'No comments'), no suggestions array in read_doc, and body reads 'Open questions go here.' with no suggested insertion. Folder placement via parentId works."
+   },
+   {
+    "claim": "Export Markdown / one tab",
+    "result": "partly",
+    "detail": "download_file_content exportMimeType text/markdown returns base64 of Google's own MD export: all tabs as '# Tab 1', '# Appendix', '# Sources' H1s, footnote '[^1]', image as inline data: URI, code-font runs as backticks. Consecutive paragraphs and soft breaks both rendered 'line  \\n' (indistinguishable); merged cell row 3 rendered '| Review | Ben Monday |  |'. No tab parameter, so one-tab export is impossible."
+   },
+   {
+    "claim": "Export PDF / Word",
+    "result": "partly",
+    "detail": "Supported by exportMimeType per definition; not run because the response is base64 in the model context (the MD export of a 1-page doc was already ~13k chars, mostly the image data URI)."
+   },
+   {
+    "claim": "Word import",
+    "result": "yes",
+    "detail": "create_file with base64 .docx + contentMimeType docx → mimeType application/vnd.google-apps.document in FOLDER; bold/italic runs survived (heading/list loss traced to the textutil-generated .docx)."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "copy_file",
+    "requests": [],
+    "seconds": 3.8,
+    "ok": true
+   },
+   {
+    "tool": "get_file_metadata",
+    "requests": [],
+    "ok": true
+   },
+   {
+    "tool": "get_file_permissions",
+    "requests": [],
+    "ok": true
+   },
+   {
+    "tool": "search_files",
+    "requests": [
+     "fullText+parentId",
+     "sharedWithMe"
+    ],
+    "ok": true
+   },
+   {
+    "tool": "download_file_content",
+    "requests": [
+     "text/markdown"
+    ],
+    "ok": true
+   },
+   {
+    "tool": "create_file",
+    "requests": [
+     "docx base64"
+    ],
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]; import [doc-id]",
+  "inspected_with": "gdoc comments --all, gdoc cat, read_doc"
+ },
+ {
+  "id": "edit-next-to-inline-objects",
+  "status": "partial",
+  "summary": "Index-precise edits around the footnote reference, person chip and inline image left each object in place in the same sentence: 'this week<fn>.' -> 'this weekend<fn> today.', 'by the team<chip>' -> 'by the crew<chip>', '<img>Open questions' -> 'Figure: <img>Opening questions'. Footnote body unchanged. Date chip, file chip, equation, drawing and unknown embed need the Docs UI and were not run.",
+  "findings": [
+   {
+    "claim": "footnote reference stays",
+    "result": "yes",
+    "detail": "footnoteReference kix.7dzguvpy6xt8 (#1) now at 167 between ' weekend' and ' today. '; footnote text ' Pilot teams were chosen in March.' unchanged."
+   },
+   {
+    "claim": "person chip stays",
+    "result": "yes",
+    "detail": "person kix.y8m15uy21d8 still directly after ' crew'."
+   },
+   {
+    "claim": "inline image stays",
+    "result": "yes",
+    "detail": "inlineObject kix.ad9lvd6xvc45 between 'Figure: ' and 'Opening'."
+   },
+   {
+    "claim": "date/file chip, equation, drawing, unknown",
+    "result": "no",
+    "detail": "not-run: needs UI."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateTextStyle x7",
+     "updateParagraphStyle x7",
+     "insertText x19",
+     "deleteContentRange x13",
+     "replaceAllText x1 (tabsCriteria)"
+    ],
+    "seconds": 21.3,
+    "ok": true,
+    "error": null,
+    "note": "one 47-request batch on copy A shared by probes 1,2,6,7,9,10; seconds include composing the long request"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "documents.get via gdoc's Python client (full textStyle/paragraphStyle dump) + gdoc cat --comments --all"
+ },
+ {
+  "id": "edit-target-table-cells",
+  "status": "partial",
+  "summary": "Cells can be edited only by UTF-16 index (no row/column addressing for text), which works precisely once the agent reads the indices: both paragraphs of the merged cell ('Ben'->'Bea', 'Monday'->'Tuesday') and 'Friday'->'Friday (late)' changed with neighbouring cells, fills and alignment untouched. replaceAllText has no cell or range scope, so changing one of several repeated values needs index edits. The fixture lacks the extra cell setup (date chip, image in cell, right-aligned cell), so those parts were not run.",
+  "findings": [
+   {
+    "claim": "Edit merged cell, second paragraph",
+    "result": "yes",
+    "detail": "merged r2c1 (colspan 2): 'Ben\\n','Monday\\n' -> 'Bea\\n','Tuesday\\n' via deleteContentRange+insertText; cell style (colspan 2, later red fill) unaffected."
+   },
+   {
+    "claim": "Address a cell by row/column",
+    "result": "no",
+    "detail": "Text requests take only index ranges; row/column addressing exists only for style/structure requests (tableCellLocation)."
+   },
+   {
+    "claim": "Change one of a repeated value",
+    "result": "partly",
+    "detail": "Possible by index; replaceAllText would change every match (no range/cell criteria)."
+   },
+   {
+    "claim": "Other cells unchanged",
+    "result": "yes",
+    "detail": "'Item','Owner','Due','Draft','Ana','Review' text and styles identical after edits."
+   },
+   {
+    "claim": "Chip/image/link in cell, right-aligned and red cells",
+    "result": "no",
+    "detail": "not-run: extra cell setup not in fixture and chips cannot be created by the connector."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "deleteContentRange",
+     "insertText",
+     "deleteContentRange",
+     "insertText",
+     "insertText",
+     "updateTableCellStyle x3",
+     "updateTableColumnProperties",
+     "updateTableRowStyle",
+     "pinTableHeaderRows",
+     "mergeTableCells"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure (table rows, tableCellStyle, tableColumnProperties, tableRowStyle)"
+ },
+ {
+  "id": "footnote-edit-and-create",
+  "status": "ran",
+  "summary": "Yes: footnote bodies are addressable segments (segmentId = footnoteId, plus tabId for child tabs), so text, italics and a link went into exactly one footnote, and createFootnote at an index makes a native footnote whose number follows document order. A footnote created before the existing one became 1 and the old ones renumbered to 2 and 3; a child-tab footnote was created and filled with tabId. Body text and other footnotes were unchanged.",
+  "findings": [
+   {
+    "claim": "Edit text in one specific footnote",
+    "result": "yes",
+    "detail": "insertText ' Edited' in segment kix.7dzguvpy6xt8 -> ' Pilot teams were chosen in March. Edited'; italic on 'Pilot' only."
+   },
+   {
+    "claim": "Create footnote at a point and fill it, with link",
+    "result": "yes",
+    "detail": "createFootnote at end of body paragraph -> kix.orfsm5gkn7f4; insertText 'New footnote with link.' + link on 'link' -> https://example.com/fn (10pt footnote style applied)."
+   },
+   {
+    "claim": "Later footnotes renumber",
+    "result": "yes",
+    "detail": "createFootnote at index 90 -> kix.jj26eilyeiur number 1; kix.7dzguvpy6xt8 1->2, kix.orfsm5gkn7f4 2->3."
+   },
+   {
+    "claim": "Footnote in a child tab",
+    "result": "yes",
+    "detail": "createFootnote {index:45, tabId:Sources} -> kix.1w2k04nowmdk; filled via segmentId+tabId: ' Child-tab footnote.'"
+   },
+   {
+    "claim": "Second occurrence of a phrase / in a cell or bullet",
+    "result": "partly",
+    "detail": "Any index works (cell/bullet indices are ordinary indices) but the agent must compute it; not separately run."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "createFootnote x2 (+ other media requests)"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText x3 in footnote segments",
+     "updateTextStyle x2"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "createFootnote"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure (footnotes, headers/footers, documentStyle, sectionStyle, inlineObjects)"
+ },
+ {
+  "id": "full-replace-of-anchored-phrase",
+  "status": "ran",
+  "summary": "Both routes kept comment anchors: replaceAllText 'pilot teams' -> 'early adopters' and 'Friday' -> 'Thursday' left the comments anchored on the new words, and inserting the new text inside the old range before deleting kept 'Status 1' -> 'Open risks' and 'project page' -> 'launch site' anchored and linked. replaceAllText styles the whole replacement like the match's first character, so 'early adopters' kept the link but lost the bold that was on ' teams'.",
+  "findings": [
+   {
+    "claim": "comment survives replaceAllText",
+    "result": "yes",
+    "detail": "#[comment-id] now 'on \"early adopters\"'; #[comment-id] 'on \"Thursday\"' (cell)."
+   },
+   {
+    "claim": "link carries to new words",
+    "result": "yes",
+    "detail": "'early adopters' link https://example.com/pilot; 'launch site' link https://example.com/project."
+   },
+   {
+    "claim": "formatting carries",
+    "result": "partly",
+    "detail": "replaceAllText: before 'pilot'{Georgia,bg} + ' teams'{bold}; after 'early adopters'{Georgia,bg, not bold}. Insert-inside route: 'Open risks' took the first char's style (Georgia, red, bg) for the whole word."
+   },
+   {
+    "claim": "heading full replace keeps anchor",
+    "result": "yes",
+    "detail": "insert 'Open risks' at index 75 (inside 'Status 1'), delete the rest: comment #[comment-id] 'on \"Open risks\"', headingId h.i59egoftapij kept. Contrast copy A where insert-at-end-then-delete shrank the anchor to 'Status'."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText x2",
+     "deleteContentRange x4",
+     "replaceAllText x3"
+    ],
+    "seconds": 5.3,
+    "ok": true,
+    "error": null
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "documents.get via gdoc Python client + gdoc cat --comments --all"
+ },
+ {
+  "id": "header-footer-edit-and-create",
+  "status": "partial",
+  "summary": "Editing the existing header by segmentId and creating a default footer with text worked natively. Creating a first-page header (createHeader type FIRST_PAGE) and a header for a new section (createHeader with sectionBreakLocation) both failed with the connector's bare 'Internal error encountered.', and there is no request to insert a page-number field. Logo, per-tab footer and existing-page-number cases were not set up.",
+  "findings": [
+   {
+    "claim": "Edit header text",
+    "result": "yes",
+    "detail": "segment kix.cdxdhks84s2p 'Launch notes · internal' -> 'Launch notes · internal (v2)'."
+   },
+   {
+    "claim": "Create footer with text",
+    "result": "yes",
+    "detail": "createFooter DEFAULT -> kix.nob7x4ux5nmm (documentStyle.defaultFooterId); insertText 'Confidential'."
+   },
+   {
+    "claim": "Create first-page header",
+    "result": "no",
+    "detail": "createHeader {type: FIRST_PAGE} -> 'Internal error encountered.' (also after useFirstPageHeaderFooter=true was set; firstPageHeaderId still null)."
+   },
+   {
+    "claim": "Create one section's header",
+    "result": "no",
+    "detail": "createHeader {type: DEFAULT, sectionBreakLocation:{index:14}} -> 'Internal error encountered.'"
+   },
+   {
+    "claim": "Insert page number",
+    "result": "no",
+    "detail": "No AutoText/page-number insert request exists."
+   },
+   {
+    "claim": "Logo/page-number preservation, per-tab footer",
+    "result": "no",
+    "detail": "not-run: setup needs UI (page-number field) and time."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText(header segment)"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "createFooter"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "createHeader FIRST_PAGE"
+    ],
+    "seconds": null,
+    "ok": false,
+    "error": "Internal error encountered."
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "createHeader DEFAULT sectionBreakLocation"
+    ],
+    "seconds": null,
+    "ok": false,
+    "error": "Internal error encountered."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure (footnotes, headers/footers, documentStyle, sectionStyle, inlineObjects)"
+ },
+ {
+  "id": "insert-images-and-chips",
+  "status": "partial",
+  "summary": "Images by public URL insert natively at a chosen index with a chosen width (height scales): one in its own new paragraph below 'Open questions' at 100pt and one in a table cell at 50pt; nothing was uploaded or shared. There is no way to insert a local file or Drive file image except by URL, and no alt-text field on insert. Date chips insert natively (insertDate); a file chip via insertRichLink returned 'Permission denied for document'; person chips were skipped per rules.",
+  "findings": [
+   {
+    "claim": "Image from URL in own paragraph, set width",
+    "result": "yes",
+    "detail": "insertText '\\n' then insertInlineImage at new paragraph -> kix.tim0kvdg1tzj alone in paragraph, 100x33.8pt."
+   },
+   {
+    "claim": "Image in table cell",
+    "result": "yes",
+    "detail": "kix.iogdarh97v5v at start of 'Friday' cell, 50x16.9pt."
+   },
+   {
+    "claim": "Image from local file / Drive file",
+    "result": "no",
+    "detail": "insertInlineImage takes only a uri; local files would need upload and a public/accessible URL (not attempted per rules)."
+   },
+   {
+    "claim": "Alt text on insert",
+    "result": "no",
+    "detail": "No description field on insertInlineImage; description null."
+   },
+   {
+    "claim": "Date chip",
+    "result": "yes",
+    "detail": "insertDate {timestamp 2026-10-05, DATE_FORMAT_ISO8601} at index 2 -> dateElement inside heading 'L<date>aunch notes' (index chosen carelessly, mid-word)."
+   },
+   {
+    "claim": "File chip",
+    "result": "no",
+    "detail": "insertRichLink -> 'Permission denied for document: 17MBk-...' (doc is owned and writable, so the request appears unsupported through the connector)."
+   },
+   {
+    "claim": "Person chip",
+    "result": "no",
+    "detail": "not-run: rules forbid mentions."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText",
+     "insertInlineImage x2"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertDate"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertRichLink"
+    ],
+    "seconds": null,
+    "ok": false,
+    "error": "Permission denied for document: [doc-id]"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure (footnotes, headers/footers, documentStyle, sectionStyle, inlineObjects)"
+ },
+ {
+  "id": "insert-list-item-into-existing-list",
+  "status": "partial",
+  "summary": "Yes for numbered and nested bullets: inserting 'Text\\n' at the start of item 2 or '\\nText' at the end of an item makes the new paragraph join the same listId at the same nesting level, so numbering continues. The fixture has no lettered sub-list or checked checklist item, and checked state is not visible through the API, so those parts were not run.",
+  "findings": [
+   {
+    "claim": "Item between 1 and 2 of numbered list",
+    "result": "yes",
+    "detail": "'New step between 1 and 2\\n' at start of 'Send the summary' -> kix.7ri06gbf02yi level 0 (DECIMAL), position 2."
+   },
+   {
+    "claim": "Append final step",
+    "result": "yes",
+    "detail": "'\\nFinal step' at end of last item -> kix.7ri06gbf02yi level 0."
+   },
+   {
+    "claim": "Sub-item under nested bullet",
+    "result": "yes",
+    "detail": "'\\nSub item under Budget' -> kix.mb4mu0fkncr4 level 1 right after 'Budget sign-off'."
+   },
+   {
+    "claim": "Lettered sub-list / checklist after checked item",
+    "result": "no",
+    "detail": "not-run: needs UI (no lettered sub-list in fixture; checked state not settable or readable)."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText x3"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure (lists, bullet.listId/nestingLevel), gdoc cat --comments"
+ },
+ {
+  "id": "insert-new-paragraph-at-anchor",
+  "status": "ran",
+  "summary": "insertText at an index makes the new block inherit the paragraph style of the paragraph it is inserted into and the text style of the adjacent run, so the agent must restyle every insert itself. '\\nText' at the end of 'Status 1' produced a HEADING_2, '\\nText' after the last numbered item joined that list, text inserted at a paragraph start or before 'Notes' copied the red Georgia highlighted first-word style of the next run. Anchor paragraphs' own text runs were unchanged, insertTable after a paragraph adds an empty paragraph after the table, and the 'pilot teams' comment stayed anchored.",
+  "findings": [
+   {
+    "claim": "Normal paragraph below a heading",
+    "result": "no",
+    "detail": "insertText '\\nBelow Status 1.' at 82 -> HEADING_2 'Below Status 1.' (plain text style). Inserting 'Start of next paragraph.\\n' at 83 instead gives NORMAL_TEXT but copies the next run's style: Georgia, foreground rgb(0.8,0.1,0.1), yellow background."
+   },
+   {
+    "claim": "Paragraph between two body paragraphs",
+    "result": "yes",
+    "detail": "'\\nBetween paragraphs.' at end of body para -> NORMAL_TEXT, textStyle {} (preceding run 'details.' unstyled)."
+   },
+   {
+    "claim": "Paragraph after a list",
+    "result": "no",
+    "detail": "'\\nAfter the numbered list.' at end of 'Send the summary' -> bullet kix.7ri06gbf02yi level 0 (becomes item 3) and inherits Roboto Mono blue from 'summary'."
+   },
+   {
+    "claim": "Block directly after table / H2 before Notes",
+    "result": "partly",
+    "detail": "'New H2 before Notes\\n' at 382 (first index after the table) -> HEADING_2 but with Notes' first-word Georgia/red/yellow style."
+   },
+   {
+    "claim": "At section end before next heading (end of doc)",
+    "result": "yes",
+    "detail": "'\\nEnd of Notes section.' at 412 -> NORMAL_TEXT, textStyle {}; image paragraph intact."
+   },
+   {
+    "claim": "Small table after a paragraph",
+    "result": "yes",
+    "detail": "insertTable rows 2 cols 2 at index 73 (before the paragraph's newline) -> paragraph 14-74 unchanged, TABLE 74-86, new empty NORMAL_TEXT paragraph 86-87 before 'Status 1'."
+   },
+   {
+    "claim": "Anchor text runs unchanged",
+    "result": "yes",
+    "detail": "'Status 1' runs [('Status', Georgia/red/yellow), (' 1', {})] same as before; comment #[comment-id] still on 'pilot teams'."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText x6",
+     "insertTable"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure, gdoc cat --comments",
+  "note": "The Drive copy of the formatted fixture had no suggestion IDs, so the pending suggestion was not available on copies."
+ },
+ {
+  "id": "markdown-update-applies-minimal-changes",
+  "status": "definition",
+  "summary": "No: the connector has no way to apply Markdown to an existing document. update_doc takes only documents.batchUpdate requests, Drive update_file changes only title and parent, and create_file always makes a new file. Minimal edits are possible only if the agent itself diffs and emits index-based batchUpdate requests.",
+  "findings": [
+   {
+    "claim": "Apply an edited Markdown file to an existing doc",
+    "result": "no",
+    "detail": "No Markdown-accepting write on an existing file: update_file schema is 'currently only title and parent_id are supported'."
+   }
+  ],
+  "calls": [],
+  "copy": null,
+  "inspected_with": "definitions.json"
+ },
+ {
+  "id": "markdown-update-preview-and-conflicts",
+  "status": "partial",
+  "summary": "There is no Markdown update and no preview or diff tool, so nothing lists paragraphs to be changed or objects to be discarded. Conflict detection exists at whole-document level: writeControl.requiredRevisionId rejected the entire batch after a collaborator (gdoc CLI) edited the doc, even though that edit was elsewhere-safe; it cannot tell whether the same paragraph changed. Updates can be written as suggestions with writeControl.writeMode=SUGGEST (shown working in the tab-scoped probe).",
+  "findings": [
+   {
+    "claim": "Preview of paragraphs to change / items discarded",
+    "result": "no",
+    "detail": "No preview, dry-run or diff tool in the definitions."
+   },
+   {
+    "claim": "Detect a collaborator's conflicting edit",
+    "result": "partly",
+    "detail": "Took revisionId from documents.get, collaborator ran gdoc edit 'Confirm the schedule'->'Confirm the collaborator schedule', then update_doc replaceAllText with requiredRevisionId=<old> -> error verbatim: 'Invalid argument: ... ExternalBadRequestException: The required revision ID 'AHj4eMRn...' does not match the latest revision.' Nothing applied. Detection is any-change, not per-paragraph."
+   },
+   {
+    "claim": "Apply update as suggestions",
+    "result": "yes",
+    "detail": "writeControl.writeMode=SUGGEST produced suggestedInsertionIds (see tab-scoped-write-targets-child-and-isolates-others)."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "replaceAllText + writeControl.requiredRevisionId (stale)"
+    ],
+    "seconds": null,
+    "ok": false,
+    "error": "The required revision ID '...' does not match the latest revision."
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "update_doc error"
+ },
+ {
+  "id": "markdown-update-structural-changes",
+  "status": "definition",
+  "summary": "No: there is no Markdown update path, so the question of how a Markdown revision maps to native structure does not arise. Each structural change has to be written by the agent as its own batchUpdate request (see the delete/insert/list/table probes for which ones are native).",
+  "findings": [
+   {
+    "claim": "Markdown revision applied as native structural changes",
+    "result": "no",
+    "detail": "No Markdown input on update_doc or update_file."
+   }
+  ],
+  "calls": [],
+  "copy": null,
+  "inspected_with": "definitions.json"
+ },
+ {
+  "id": "modify-existing-images",
+  "status": "partial",
+  "summary": "replaceImage swapped the existing image's source in place, keeping its inlineObjectId (kix.ad9lvd6xvc45) and its 136x46pt size, and deleteContentRange over one index deleted the table-cell image. There are no requests to resize, crop, re-wrap, centre the image itself or set alt text on an existing image. The comment-on-image and child-tab image cases were not set up.",
+  "findings": [
+   {
+    "claim": "Replace keeping size and position",
+    "result": "yes",
+    "detail": "replaceImage CENTER_CROP: same id kix.ad9lvd6xvc45, size 136x46pt unchanged, sourceUri now the googlelogo URL, still before 'Open questions go here.'."
+   },
+   {
+    "claim": "Delete image in a table cell",
+    "result": "yes",
+    "detail": "deleteContentRange 354-355 removed kix.iogdarh97v5v from inlineObjects."
+   },
+   {
+    "claim": "Resize, crop, wrap, alt text on existing image",
+    "result": "no",
+    "detail": "No updateInlineObjectProperties-style request; only delete + re-insert (which loses id and alt text)."
+   },
+   {
+    "claim": "Centre",
+    "result": "partly",
+    "detail": "Only via updateParagraphStyle alignment on the image's paragraph (not run)."
+   },
+   {
+    "claim": "Image with comment / in child tab",
+    "result": "no",
+    "detail": "not-run: comment cannot be made by connector; no time."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "replaceImage"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "deleteContentRange",
+     "createFootnote"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure (footnotes, headers/footers, documentStyle, sectionStyle, inlineObjects)"
+ },
+ {
+  "id": "move-paragraphs-and-sections",
+  "status": "definition",
+  "summary": "documents.batchUpdate has no move or copy-range request, so any move through the connector is delete plus re-typed insert, within a tab, across tabs or across documents. Rebuilding loses identity: new headings get new headingIds (incoming heading links break), comments cannot be recreated at all, pending suggestions are deleted with the range (seen in the tab-scoped probe), footnotes must be recreated with createFootnote (new IDs), images re-inserted from a URL get new IDs and no alt text, and person/file chips cannot be re-inserted (insertRichLink returned 'Permission denied').",
+  "findings": [
+   {
+    "claim": "Native move",
+    "result": "no",
+    "detail": "No move/copy request in the batchUpdate request list."
+   },
+   {
+    "claim": "Heading ID and incoming links survive",
+    "result": "no",
+    "detail": "headingId is assigned by Docs on paragraph creation and cannot be set in updateParagraphStyle."
+   },
+   {
+    "claim": "Comments survive",
+    "result": "no",
+    "detail": "Comment anchored on deleted text became '[detached]' (tab-scoped probe); no comment create tool."
+   },
+   {
+    "claim": "Pending suggestions survive",
+    "result": "no",
+    "detail": "EDIT-mode delete removed suggestion [suggestion-id] (tab-scoped probe)."
+   },
+   {
+    "claim": "Footnotes, images+alt text, chips survive",
+    "result": "no",
+    "detail": "createFootnote gives new IDs; insertInlineImage has no alt-text field; insertRichLink failed; person chips not insertable without mentions."
+   },
+   {
+    "claim": "Tables, nested lists",
+    "result": "partly",
+    "detail": "Rebuildable with insertTable + per-cell inserts and createParagraphBullets, but nesting cannot be set on existing paragraphs (list probe) and cell styles must be re-applied."
+   }
+  ],
+  "calls": [],
+  "copy": null,
+  "inspected_with": "definitions.json plus evidence from other probes"
+ },
+ {
+  "id": "partial-replace-inside-styled-linked-commented-span",
+  "status": "ran",
+  "summary": "Yes, with index-precise requests: deleting 'team' (146-150) and inserting 'group' at the end of the old word turned 'pilot teams' into 'pilot groups' with bold, link https://example.com/pilot and link colour intact, and the comment's live anchor became 'pilot groups'. Edits beside the highlighted, red, Roboto Mono and superscript runs left those runs byte-identical. The connector has no minimal-diff helper: the caller must compute indices; the only text-match request (replaceAllText) retypes the whole match (see full-replace probe, where bold was lost).",
+  "findings": [
+   {
+    "claim": "new characters keep bold/colour/link",
+    "result": "yes",
+    "detail": "before: 'pilot'(link, Georgia, bg) + ' teams'(bold, link, fg 0.07/0.33/0.8); after: 'pilot'(bold after a separate bold request) + ' groups' {bold:true, link:https://example.com/pilot, fg 0.07/0.33/0.8}. Inserted text inherits the style of the preceding character."
+   },
+   {
+    "claim": "comment stays attached",
+    "result": "yes",
+    "detail": "gdoc cat --comments: #[comment-id] 'on \"pilot groups\"' (was 'pilot teams')."
+   },
+   {
+    "claim": "neighbouring runs unchanged",
+    "result": "yes",
+    "detail": "'Highlighted phrase'(bg yellow), 'red phrase'(fg red), 'npm run build'(Roboto Mono), '2' (SUPERSCRIPT) unchanged; text now 'Highlighted phrase there, then a red phrase there, then run npm run build today, and the area is 5 m2 overall.' (new words plain, since each inserted after a plain char)."
+   },
+   {
+    "claim": "edit touches only changed characters",
+    "result": "yes",
+    "detail": "Only when the caller sends insertText+deleteContentRange for the differing span; replaceAllText always replaces the whole match."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateTextStyle x7",
+     "updateParagraphStyle x7",
+     "insertText x19",
+     "deleteContentRange x13",
+     "replaceAllText x1 (tabsCriteria)"
+    ],
+    "seconds": 21.3,
+    "ok": true,
+    "error": null,
+    "note": "one 47-request batch on copy A shared by probes 1,2,6,7,9,10; seconds include composing the long request"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "documents.get via gdoc's Python client (full textStyle/paragraphStyle dump) + gdoc cat --comments --all"
+ },
+ {
+  "id": "publish-markdown-footnotes",
+  "status": "partial",
+  "summary": "Every [^n] became a native footnote attached to the right reference, including in a list item and a table cell, with italics, link and both paragraphs of footnote 2 kept (plus an empty paragraph between them). Child-tab footnotes cannot be tested: create_file has no tab target.",
+  "findings": [
+   {
+    "claim": "Native footnotes on correct references",
+    "result": "yes",
+    "detail": "footnoteNumber 1 kix.mm08smwqu0rp after 'Claim with note.', 2 after 'Another claim.', 3 in bullet 'list item note', 4 in table cell 'cell note'."
+   },
+   {
+    "claim": "Footnote formatting",
+    "result": "yes",
+    "detail": "fn1 'Footnote italic with link.': 'italic' italic, 'link' -> https://example.com/fn."
+   },
+   {
+    "claim": "Two-paragraph footnote",
+    "result": "yes",
+    "detail": "fn2 paragraphs ['First para.', '', 'Second para of footnote two.'] (extra empty paragraph)."
+   },
+   {
+    "claim": "Footnote in a child tab",
+    "result": "no",
+    "detail": "No tab target on create_file."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "create_file",
+    "requests": [
+     "textContent, contentMimeType=text/markdown, parentId=fixture folder"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure (documents.get JSON)",
+  "note": "One synthetic Markdown file covered all publish-markdown probes. create_file has no tab target, so child-tab cases are impossible."
+ },
+ {
+  "id": "publish-markdown-links-and-images",
+  "status": "partial",
+  "summary": "Inline, reference-style, bare-URL and mailto links became native links on exactly their words. Links to headings did not resolve: '#next-steps-1' and '#heading-three' were stored as literal url fragments, not headingId links, so they do not open the intended heading. A URL image appeared in place with alt text as description and an image link kept, at its natural size (204x69pt), not page width; local-file images and cross-tab heading links are impossible through this tool.",
+  "findings": [
+   {
+    "claim": "Inline/reference/bare/mailto links on exact words",
+    "result": "yes",
+    "detail": "'example'->https://example.com/inline, 'ref link'->https://example.com/ref, 'https://example.com/bare'->same, 'mail'->mailto:[email]."
+   },
+   {
+    "claim": "Links to headings (incl. duplicate names)",
+    "result": "no",
+    "detail": "link.url '#next-steps-1' and '#heading-three' (no heading.id/tabId); the target headings exist with ids like h.w0debgn1tpx6."
+   },
+   {
+    "claim": "Image by URL in place with alt text",
+    "result": "yes",
+    "detail": "inlineObject kix.xtvy99hqhmw description 'Google logo alt text' in its own paragraph."
+   },
+   {
+    "claim": "Image scaled to page width",
+    "result": "no",
+    "detail": "size 204x69pt (the PNG's 272x92px natural size)."
+   },
+   {
+    "claim": "Image link kept",
+    "result": "yes",
+    "detail": "kix.xgojt9nldepw inlineObjectElement textStyle.link.url https://example.com/imglink, description 'linked logo'."
+   },
+   {
+    "claim": "Image from a local file / heading in another tab",
+    "result": "no",
+    "detail": "create_file takes only the Markdown text; no way to attach a local image or target tabs."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "create_file",
+    "requests": [
+     "textContent, contentMimeType=text/markdown, parentId=fixture folder"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure (documents.get JSON)",
+  "note": "One synthetic Markdown file covered all publish-markdown probes. create_file has no tab target, so child-tab cases are impossible."
+ },
+ {
+  "id": "publish-markdown-lists",
+  "status": "partial",
+  "summary": "Bulleted, numbered, two-level nested and numbered-with-bullet-sub-items lists became native lists with correct nesting; a restarted numbered list got its own listId and 'continued three' rejoined that list after the interrupting paragraph. Task lists became a native list with an unspecified glyph (likely checklist; checked state is not exposed in documents.get and needs a UI look). A list item's second paragraph and code block fell out of the item (unbulleted, 36pt indent), and a later unrelated bullet ('list item note' under Footnotes) was merged into the same listId as an earlier list.",
+  "findings": [
+   {
+    "claim": "Bulleted + nested",
+    "result": "yes",
+    "detail": "kix.3ovuldnspj66 levels 0,0,1,1; glyphSymbol '-'."
+   },
+   {
+    "claim": "Numbered with bulleted sub-items",
+    "result": "yes",
+    "detail": "kix.xbfkae63h7wt DECIMAL level 0, 'sub bullet' level 1 glyph '-'."
+   },
+   {
+    "claim": "Task list checked/unchecked",
+    "result": "partly",
+    "detail": "kix.75nl2rijd80i glyphType GLYPH_TYPE_UNSPECIFIED (checklist-like); checked state of 'task done' not visible in API (not-run: needs UI)."
+   },
+   {
+    "claim": "Restart and continue numbering",
+    "result": "yes",
+    "detail": "'restart one/two' kix.x6l64tbr8s1c (separate from 'one/two/three'); 'continued three' after interrupting paragraph back in kix.x6l64tbr8s1c."
+   },
+   {
+    "claim": "Item's second paragraph and code stay in the item",
+    "result": "no",
+    "detail": "'second paragraph of item, with link.' unbulleted, indentStart 36pt; 'code in item' a code block outside the list."
+   },
+   {
+    "claim": "Separate lists stay separate",
+    "result": "no",
+    "detail": "'list item note' (Footnotes section) shares listId kix.3ue7xaeedjg6 with 'item with second paragraph' from the Lists section."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "create_file",
+    "requests": [
+     "textContent, contentMimeType=text/markdown, parentId=fixture folder"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure (documents.get JSON)",
+  "note": "One synthetic Markdown file covered all publish-markdown probes. create_file has no tab target, so child-tab cases are impossible."
+ },
+ {
+  "id": "publish-markdown-tables",
+  "status": "partial",
+  "summary": "GFM tables become native tables with a bold header row: 101x8 for the 100-row table, right alignment honoured (paragraph alignment END), empty cells kept in place, link/bold/code/emoji and the escaped pipe kept. The line directly after the small table (no blank line) became a fourth table row, which matches the GFM spec but probably not the author's intent. No child-tab target exists.",
+  "findings": [
+   {
+    "claim": "Native table, exact dimensions",
+    "result": "yes",
+    "detail": "8-col table 101 rows x 8 columns (header + 100); 10 empty c8 cells in rows 10,20,...,100."
+   },
+   {
+    "claim": "Header row",
+    "result": "yes",
+    "detail": "Header cell text bold; not pinned (no pinnedHeaderRowsCount checked)."
+   },
+   {
+    "claim": "Right-aligned column honoured",
+    "result": "yes",
+    "detail": "'Num' column cells alignment END; others START."
+   },
+   {
+    "claim": "Cell formatting",
+    "result": "yes",
+    "detail": "'bold' bold, 'ex' link https://example.com/t, 'x' Roboto Mono, '🎉' kept, 'a \\| b' -> 'a | b'."
+   },
+   {
+    "claim": "Following paragraph outside the table",
+    "result": "no",
+    "detail": "'After the table paragraph.' became row 4 cell 1 of a 4x4 table (GFM treats a non-blank line after a table as a row)."
+   },
+   {
+    "claim": "Into a child tab",
+    "result": "no",
+    "detail": "create_file has no tab parameter."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "create_file",
+    "requests": [
+     "textContent, contentMimeType=text/markdown, parentId=fixture folder"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure (documents.get JSON)",
+  "note": "One synthetic Markdown file covered all publish-markdown probes. create_file has no tab target, so child-tab cases are impossible."
+ },
+ {
+  "id": "publish-markdown-text-headings-blocks",
+  "status": "ran",
+  "summary": "Drive create_file with contentMimeType text/markdown converts to a native Doc: H1-H5 are native HEADING_1..5 with headingIds, bold/italic/strike extents are exact (also inside headings and around emoji), inline code becomes Roboto Mono, hard breaks become \\x0b line breaks, the horizontal rule is native and literal '*.md' survives. Code blocks become native Docs code blocks (green U+E907 boundary markers, Roboto Mono, tab and blank line kept), but the closing marker of the last code block leaked into the next heading's text ('\\ue907Tables'). Block quotes become 30pt-indented paragraphs with an empty paragraph between them, and an empty paragraph is inserted between most blocks.",
+  "findings": [
+   {
+    "claim": "H1-H5 native headings",
+    "result": "yes",
+    "detail": "namedStyleType HEADING_1..HEADING_5; repeated '## Next steps' both HEADING_2."
+   },
+   {
+    "claim": "Inline styles keep extents",
+    "result": "yes",
+    "detail": "runs: 'bold' bold, 'italic' italic, 'strike' strikethrough, 'inline code' weightedFontFamily Roboto Mono, 'bold 🎉 emoji' bold as one run; heading 'Heading one with **bold** 🚀' -> 'bold' bold only."
+   },
+   {
+    "claim": "Code block",
+    "result": "partly",
+    "detail": "Native code block: '\\ue907def f():' ... '\\ue907' with Roboto Mono; '\\treturn 1' tab kept; blank line kept as its own paragraph. The nested code block's end marker landed at the start of the next heading: HEADING_2 text '\\ue907Tables'."
+   },
+   {
+    "claim": "Block quote over two paragraphs",
+    "result": "partly",
+    "detail": "Two NORMAL_TEXT paragraphs with indentStart/indentEnd/indentFirstLine 30pt and an empty paragraph between; no quote style."
+   },
+   {
+    "claim": "Hard line break",
+    "result": "yes",
+    "detail": "'Line one with hard break\\x0bline two after break.' (one paragraph)."
+   },
+   {
+    "claim": "Horizontal rule",
+    "result": "yes",
+    "detail": "horizontalRule element in its own paragraph."
+   },
+   {
+    "claim": "Literal *.md and no stray symbols",
+    "result": "yes",
+    "detail": "'Literal file README.md and *.md stay.' Soft-wrapped Spanish/Japanese line joined into the same paragraph with a space (standard Markdown)."
+   },
+   {
+    "claim": "No extra empty paragraphs",
+    "result": "no",
+    "detail": "Empty NORMAL_TEXT paragraphs inserted after the body paragraph, after the code block, between and after quote paragraphs, after the hard-break paragraph, before/after images and lists."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "create_file",
+    "requests": [
+     "textContent, contentMimeType=text/markdown, parentId=fixture folder"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure (documents.get JSON)",
+  "note": "One synthetic Markdown file covered all publish-markdown probes. create_file has no tab target, so child-tab cases are impossible."
+ },
+ {
+  "id": "read-change-detection-and-revisions",
+  "status": "partial",
+  "summary": "Each read returns a revisionId that changes after a collaborator edit, and get_file_metadata gives modifiedTime, but nothing says what changed or who changed it; the caller must diff two full reads. There is no revision-list tool, and download_file_content with revisionId fails: 'Attempting to download a file at a given revision is not yet supported. Coming soon!'.",
+  "findings": [
+   {
+    "claim": "Flags a change since last read",
+    "result": "partly",
+    "detail": "Concurrent copy: read revisionId AHj4eMTE7Hd3… before gdoc insert; later documents.get AHj4eMSFks9j…; requiredRevisionId writes fail on the stale one. No diff, editor or 'new comments since' info."
+   },
+   {
+    "claim": "List revisions with editor and time",
+    "result": "no",
+    "detail": "No tool. (gdoc revisions shows id 1.. with lastModifyingUser for comparison.)"
+   },
+   {
+    "claim": "Read an earlier revision",
+    "result": "no",
+    "detail": "download_file_content(fileId, revisionId='1', text/plain) → error verbatim: 'Attempting to download a file at a given revision is not yet supported. Coming soon!'"
+   },
+   {
+    "claim": "New comments/replies",
+    "result": "partly",
+    "detail": "Comments carry createTime/updateTime in headPost, so a caller can filter by time; no replies field was observed (none existed)."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "download_file_content",
+    "requests": [
+     "revisionId=1"
+    ],
+    "ok": false,
+    "error": "Attempting to download a file at a given revision is not yet supported. Coming soon!"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc revisions --json",
+  "note": "read_doc output = documents.get JSON (includeTabsContent, SUGGESTIONS_INLINE) plus top-level comments[], suggestions[] and per-tab commentAnchors; verified field-for-field against direct documents.get on the formatted fixture (only differences: commentAnchors, image contentUri token, table contentDirection)."
+ },
+ {
+  "id": "read-character-and-paragraph-formatting",
+  "status": "ran",
+  "summary": "Everything asked for is present with exact UTF-16 run extents because the read is the raw Docs JSON: bold, strikethrough, underline, sub/superscript (baselineOffset), highlight and text colour, font family, named styles including TITLE and SUBTITLE, alignment, indentation, line spacing and RIGHT_TO_LEFT direction. A bold NORMAL_TEXT 'Summary' is clearly distinct from the HEADING_2 'Summary'. The cost is size: the 1-page rich copy is 137 kB of JSON.",
+  "findings": [
+   {
+    "claim": "Character styles with extents",
+    "result": "yes",
+    "detail": "'strike' [486,492) strikethrough; 'under' [493,498) underline; '2' of CO2 [501,502) SUBSCRIPT; m² '2' SUPERSCRIPT; 'Warning phrase' backgroundColor yellow + foregroundColor red; fixture runs carry weightedFontFamily Georgia/Roboto Mono."
+   },
+   {
+    "claim": "Paragraph properties",
+    "result": "yes",
+    "detail": "TITLE 'Launch plan', SUBTITLE 'A rich read copy'; 'Centred paragraph.' alignment CENTER; 'Indented quote paragraph.' indentStart 36 PT; Arabic paragraph direction RIGHT_TO_LEFT alignment END; lineSpacing 115 on fixture paragraphs."
+   },
+   {
+    "claim": "Bold normal vs heading",
+    "result": "yes",
+    "detail": "442 'Summary' NORMAL_TEXT with run bold:true; 450 'Summary' HEADING_2 with headingId h.7sy7rljuxkld."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [
+     "commentsIncluded=true"
+    ],
+    "ok": true,
+    "error": "137,223 chars; spilled to file by client"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "read_doc JSON",
+  "note": "read_doc output = documents.get JSON (includeTabsContent, SUGGESTIONS_INLINE) plus top-level comments[], suggestions[] and per-tab commentAnchors; verified field-for-field against direct documents.get on the formatted fixture (only differences: commentAnchors, image contentUri token, table contentDirection).",
+  "setup_note": "Rich read copy setup ran twice by accident, so the appended test block (Title…Edited/Deleted anchor paragraphs) appears again after the section break at 1207+, and the footnote and cell image appear twice. Findings cite the first block."
+ },
+ {
+  "id": "read-chips-equations-unknown",
+  "status": "partial",
+  "summary": "The person chip reads as a person element with personProperties {email, name} at its index. Date, file, dropdown and place chips, equations and unknown embeds all need the UI, so they were not run; because the read is raw Docs JSON, any of them would surface as whatever element the Docs API emits (dateElement, richLink, equation…), not as rendered text.",
+  "findings": [
+   {
+    "claim": "Person chip type and referent",
+    "result": "yes",
+    "detail": "index 71: {person: {personId kix.y8m15uy21d8, personProperties {email [email], name 'the test account'}}}."
+   },
+   {
+    "claim": "Date/file/dropdown chips, equations, unknown embed",
+    "result": "no",
+    "detail": "not-run: needs UI."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [
+     "commentsIncluded=true"
+    ],
+    "ok": true,
+    "error": "137,223 chars; spilled to file by client"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "read_doc JSON",
+  "note": "read_doc output = documents.get JSON (includeTabsContent, SUGGESTIONS_INLINE) plus top-level comments[], suggestions[] and per-tab commentAnchors; verified field-for-field against direct documents.get on the formatted fixture (only differences: commentAnchors, image contentUri token, table contentDirection).",
+  "setup_note": "Rich read copy setup ran twice by accident, so the appended test block (Title…Edited/Deleted anchor paragraphs) appears again after the section break at 1207+, and the footnote and cell image appear twice. Findings cite the first block."
+ },
+ {
+  "id": "read-comment-anchors",
+  "status": "partial",
+  "summary": "Yes for the hard part: with commentsIncluded the read returns each comment's anchorId plus per-tab commentAnchors giving the live UTF-16 range (with tabId outside the first tab), so a comment's current text and location can be recovered, while plainTextQuote keeps the stale creation-time quote. A detached comment shows up as an anchorId with no commentAnchors entry; a document-level comment has no anchorId. Footnote and image comments could not be created by API, so those placements were not tested (needs UI).",
+  "findings": [
+   {
+    "claim": "Live anchor text, not stored quote",
+    "result": "yes",
+    "detail": "'Comment then edited' plainTextQuote 'Edited anchor text.'; after inserting 'CHANGED ' the commentAnchors range [1014,1041) = 'Edited CHANGED anchor text.' (27 units)."
+   },
+   {
+    "claim": "Location incl. tab and table cell",
+    "result": "yes",
+    "detail": "Table-cell comment range [1131,1139) inside the new table's 'Red cell' cell; 'Comment on Sources text' range [11,45) with tabId t.9406whxnjbq1 (gdoc anchored the quote to its first occurrence, in Appendix not Sources: the range exposes that)."
+   },
+   {
+    "claim": "Which occurrence of repeated text",
+    "result": "yes",
+    "detail": "Comment on 'Repeat phrase here again' range [988,1012), the second phrase in 'Repeat phrase here and Repeat phrase here again.' (para starts 965). Range, not quote, disambiguates."
+   },
+   {
+    "claim": "Detached anchor flagged",
+    "result": "partly",
+    "detail": "'Comment then deleted' (anchored text deleted): comment still has anchorId kix.jtff9p8vyisf and plainTextQuote 'Deleted anchor text.', but no commentAnchors entry. Detectable by absence; no explicit 'detached' flag."
+   },
+   {
+    "claim": "Document-level comment identified",
+    "result": "yes",
+    "detail": "'Document-level comment' has keys [commentId, headPost, status] with no anchorId/plainTextQuote."
+   },
+   {
+    "claim": "Footnote / image comments",
+    "result": "no",
+    "detail": "not-run: needs UI. gdoc comment --quote 'Cell footnote.' produced an unanchored comment (no anchorId) since footnote text is not anchorable via API."
+   },
+   {
+    "claim": "Replies and resolved state",
+    "result": "partly",
+    "detail": "Comment objects carry headPost (author displayName, me, createTime, content, contentHtml) and status OPEN; no replies existed to check."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [
+     "commentsIncluded=true"
+    ],
+    "ok": true,
+    "error": "137,223 chars; spilled to file by client"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "read_doc JSON vs gdoc comment output and documents.get",
+  "note": "read_doc output = documents.get JSON (includeTabsContent, SUGGESTIONS_INLINE) plus top-level comments[], suggestions[] and per-tab commentAnchors; verified field-for-field against direct documents.get on the formatted fixture (only differences: commentAnchors, image contentUri token, table contentDirection).",
+  "setup_note": "Rich read copy setup ran twice by accident, so the appended test block (Title…Edited/Deleted anchor paragraphs) appears again after the section break at 1207+, and the footnote and cell image appear twice. Findings cite the first block."
+ },
+ {
+  "id": "read-footnotes",
+  "status": "ran",
+  "summary": "Footnote bodies come back in documentTab.footnotes keyed by ID with full run formatting and links, and each footnoteReference element in the body gives footnoteId and the displayed footnoteNumber at its index, including in table cells and in the Sources child tab's own footnotes map.",
+  "findings": [
+   {
+    "claim": "Body paired with reference and number",
+    "result": "yes",
+    "detail": "Fixture: footnoteReference at 161 {footnoteId kix.7dzguvpy6xt8, footnoteNumber '1'} → ' Pilot teams were chosen in March.'"
+   },
+   {
+    "claim": "Formatting and links in body",
+    "result": "yes",
+    "detail": "kix.twmtkxl3sygv: ' See ' + 'The Book Title' {italic} + ' at ' + 'example' {link https://example.com/book}."
+   },
+   {
+    "claim": "In table cells and other tabs",
+    "result": "yes",
+    "detail": "'Footnote cell[footnoteReference]' → kix.e24zom1kccim ' Cell footnote.'; Sources tab has its own footnotes map with 'Sources tab footnote.'."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [
+     "commentsIncluded=true"
+    ],
+    "ok": true,
+    "error": "137,223 chars; spilled to file by client"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "read_doc JSON",
+  "note": "read_doc output = documents.get JSON (includeTabsContent, SUGGESTIONS_INLINE) plus top-level comments[], suggestions[] and per-tab commentAnchors; verified field-for-field against direct documents.get on the formatted fixture (only differences: commentAnchors, image contentUri token, table contentDirection).",
+  "setup_note": "Rich read copy setup ran twice by accident, so the appended test block (Title…Edited/Deleted anchor paragraphs) appears again after the section break at 1207+, and the footnote and cell image appear twice. Findings cite the first block."
+ },
+ {
+  "id": "read-headers-footers-layout",
+  "status": "partial",
+  "summary": "Headers and footers come back as their own segments (headers{}, footers{} keyed by ID, linked from documentStyle defaultHeaderId/defaultFooterId) with text and links; page breaks appear as pageBreak elements; section breaks carry sectionType NEXT_PAGE, flipPageOrientation and two columnProperties; documentStyle gives page size 612x792 PT, margins (marginLeft 50 after change) and documentMode PAGES. Page-number fields and a distinct first-page header need the UI.",
+  "findings": [
+   {
+    "claim": "Header/footer content",
+    "result": "yes",
+    "detail": "headers kix.cdxdhks84s2p 'Hdr link Launch notes · internal'; footers kix.w8uso01rzroz 'Footer text with link' with link on 'link'."
+   },
+   {
+    "claim": "First-page header and page number",
+    "result": "partly",
+    "detail": "useFirstPageHeaderFooter true read back, firstPageHeaderId absent (none created; API createHeader only DEFAULT here). Page-number field: not-run: needs UI."
+   },
+   {
+    "claim": "Page/section breaks, orientation, columns",
+    "result": "yes",
+    "detail": "'[pageBreak]\\n' paragraph at 963; sectionBreak at 1163 {sectionType NEXT_PAGE, flipPageOrientation true, columnProperties [{width 329 PT, paddingEnd 12 PT},{width 329 PT}]}."
+   },
+   {
+    "claim": "Page size, margins, pageless",
+    "result": "yes",
+    "detail": "documentStyle.pageSize 612x792 PT, marginLeft 50 PT, documentFormat.documentMode PAGES."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [
+     "commentsIncluded=true"
+    ],
+    "ok": true,
+    "error": "137,223 chars; spilled to file by client"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "read_doc JSON",
+  "note": "read_doc output = documents.get JSON (includeTabsContent, SUGGESTIONS_INLINE) plus top-level comments[], suggestions[] and per-tab commentAnchors; verified field-for-field against direct documents.get on the formatted fixture (only differences: commentAnchors, image contentUri token, table contentDirection).",
+  "setup_note": "Rich read copy setup ran twice by accident, so the appended test block (Title…Edited/Deleted anchor paragraphs) appears again after the section break at 1207+, and the footnote and cell image appear twice. Findings cite the first block."
+ },
+ {
+  "id": "read-images-drawings-charts",
+  "status": "partial",
+  "summary": "Inline images appear in place as inlineObjectElement with an inlineObjects entry giving size, margins, cropProperties, sourceUri and a temporary contentUri (bytes fetchable from that URL, not by the connector itself); images in table cells appear the same way. Alt text (title/description) was absent because it can't be set by API; positioned images, drawings and charts need the UI and were not run.",
+  "findings": [
+   {
+    "claim": "Inline image position and size",
+    "result": "yes",
+    "detail": "kix.ad9lvd6xvc45 at index 388 before 'Open questions', size 136x46 PT, sourceUri googlelogo…png, contentUri lh7-rt.googleusercontent.com/docsz/… (changes per read)."
+   },
+   {
+    "claim": "Image in table cell",
+    "result": "yes",
+    "detail": "'Red cell' cell starts with two inlineObjectElements (kix.3vyio689auzr, kix.bgytngv0nxw1), 60x20.3 PT."
+   },
+   {
+    "claim": "Alt text",
+    "result": "no",
+    "detail": "title/description null; alt text not settable via API: not-run: needs UI."
+   },
+   {
+    "claim": "Positioned image, drawing, chart",
+    "result": "no",
+    "detail": "not-run: needs UI. positionedObjects absent from read."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [
+     "commentsIncluded=true"
+    ],
+    "ok": true,
+    "error": "137,223 chars; spilled to file by client"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "read_doc JSON",
+  "note": "read_doc output = documents.get JSON (includeTabsContent, SUGGESTIONS_INLINE) plus top-level comments[], suggestions[] and per-tab commentAnchors; verified field-for-field against direct documents.get on the formatted fixture (only differences: commentAnchors, image contentUri token, table contentDirection).",
+  "setup_note": "Rich read copy setup ran twice by accident, so the appended test block (Title…Edited/Deleted anchor paragraphs) appears again after the section break at 1207+, and the footnote and cell image appear twice. Findings cite the first block."
+ },
+ {
+  "id": "read-link-destinations",
+  "status": "partial",
+  "summary": "Every link is a textStyle.link on the exact run, so displayed text and destination are both present: URLs (incl. mailto and a Google Doc URL), heading links as link.heading {id, tabId}, tab links as link.tabId, and links inside headers, footers and footnotes. Bookmark links could not be created (no bookmark API), so that kind is untested.",
+  "findings": [
+   {
+    "claim": "Text and URL",
+    "result": "yes",
+    "detail": "'mail link' → mailto:[email]; 'same one' and 'same two' both https://example.com/same; 'other doc' → docs.google.com/document/d/1DTag…/edit; fixture 'project page' split over two runs each with the same url."
+   },
+   {
+    "claim": "Heading and tab targets",
+    "result": "yes",
+    "detail": "'heading link' → {heading: {id: 'h.i59egoftapij', tabId: 't.0'}} (Status 1); 'tab link' → {tabId: 't.poy24v3w7y54'} (Sources)."
+   },
+   {
+    "claim": "Bookmark links",
+    "result": "no",
+    "detail": "not-run: needs UI. link.bookmarkId 'id.nonexistent' rejected by API."
+   },
+   {
+    "claim": "Links in header, footer, footnote, cell, list item",
+    "result": "partly",
+    "detail": "Header run 'Hdr link' → https://example.com/header; footer 'link' → https://example.com/footer; footnote 'example' → https://example.com/book. Cell/list-item links not added (same mechanism)."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [
+     "commentsIncluded=true"
+    ],
+    "ok": true,
+    "error": "137,223 chars; spilled to file by client"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "read_doc JSON",
+  "note": "read_doc output = documents.get JSON (includeTabsContent, SUGGESTIONS_INLINE) plus top-level comments[], suggestions[] and per-tab commentAnchors; verified field-for-field against direct documents.get on the formatted fixture (only differences: commentAnchors, image contentUri token, table contentDirection).",
+  "setup_note": "Rich read copy setup ran twice by accident, so the appended test block (Title…Edited/Deleted anchor paragraphs) appears again after the section break at 1207+, and the footnote and cell image appear twice. Findings cite the first block."
+ },
+ {
+  "id": "read-list-structure",
+  "status": "partial",
+  "summary": "The read gives list membership (listId), nesting level and per-level glyph definitions (DECIMAL '%0.', ALPHA '%1.', symbols ●/○/-), and typed '1. ' paragraphs carry no bullet, so real lists are distinguishable. It does not give the rendered number: the caller must count items per listId to see that a new list restarts at 1 and that a list continues after an interrupting paragraph. Checklists report GLYPH_TYPE_UNSPECIFIED and no checked state.",
+  "findings": [
+   {
+    "claim": "Membership and nesting",
+    "result": "yes",
+    "detail": "Owners/Risks lvl 0 and their children lvl 1 in kix.mb4mu0fkncr4; 'Sub item a/b' lvl 2 in list …s9eo7e (two leading tabs)."
+   },
+   {
+    "claim": "Rendered numbers, restarts, continuation",
+    "result": "partly",
+    "detail": "Proc A (…b6to7k) and Proc B (…3q5gs7) are different listIds, so Proc B restarts; 'Cont one'/'Cont two' share listId …3q5gs7 across the un-bulleted 'Cont note paragraph.', so numbering continues. No rendered number field; must be computed."
+   },
+   {
+    "claim": "Marker style per level",
+    "result": "yes",
+    "detail": "lists[…].listProperties.nestingLevels: e.g. [DECIMAL %0., ALPHA %1., …]; bullets glyphSymbol ●, ○, '-'."
+   },
+   {
+    "claim": "Checklist checked state",
+    "result": "no",
+    "detail": "BULLET_CHECKBOX list …5of3ua glyphType GLYPH_TYPE_UNSPECIFIED; no checked field. Ticking items needs UI (not-run)."
+   },
+   {
+    "claim": "Typed '1.' paragraphs vs real list",
+    "result": "yes",
+    "detail": "'1. typed one' etc. have no bullet key."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [
+     "commentsIncluded=true"
+    ],
+    "ok": true,
+    "error": "137,223 chars; spilled to file by client"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "read_doc JSON",
+  "note": "read_doc output = documents.get JSON (includeTabsContent, SUGGESTIONS_INLINE) plus top-level comments[], suggestions[] and per-tab commentAnchors; verified field-for-field against direct documents.get on the formatted fixture (only differences: commentAnchors, image contentUri token, table contentDirection).",
+  "setup_note": "Rich read copy setup ran twice by accident, so the appended test block (Title…Edited/Deleted anchor paragraphs) appears again after the section break at 1207+, and the footnote and cell image appear twice. Findings cite the first block."
+ },
+ {
+  "id": "read-long-documents",
+  "status": "ran",
+  "summary": "read_doc returns the complete document in one call with no paging or cap: the 40-section long doc (805,894 chars of JSON) matched documents.get exactly (484 body elements, 443 paragraphs, 41 headings, 40 tables, end index 12338), and a ten-tab version (1,019,678 chars) returned all ten tabs in order with full bodies. There is no continuation mechanism because nothing is truncated; the practical limit is the client's context (Claude Code spilled every response over ~25k tokens to a file). An index-based edit to 'track' in Status 39 changed only that occurrence.",
+  "findings": [
+   {
+    "claim": "Whole long doc returned without truncation",
+    "result": "yes",
+    "detail": "Connector vs direct API: (elements, paragraphs, headings, tables, endIndex) = (484, 443, 41, 40, 12338) for both."
+   },
+   {
+    "claim": "Every tab of a ten-tab doc in one read",
+    "result": "yes",
+    "detail": "Tabs 'Tab 1'..'Tab 10' at index 0..9; tabs 2-10 each 62 elements (60 paragraphs), end indices 5572 (5632 for Tab 10). No per-tab selector exists; the read always returns all tabs."
+   },
+   {
+    "claim": "Explicit continuation when paging",
+    "result": "no",
+    "detail": "No pagination fields; response is a single ~1 MB JSON blob. Usable only if the client can spill and query it (e.g. jq)."
+   },
+   {
+    "claim": "Edit near the end lands on the right text",
+    "result": "yes",
+    "detail": "deleteContentRange [11755,11760) tabId t.0 + insertText 'schedule' at 11755: Status 39 paragraph now 'The launch plan is on schedule and...'; 'on track' still appears in the 39 other sections + 540 tab paragraphs (579 total). Indices came from the read; the connector offers no text-anchored edit except replaceAllText (which would hit all 40 sections)."
+   },
+   {
+    "claim": "Comment near the end",
+    "result": "no",
+    "detail": "No comment-creation tool in the Docs or Drive connector."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [],
+    "seconds": 3.0,
+    "ok": true,
+    "error": "805,894 chars; spilled to file by client"
+   },
+   {
+    "tool": "read_doc",
+    "requests": [],
+    "seconds": 4.1,
+    "ok": true,
+    "error": "ten-tab doc, 1,019,678 chars; spilled to file by client"
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "deleteContentRange",
+     "insertText"
+    ],
+    "seconds": 2.8,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "Docs API documents.get via gdoc client; gdoc cat --plain"
+ },
+ {
+  "id": "read-outline-and-sections",
+  "status": "ran",
+  "summary": "Every heading arrives in document order with namedStyleType (HEADING_1..3, TITLE, SUBTITLE) and a stable headingId (e.g. h.i59egoftapij), and every block has start/end indices, so a section can be cut from a heading to the next same-or-higher heading including tables and lists. The connector does not do that cut itself; the caller computes it from the flat body list.",
+  "findings": [
+   {
+    "claim": "Headings with level, order, ID",
+    "result": "yes",
+    "detail": "Launch notes H1 h.fasbnvq3je1p; Status 1 H2 h.i59egoftapij; Notes H2 h.bsw71m3nhkjk; Launch plan TITLE h.tpcrvzbpcr68; A rich read copy SUBTITLE h.orzjrfofjw21; Summary H2 h.7sy7rljuxkld; Details subsection H3 h.nq40nmei3brm. Long doc: 41 headings ('Launch notes archive' + Status 1..40)."
+   },
+   {
+    "claim": "Section boundaries include tables/lists",
+    "result": "yes",
+    "detail": "Status 1 [74,382) contains paragraph, two lists and the table (317-382) before 'Notes' at 382; derivable from indices."
+   },
+   {
+    "claim": "Section read in one call",
+    "result": "no",
+    "detail": "No range/section parameter; whole doc always returned."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [
+     "commentsIncluded=true"
+    ],
+    "ok": true,
+    "error": "137,223 chars; spilled to file by client"
+   },
+   {
+    "tool": "read_doc",
+    "requests": [],
+    "ok": true,
+    "error": "long doc"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "read_doc JSON",
+  "note": "read_doc output = documents.get JSON (includeTabsContent, SUGGESTIONS_INLINE) plus top-level comments[], suggestions[] and per-tab commentAnchors; verified field-for-field against direct documents.get on the formatted fixture (only differences: commentAnchors, image contentUri token, table contentDirection).",
+  "setup_note": "Rich read copy setup ran twice by accident, so the appended test block (Title…Edited/Deleted anchor paragraphs) appears again after the section break at 1207+, and the footnote and cell image appear twice. Findings cite the first block."
+ },
+ {
+  "id": "read-pending-suggestions",
+  "status": "partial",
+  "summary": "Read shows suggestions inline (SUGGESTIONS_INLINE, not changeable) with suggestedInsertionIds/DeletionIds/TextStyleChanges on runs in body, table cells, footnotes and child tabs, plus a top-level suggestions[] list giving id, author, time, status and a readable summary ('Replace: …', 'Delete footnote: with text …', 'Format: bold, font'). The summary list carries no location, so placing a suggestion means walking the body for its ID; there is no accepted/rejected preview mode because read_doc takes no suggestionsViewMode.",
+  "findings": [
+   {
+    "claim": "ID, author, kind, text",
+    "result": "yes",
+    "detail": "suggestions[]: {suggestionId, headPost.author.displayName, createTime, status OPEN, summaryText}. Examples: [suggestion-id] 'Replace: “Proc A two” with “Proc A second step” (2 times)'; [suggestion-id] 'Delete footnote: with text “Pilot teams were chosen in March.”\\nDelete: “week”'; [suggestion-id] 'Format: bold, font'."
+   },
+   {
+    "claim": "Location (tab, cell, footnote)",
+    "result": "partly",
+    "detail": "Only via body runs: cell run 'Suggested ' in the 'Red cell' cell; footnote kix.dk2ezvuxnl6m run ' Suggested fn ' has suggestedInsertionIds; Sources tab body run. suggestions[] itself has no range/tab."
+   },
+   {
+    "claim": "Style-only suggestion visible",
+    "result": "yes",
+    "detail": "'Words:' run at 479 has suggestedTextStyleChanges {[suggestion-id]}; summaryText 'Format: bold, font'."
+   },
+   {
+    "claim": "Preview accepted / without",
+    "result": "no",
+    "detail": "No suggestionsViewMode parameter; response always suggestionsViewMode SUGGESTIONS_INLINE, so deleted and inserted text both appear in content ('Proc A second stepProc A two')."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [
+     "commentsIncluded=true"
+    ],
+    "ok": true,
+    "error": "137,223 chars; spilled to file by client"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "read_doc JSON",
+  "note": "read_doc output = documents.get JSON (includeTabsContent, SUGGESTIONS_INLINE) plus top-level comments[], suggestions[] and per-tab commentAnchors; verified field-for-field against direct documents.get on the formatted fixture (only differences: commentAnchors, image contentUri token, table contentDirection).",
+  "setup_note": "Rich read copy setup ran twice by accident, so the appended test block (Title…Edited/Deleted anchor paragraphs) appears again after the section break at 1207+, and the footnote and cell image appear twice. Findings cite the first block."
+ },
+ {
+  "id": "read-tab-hierarchy",
+  "status": "partial",
+  "summary": "One read returns every tab in order as a tree with tabId, title, index, nestingLevel and parentTabId, child tabs nested under childTabs, each with its own body; an emoji title reads back exactly. There is no way to read just one tab: the read always returns all tabs, so 'read a tab without its children' is done by picking the node client-side. Two tabs with the same title could not be created: the Docs API rejects duplicate titles ('Tab title must be unique'), so title-only selection is not ambiguous for API-created tabs; UI-created duplicates not tested.",
+  "findings": [
+   {
+    "claim": "Lists every tab with id, title, parent, order",
+    "result": "yes",
+    "detail": "Tab 1 (t.0, idx 0); Appendix (t.9406whxnjbq1, idx 1) > Sources (t.poy24v3w7y54, nestingLevel 1, parentTabId t.9406whxnjbq1); Appendix (2) (t.sjiap9i9utdo, idx 2) > Notes (t.qukpq0f7w0c3); '🚀 Launch tab' (t.510r6kb1nwuw, idx 3)."
+   },
+   {
+    "claim": "Parent tab body excludes child content",
+    "result": "yes",
+    "detail": "Appendix documentTab.body has only 'Appendix: supporting material…'; Sources text sits in childTabs[0].documentTab."
+   },
+   {
+    "claim": "Read one tab by ID",
+    "result": "no",
+    "detail": "read_doc has only documentId and commentsIncluded; no tab filter."
+   },
+   {
+    "claim": "Two tabs with the same title",
+    "result": "no",
+    "detail": "addDocumentTab title 'Appendix' → 400 'Invalid requests[0].addDocumentTab: Tab title must be unique'. Used 'Appendix (2)' instead; IDs distinguish them anyway."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [
+     "commentsIncluded=true"
+    ],
+    "ok": true,
+    "error": "137,223 chars; spilled to file by client"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "read_doc JSON",
+  "note": "read_doc output = documents.get JSON (includeTabsContent, SUGGESTIONS_INLINE) plus top-level comments[], suggestions[] and per-tab commentAnchors; verified field-for-field against direct documents.get on the formatted fixture (only differences: commentAnchors, image contentUri token, table contentDirection).",
+  "setup_note": "Rich read copy setup ran twice by accident, so the appended test block (Title…Edited/Deleted anchor paragraphs) appears again after the section break at 1207+, and the footnote and cell image appear twice. Findings cite the first block."
+ },
+ {
+  "id": "read-table-of-contents",
+  "status": "not-run",
+  "summary": "not-run: needs UI (a native TOC can't be inserted via the Docs API). A hand-made contents list would read as an ordinary list; the raw read would include a tableOfContents element if one existed.",
+  "findings": [],
+  "calls": [],
+  "copy": "[doc-id]",
+  "inspected_with": "",
+  "note": "read_doc output = documents.get JSON (includeTabsContent, SUGGESTIONS_INLINE) plus top-level comments[], suggestions[] and per-tab commentAnchors; verified field-for-field against direct documents.get on the formatted fixture (only differences: commentAnchors, image contentUri token, table contentDirection).",
+  "setup_note": "Rich read copy setup ran twice by accident, so the appended test block (Title…Edited/Deleted anchor paragraphs) appears again after the section break at 1207+, and the footnote and cell image appear twice. Findings cite the first block."
+ },
+ {
+  "id": "read-table-structure",
+  "status": "ran",
+  "summary": "Tables come through as the raw Docs table model: rows and cells in order with startIndex, columnSpan/rowSpan (merged cell columnSpan 2 plus its covered cell kept in place), empty cells as a lone '\\n' paragraph, multi-paragraph cells as separate paragraphs, bullet lists inside cells, cell background colour, tableHeader on the header row and per-column FIXED_WIDTH widths. Tables have no ID, so 'the second table' means the caller counts table elements in body order; on the long doc all 40 identical-header tables are present.",
+  "findings": [
+   {
+    "claim": "Merged spans",
+    "result": "yes",
+    "detail": "Fixture row 3: cell 2 columnSpan 2 with paragraphs 'Ben\\n','Monday\\n'; covered cell 3 still listed (columnSpan 1, '\\n')."
+   },
+   {
+    "claim": "Empty cells in place",
+    "result": "yes",
+    "detail": "New table row 3: ['Footnote cell[footnoteReference]\\n'], ['\\n'], ['\\n']."
+   },
+   {
+    "claim": "Multi-paragraph cell, list in cell",
+    "result": "yes",
+    "detail": "Cell (1,0) ['Two paras first\\n','Two paras second\\n']; cell (1,1) 'Bullet a','Bullet b' with bullet listId (BULLET_DISC_CIRCLE_SQUARE, glyphs ●/○)."
+   },
+   {
+    "claim": "Header row, background, widths",
+    "result": "yes",
+    "detail": "Fixture header row tableRowStyle.tableHeader true and bg rgb(0.85,0.90,1.0); new cell (1,2) bg {red:1,green:0.2,blue:0.2}; tableColumnProperties[0] {widthType FIXED_WIDTH, width 200 PT}, others EVENLY_DISTRIBUTED."
+   },
+   {
+    "claim": "Second of identical tables",
+    "result": "partly",
+    "detail": "Long doc read has 40 table elements with header 'Item|Owner|Due'; addressable only by order/startIndex."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [
+     "commentsIncluded=true"
+    ],
+    "ok": true,
+    "error": "137,223 chars; spilled to file by client"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "read_doc JSON",
+  "note": "read_doc output = documents.get JSON (includeTabsContent, SUGGESTIONS_INLINE) plus top-level comments[], suggestions[] and per-tab commentAnchors; verified field-for-field against direct documents.get on the formatted fixture (only differences: commentAnchors, image contentUri token, table contentDirection).",
+  "setup_note": "Rich read copy setup ran twice by accident, so the appended test block (Title…Edited/Deleted anchor paragraphs) appears again after the section break at 1207+, and the footnote and cell image appear twice. Findings cite the first block."
+ },
+ {
+  "id": "retry-after-uncertain-write",
+  "status": "partial",
+  "summary": "The connector has no idempotency key or existence check: repeating an insertText, insertTableRow, SUGGEST-mode insert, create_file or copy_file creates a duplicate every time. Two things protect against duplicates by accident or by choice: addDocumentTab rejects a repeated title, which rejects the whole batch atomically, and a requiredRevisionId guard turns the repeat into a clear 'does not match the latest revision' refusal. Errors are only 'refused' (INVALID_ARGUMENT with a message); nothing reports 'outcome unknown', and update_doc's reply omits the new revisionId, so a caller cannot check whether a lost write landed without re-reading.",
+  "findings": [
+   {
+    "claim": "Repeated insert paragraph duplicates",
+    "result": "yes",
+    "detail": "'Retry marker paragraph.' count after two successful batches = 2."
+   },
+   {
+    "claim": "Repeated table row duplicates",
+    "result": "yes",
+    "detail": "insertTableRow below row 1 twice → table rows 3 → 5."
+   },
+   {
+    "claim": "Repeated add tab duplicates",
+    "result": "no",
+    "detail": "Second batch failed verbatim: 'Invalid requests[2].addDocumentTab: Tab title must be unique;AppErrorCode=3' and, being atomic, also rolled back the paragraph and row inserts in that batch. Tabs: ['Tab 1','Appendix','Retry tab']."
+   },
+   {
+    "claim": "Repeated suggestion duplicates",
+    "result": "yes",
+    "detail": "SUGGEST insert 'Suggested retry text. ' at index 1 twice → paragraph reads 'Suggested retry text. Suggested retry text. Launch notes'; both merged into ONE suggestion id [suggestion-id] (adjacent same-author insertions), so the duplicate cannot be rejected separately."
+   },
+   {
+    "claim": "Repeated create/copy duplicates",
+    "result": "yes",
+    "detail": "create_file 'probe w1 retry create' twice → 1vHosl7j…, 1AClemVt… (same title, same folder). copy_file twice → 1-Zn06TE…, 1jh3DRE0…."
+   },
+   {
+    "claim": "Comment and reply retries",
+    "result": "no",
+    "detail": "No comment/reply tool in the connector."
+   },
+   {
+    "claim": "Caller-side guard via requiredRevisionId",
+    "result": "yes",
+    "detail": "Same insert with requiredRevisionId=current twice: first ok, second refused 'The required revision ID … does not match the latest revision.' Only one 'Guarded marker.' inserted. Caveat: the reply ({api_replies, errors, warnings}) has no writeControl/revisionId, so the next guarded write needs a fresh read."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText",
+     "insertTableRow",
+     "addDocumentTab"
+    ],
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText",
+     "insertTableRow",
+     "addDocumentTab"
+    ],
+    "ok": false,
+    "error": "Invalid requests[2].addDocumentTab: Tab title must be unique;AppErrorCode=3"
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText",
+     "insertTableRow"
+    ],
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText (SUGGEST)"
+    ],
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText (SUGGEST)"
+    ],
+    "ok": true
+   },
+   {
+    "tool": "create_file",
+    "requests": [],
+    "ok": true
+   },
+   {
+    "tool": "create_file",
+    "requests": [],
+    "ok": true
+   },
+   {
+    "tool": "copy_file",
+    "requests": [],
+    "ok": true
+   },
+   {
+    "tool": "copy_file",
+    "requests": [],
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText requiredRevisionId"
+    ],
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText requiredRevisionId"
+    ],
+    "ok": false,
+    "error": "The required revision ID '…' does not match the latest revision.;AppErrorCode=3"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "documents.get (SUGGESTIONS_INLINE) via gdoc client"
+ },
+ {
+  "id": "set-paragraph-style-in-place",
+  "status": "ran",
+  "summary": "updateParagraphStyle changes named style and paragraph properties in place without retyping: H3 'Budget' -> H2 kept headingId h.fwkpmnejfm1d and the incoming heading link; centre, line spacing, space below, indent removal, RTL direction, keep-with-next and page-break-before all applied to exactly the target paragraphs. One loss: turning the bold Normal line 'Next steps' into H2 dropped its bold (textStyle {bold:true} -> {}) and it got a fresh headingId h.unnfdjtwlbbk.",
+  "findings": [
+   {
+    "claim": "heading level change keeps heading ID",
+    "result": "yes",
+    "detail": "'Budget' HEADING_3 h.fwkpmnejfm1d -> HEADING_2 h.fwkpmnejfm1d, keepWithNext:true; link 'pending' -> heading h.fwkpmnejfm1d still resolves."
+   },
+   {
+    "claim": "Normal -> heading keeps inline formatting",
+    "result": "no",
+    "detail": "'Next steps' NORMAL_TEXT run {bold:true} -> HEADING_2 run {} (bold removed by the named-style change)."
+   },
+   {
+    "claim": "paragraph properties applied",
+    "result": "yes",
+    "detail": "'Summary text…' alignment CENTER; 'Teh team…' lineSpacing 200, spaceBelow 18pt; pasted paragraph indentStart 72->0 and indentFirstLine 72->0; Arabic paragraph direction RIGHT_TO_LEFT, alignment END; 'Summary' heading pageBreakBefore:true."
+   },
+   {
+    "claim": "neighbouring paragraphs unchanged",
+    "result": "yes",
+    "detail": "code paragraph keeps lineSpacing 250 and Courier New; tagline keeps CENTER."
+   },
+   {
+    "claim": "comments kept",
+    "result": "partly",
+    "detail": "Setup comment 'Budget' was anchored by gdoc to the first 'Budget' (bullet 'Budget sign-off'), not the H3, so the heading-comment case was not exercised; that comment is still anchored."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateTextStyle x7",
+     "updateParagraphStyle x7",
+     "insertText x19",
+     "deleteContentRange x13",
+     "replaceAllText x1 (tabsCriteria)"
+    ],
+    "seconds": 21.3,
+    "ok": true,
+    "error": null,
+    "note": "one 47-request batch on copy A shared by probes 1,2,6,7,9,10; seconds include composing the long request"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "documents.get via gdoc's Python client (full textStyle/paragraphStyle dump) + gdoc cat --comments --all"
+ },
+ {
+  "id": "suggest-insertions-structure-format-and-regions",
+  "status": "ran",
+  "summary": "Every structural and region case tried became a native suggestion of the right kind: pure insertions, new paragraph, new list item, paragraph split and join, new table row, new footnote, a new heading, heading-level and indent changes (suggestedParagraphStyleChanges), bold-only (suggestedTextStyleChanges), and insertions in a normal cell, merged cell, footnote, footer and the nested Sources tab. No request failed in SUGGEST mode. Empty-cell insertion was not tried separately.",
+  "findings": [
+   {
+    "claim": "pure insertion",
+    "result": "yes",
+    "detail": "'Draft. ' suggestedInsertionIds [[suggestion-id]], nothing deleted."
+   },
+   {
+    "claim": "new paragraph / list item / heading",
+    "result": "yes",
+    "detail": "'\\nA suggested new paragraph.' [suggestion-id]; '\\nSupplier risk' as a new bullet in kix.mb4mu0fkncr4 [suggestion-id]; 'Suggested heading' = insertion [suggestion-id] + paragraph-style suggestion [suggestion-id] (two IDs)."
+   },
+   {
+    "claim": "table row and footnote",
+    "result": "yes",
+    "detail": "insertTableRow -> row 3 cells with suggestedInsertionIds [suggestion-id]; createFootnote -> footnoteReference #2 with suggestedInsertionIds [suggestion-id] (footnoteId kix.2zvgr9ukoq7h)."
+   },
+   {
+    "claim": "split / join",
+    "result": "yes",
+    "detail": "split: inserted '\\n' [suggestion-id] inside 'Budget details are pending.'; join: paragraph mark after first disclaimer marked suggestedDeletionIds [suggestion-id]."
+   },
+   {
+    "claim": "heading level / indent as style suggestions",
+    "result": "yes",
+    "detail": "'Budget' stays HEADING_3 with suggestedParagraphStyleChanges [suggestion-id] {namedStyleType: HEADING_2}; indented paragraph [suggestion-id] (indentStart suggested); text not deleted/reinserted."
+   },
+   {
+    "claim": "bold-only suggestion",
+    "result": "yes",
+    "detail": "'Japanese' suggestedTextStyleChanges [suggestion-id], no delete+insert."
+   },
+   {
+    "claim": "regions",
+    "result": "yes",
+    "detail": "cell 'Ana and Cy' [suggestion-id]; merged cell 'Ben (lead)' [suggestion-id]; footnote ' and April' [suggestion-id]; footer ' Ltd' [suggestion-id]; Sources tab ' Suggested in child tab.' [suggestion-id]."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertTableRow (SUGGEST)"
+    ],
+    "seconds": 3.2,
+    "ok": true,
+    "error": null
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "createFootnote (SUGGEST)"
+    ],
+    "seconds": null,
+    "ok": true,
+    "error": null
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateTextStyle (SUGGEST)"
+    ],
+    "seconds": null,
+    "ok": true,
+    "error": null
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateParagraphStyle x2 (SUGGEST)"
+    ],
+    "seconds": null,
+    "ok": true,
+    "error": null
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "deleteContentRange (SUGGEST)"
+    ],
+    "seconds": null,
+    "ok": true,
+    "error": null
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText x14, deleteContentRange x4 (SUGGEST)"
+    ],
+    "seconds": 8.5,
+    "ok": true,
+    "error": null
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText",
+     "updateParagraphStyle (SUGGEST)"
+    ],
+    "seconds": null,
+    "ok": true,
+    "error": null
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "documents.get with suggestionsViewMode SUGGESTIONS_INLINE via gdoc Python client; gdoc cat --comments --all"
+ },
+ {
+  "id": "suggest-replacement-preserving-context",
+  "status": "partial",
+  "summary": "writeControl.writeMode SUGGEST turns ordinary batchUpdate requests into real pending suggestions, and an index-minimal delete+insert suggests only the changed characters: 'pilot teams' -> suggested delete 'team' + insert 'group' (both bold, linked https://example.com/pilot), and three typo fixes became three separate suggestions covering 'Teh'->'The', 'ie'->'ei', 'rot'->'ort'. replaceAllText in SUGGEST mode retypes the whole match: 'this week' became a suggested delete of 'this week' plus insert 'this month' that lost the colour, Georgia font and highlight on 'this', though the footnote reference stayed outside. Author shown in the UI card and acceptance in the UI were not checked (no browser).",
+  "findings": [
+   {
+    "claim": "real pending suggestion",
+    "result": "yes",
+    "detail": "suggestedDeletionIds [[suggestion-id]] on 'team' 153-157, suggestedInsertionIds [[suggestion-id]] on 'group' 157-162; the API returns no author field, so attribution to the caller (the test account) is inferred from the OAuth identity, not observed."
+   },
+   {
+    "claim": "covers only changed characters",
+    "result": "yes",
+    "detail": "with index requests; typos produced [suggestion-id], [suggestion-id], [suggestion-id], each 2-3 chars."
+   },
+   {
+    "claim": "link and bold survive in suggestion",
+    "result": "yes",
+    "detail": "'group' {bold:true, link https://example.com/pilot, fg 0.07/0.33/0.8}."
+   },
+   {
+    "claim": "comment anchor",
+    "result": "partly",
+    "detail": "comment #[comment-id] now quotes 'pilot teamgroups' (anchor spans the suggested deletion and insertion); post-acceptance anchor not checked."
+   },
+   {
+    "claim": "replaceAllText suggestion preserves formatting",
+    "result": "no",
+    "detail": "before 'this'{fg red, Georgia, bg} ' week'{}; after suggested insert 'this month'{} (plain) + suggested delete of the old runs; suggestion [suggestion-id] also carries suggestedTextStyleChanges. Footnote ref #1 stays after the deleted run."
+   },
+   {
+    "claim": "survives acceptance in Docs UI",
+    "result": "no",
+    "detail": "not-run: needs UI."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText x14",
+     "deleteContentRange x4 (writeMode SUGGEST)"
+    ],
+    "seconds": 8.5,
+    "ok": true,
+    "error": null
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "replaceAllText (SUGGEST)"
+    ],
+    "seconds": 3.0,
+    "ok": true,
+    "error": null
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "documents.get with suggestionsViewMode SUGGESTIONS_INLINE via gdoc Python client; gdoc cat --comments --all"
+ },
+ {
+  "id": "tab-create-place-and-reorganize",
+  "status": "ran",
+  "summary": "Yes except duplication: update_doc passes through addDocumentTab (with index and parentTabId), updateDocumentTabProperties (title, index, parentTabId, iconEmoji) and deleteTab, so tabs can be created at a position or under a parent, renamed, reordered, nested, un-nested, given an emoji icon and deleted with their children. There is no duplicate-tab request. Other tabs' documentTab JSON (content, cross-tab heading link, child tabs) stayed byte-identical and the main-tab comment stayed anchored.",
+  "findings": [
+   {
+    "claim": "Create tab at chosen position, emoji title",
+    "result": "yes",
+    "detail": "addDocumentTab {title:'🚀 2026-10-05 Weekly', index:1} -> tabId t.nhf03h7cft2m index 1; {title:'First tab', index:0} -> t.6nosvfnpkon6 index 0."
+   },
+   {
+    "claim": "Create child tab under a chosen parent",
+    "result": "yes",
+    "detail": "addDocumentTab {parentTabId: Appendix} -> t.towwjarxdo24 nestingLevel 1, placed after existing child Sources."
+   },
+   {
+    "claim": "Rename, reorder",
+    "result": "yes",
+    "detail": "updateDocumentTabProperties title 'First tab'->'Renamed first'; index 0->3 placed it before the tab then at index 3 (index means 'insert before current position N')."
+   },
+   {
+    "claim": "Nest / un-nest (re-parent)",
+    "result": "yes",
+    "detail": "parentTabId=Appendix nested Weekly as 3rd child; parentTabId='' with fields=parentTabId moved it back to top level (index 2)."
+   },
+   {
+    "claim": "Set emoji icon",
+    "result": "yes",
+    "detail": "iconEmoji '📅' set via updateDocumentTabProperties; title emoji kept."
+   },
+   {
+    "claim": "Delete tab with children",
+    "result": "yes",
+    "detail": "deleteTab t.6nosvfnpkon6 removed it and its child t.hybgz3g85uu2."
+   },
+   {
+    "claim": "Duplicate a tab",
+    "result": "no",
+    "detail": "No duplicate/copy tab request exists in documents.batchUpdate."
+   },
+   {
+    "claim": "Other tabs, links and comments unchanged",
+    "result": "yes",
+    "detail": "documentTab JSON for t.0, Appendix, Sources identical before/after all tab operations; link to heading h.ktsfscs245pr in Sources kept; comment #[comment-id] still anchored on 'pilot teams'."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "addDocumentTab x3"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateDocumentTabProperties x4"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateDocumentTabProperties",
+     "addDocumentTab",
+     "deleteTab"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure tabProperties + documentTab JSON diff, gdoc cat --comments"
+ },
+ {
+  "id": "tab-scoped-write-targets-child-and-isolates-others",
+  "status": "partial",
+  "summary": "Yes for edits and suggestions: every batchUpdate location/range takes a tabId, and replaceAllText takes tabsCriteria.tabIds, so a nested child tab (Sources, t.poy24v3w7y54) is addressed by ID and the same text in its parent tab is untouched. Replacing the Appendix tab's whole content (deleteContentRange + insertText + styles; there is no Markdown input) left the main tab and the Sources child tab byte-identical in documents.get JSON, including the main-tab link into Sources. Comments cannot be created at all by the connector (no comment request or tool), and the Appendix comment became detached when its anchored text was deleted.",
+  "findings": [
+   {
+    "claim": "Edit a word in a nested child tab by tab ID",
+    "result": "yes",
+    "detail": "replaceAllText 'supporting'->'primary' with tabsCriteria.tabIds=[t.poy24v3w7y54]: occurrencesChanged=1; Sources now 'Sources: primary material for the launch.', Appendix still 'Appendix: supporting material for the launch.'"
+   },
+   {
+    "claim": "Insert/style heading in child tab by tabId",
+    "result": "yes",
+    "detail": "insertText 'Summary\\n' at {index:1, tabId:Sources} + updateParagraphStyle HEADING_1 -> HEADING_1 with headingId h.ktsfscs245pr. Same-titled 'Summary' inserted in main tab at 382 took HEADING_2 from the 'Notes' paragraph it was inserted into."
+   },
+   {
+    "claim": "Cross-tab heading link can be written",
+    "result": "yes",
+    "detail": "updateTextStyle link {heading:{id:h.ktsfscs245pr, tabId:t.poy24v3w7y54}} on main-tab 'Summary' accepted; link still present after Appendix replacement."
+   },
+   {
+    "claim": "Suggestion targeted at a non-first tab",
+    "result": "yes",
+    "detail": "writeControl.writeMode=SUGGEST insertText ' Draft only.' at {index:46, tabId:Appendix} -> textRun with suggestedInsertionIds ['[suggestion-id]'] in Appendix only."
+   },
+   {
+    "claim": "Comment in a chosen tab",
+    "result": "no",
+    "detail": "No comment-create request or Drive tool exists in the connector; setup comment added with gdoc CLI instead."
+   },
+   {
+    "claim": "Replacing one tab's content leaves other tabs unchanged",
+    "result": "yes",
+    "detail": "JSON diff of tabs t.0 and t.poy24v3w7y54 before vs after: identical (headers, footnote, lists, inline image, suggestion, heading link). Main-tab comment #[comment-id] on 'pilot teams' still anchored."
+   },
+   {
+    "claim": "Comments/suggestions in the replaced tab survive",
+    "result": "no",
+    "detail": "Appendix comment #[comment-id] -> '[detached]'; the pending suggestion ' Draft only.' was deleted along with the range in EDIT mode (no suggestion IDs left in Appendix)."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText",
+     "insertText",
+     "updateParagraphStyle",
+     "replaceAllText"
+    ],
+    "seconds": 4.5,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateTextStyle(link.heading)"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText (SUGGEST)"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "deleteContentRange",
+     "insertText",
+     "updateParagraphStyle",
+     "updateTextStyle"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure JSON diff, gdoc cat --comments",
+  "note": "seconds include model turn overhead; the 4.5 s figure spans date-before to date-after across turns"
+ },
+ {
+  "id": "table-cell-styling-merge-move",
+  "status": "partial",
+  "summary": "Styling is native and targetable by cell range: header row fill, padding and vertical centring, a bottom border on every cell, a fill on the merged cell, a 200pt fixed column width, a 40pt minimum row height and a pinned header row all applied as requested. mergeTableCells works but concatenates the merged cells' text into the first cell as separate paragraphs, and unmergeTableCells leaves all that text in the first cell. There is no request to move a row, column or table; the child-tab table and second table were not set up.",
+  "findings": [
+   {
+    "claim": "Cell background, padding, vertical alignment on a row",
+    "result": "yes",
+    "detail": "row 0: backgroundColor rgb(0.85,0.92,1), paddingLeft 8pt, contentAlignment MIDDLE; other rows TOP/5pt."
+   },
+   {
+    "claim": "Border colour",
+    "result": "yes",
+    "detail": "borderBottom grey 1pt SOLID on all cells (whole-table updateTableCellStyle)."
+   },
+   {
+    "claim": "Fill a merged cell",
+    "result": "yes",
+    "detail": "r2c1 (colspan 2) backgroundColor rgb(1,0.8,0.8); hidden r2c2 also got it."
+   },
+   {
+    "claim": "Column width / min height / repeat header",
+    "result": "yes",
+    "detail": "col 0 FIXED_WIDTH 200pt; row 1 minRowHeight 40pt; row 0 tableHeader true via pinTableHeaderRows."
+   },
+   {
+    "claim": "Merge then unmerge row 1",
+    "result": "partly",
+    "detail": "merge: r1c0 columnSpan 3 with paragraphs 'Draft','Ana','Friday (late)'; unmerge: spans back to 1x1 but text stays 'Draft|Ana|Friday (late)' in r1c0, other cells empty."
+   },
+   {
+    "claim": "Move a row/column/table without rebuilding",
+    "result": "no",
+    "detail": "No move request in documents.batchUpdate."
+   },
+   {
+    "claim": "Table in child tab / delete second table",
+    "result": "no",
+    "detail": "not-run: setup not done in time (tabId on tableStartLocation is supported per definitions)."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "deleteContentRange",
+     "insertText",
+     "deleteContentRange",
+     "insertText",
+     "insertText",
+     "updateTableCellStyle x3",
+     "updateTableColumnProperties",
+     "updateTableRowStyle",
+     "pinTableHeaderRows",
+     "mergeTableCells"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "unmergeTableCells",
+     "insertTableRow x3",
+     "insertTableColumn x2"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure (table rows, tableCellStyle, tableColumnProperties, tableRowStyle)"
+ },
+ {
+  "id": "table-of-contents-and-page-layout-writes",
+  "status": "partial",
+  "summary": "Page layout writes are native: page size (A4 landscape 842x595), margins, page colour, first-page header flag, pageless mode (documentFormat.documentMode PAGELESS), a NEXT_PAGE section break and per-section flipped orientation plus two columns all applied, and insertPageBreak worked. There is no request to insert or refresh a table of contents. Removing a page break was not separately run but is an ordinary deleteContentRange.",
+  "findings": [
+   {
+    "claim": "Insert/refresh native TOC",
+    "result": "no",
+    "detail": "No tableOfContents insert request in batchUpdate."
+   },
+   {
+    "claim": "Page size, margins, page colour",
+    "result": "yes",
+    "detail": "documentStyle pageSize 841.89x595.28pt, marginLeft/Right 36pt, background rgb(1,0.98,0.9)."
+   },
+   {
+    "claim": "Pageless mode",
+    "result": "yes",
+    "detail": "updateDocumentStyle documentFormat.documentMode PAGELESS accepted and read back."
+   },
+   {
+    "claim": "Section break with own orientation and columns",
+    "result": "yes",
+    "detail": "insertSectionBreak NEXT_PAGE at 14; updateSectionStyle flipPageOrientation true and 2 columns (252.6pt each, 18pt gap)."
+   },
+   {
+    "claim": "Insert page break",
+    "result": "yes",
+    "detail": "insertPageBreak before 'Notes' -> pageBreak element; first attempt at a stale index failed verbatim: 'Invalid requests[2].insertPageBreak: Cannot insert page break in a table.' and the whole batch was rejected."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText",
+     "updateDocumentStyle",
+     "insertPageBreak",
+     "insertSectionBreak"
+    ],
+    "seconds": null,
+    "ok": false,
+    "error": "Invalid requests[2].insertPageBreak: Cannot insert page break in a table."
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText",
+     "updateDocumentStyle",
+     "insertPageBreak",
+     "insertSectionBreak"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateSectionStyle"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateDocumentStyle(documentFormat)"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure (footnotes, headers/footers, documentStyle, sectionStyle, inlineObjects)"
+ },
+ {
+  "id": "table-row-and-column-insert-delete",
+  "status": "ran",
+  "summary": "Row and column inserts/deletes are native (insertTableRow/insertTableColumn/deleteTableRow/deleteTableColumn by row and column), the table keeps its start index and other cells' text and fills. New rows copy the neighbour row's style, including its horizontal merge span, and a row inserted above the pinned header also becomes a header row. Inserting a column next to a 200pt fixed-width column shrank both it and the new column to FIXED_WIDTH 16pt.",
+  "findings": [
+   {
+    "claim": "Native row insert at end, middle, above header",
+    "result": "yes",
+    "detail": "3x3 -> 6x5 after inserts; rows inserted next to merged r2c1 copied columnSpan 2 and the red fill; row inserted above row 0 got tableHeader true and the header fill."
+   },
+   {
+    "claim": "Native column insert end and middle",
+    "result": "yes",
+    "detail": "Columns added right of col 2 and col 0; new cells copy header fill in header rows."
+   },
+   {
+    "claim": "Column widths survive",
+    "result": "no",
+    "detail": "tableColumnProperties[0] FIXED_WIDTH 200pt -> FIXED_WIDTH 16pt; new col 1 also FIXED_WIDTH 16pt; others EVENLY_DISTRIBUTED."
+   },
+   {
+    "claim": "Delete row through merged group, empty column",
+    "result": "yes",
+    "detail": "deleteTableRow rows 5 and 3, deleteTableColumn 4 -> 4x4; remaining merged 'Bea|Tuesday' keeps columnSpan 2 and fill."
+   },
+   {
+    "claim": "Min row height and pinned header kept",
+    "result": "yes",
+    "detail": "row 'Draft' minRowHeight 40pt kept; header rows tableHeader true."
+   },
+   {
+    "claim": "Cell comment anchor",
+    "result": "no",
+    "detail": "not-run: connector cannot create comments; no cell comment set up."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "unmergeTableCells",
+     "insertTableRow x3",
+     "insertTableColumn x2"
+    ],
+    "seconds": null,
+    "ok": true
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "deleteTableRow x2",
+     "deleteTableColumn"
+    ],
+    "seconds": null,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "gdoc structure (table rows, tableCellStyle, tableColumnProperties, tableRowStyle)"
+ },
+ {
+  "id": "target-one-of-repeated-matches",
+  "status": "partial",
+  "summary": "Index-addressed insertText/deleteContentRange can change exactly one occurrence (second 'pilot program', second 'Next steps' heading, second identical disclaimer, third 'TBD' cell) and replaceAllText with tabsCriteria scoped 'Summary' to the Sources tab only. replaceAllText has no occurrence selector and never refuses an ambiguous match: it changed all 3 'pilot program's (occurrencesChanged: 3). The 40-section long fixture was not exercised.",
+  "findings": [
+   {
+    "claim": "second occurrence in same paragraph",
+    "result": "yes",
+    "detail": "by index: 'The pilot program started in May and the pilot scheme grew in June.' — first and third occurrences untouched (copy A)."
+   },
+   {
+    "claim": "second identical heading",
+    "result": "yes",
+    "detail": "'Next steps' (h.mlhnizpyot0g) -> 'Next actions', headingId kept; first 'Next steps' h.bi21wqflfna4 untouched."
+   },
+   {
+    "claim": "second identical paragraph",
+    "result": "yes",
+    "detail": "'Disclaimer: figures are provisional.' x2 -> second became 'Disclaimer: figures are final.'"
+   },
+   {
+    "claim": "third TBD cell",
+    "result": "yes",
+    "detail": "row 3 of the Task/Status table 'TBD' -> 'Done'; other two TBDs untouched."
+   },
+   {
+    "claim": "tab scope",
+    "result": "yes",
+    "detail": "replaceAllText 'Summary'->'Overview' with tabsCriteria [Sources]: occurrencesChanged 1, main-tab 'Summary' heading and 'Summary text' untouched; Sources heading kept headingId h.1yndh2o2d9vo."
+   },
+   {
+    "claim": "refuses ambiguous text match",
+    "result": "no",
+    "detail": "replaceAllText 'pilot program'->'pilot scheme' on copy B changed all three silently (occurrencesChanged: 3). No first-match mode either: it is all-or-nothing per tab set; one-occurrence targeting requires the caller to read indices with read_doc."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateTextStyle x7",
+     "updateParagraphStyle x7",
+     "insertText x19",
+     "deleteContentRange x13",
+     "replaceAllText x1 (tabsCriteria)"
+    ],
+    "seconds": 21.3,
+    "ok": true,
+    "error": null,
+    "note": "one 47-request batch on copy A shared by probes 1,2,6,7,9,10; seconds include composing the long request"
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "insertText",
+     "deleteContentRange",
+     "replaceAllText x3"
+    ],
+    "seconds": 5.3,
+    "ok": true,
+    "error": null,
+    "note": "copy B batch"
+   }
+  ],
+  "copy": "[doc-id] (index edits), [doc-id] (replaceAllText all)",
+  "inspected_with": "documents.get via gdoc's Python client (full textStyle/paragraphStyle dump) + gdoc cat --comments --all"
+ },
+ {
+  "id": "text-edit-keeps-paragraph-style-and-heading-id",
+  "status": "partial",
+  "summary": "Plain index edits kept paragraph style: 'Status 1' -> 'Status one' kept HEADING_2 and headingId h.i59egoftapij (the heading link from 'Summary text' still points there); the centred tagline stayed CENTER; the bullet 'Vendor delay' -> 'Vendor slippage' kept listId kix.mb4mu0fkncr4 and nesting; the cell 'Draft' -> 'First draft' kept its cell paragraph style. Checklist, bookmark and native TOC need the Docs UI and were not run.",
+  "findings": [
+   {
+    "claim": "heading keeps style and ID",
+    "result": "yes",
+    "detail": "[74-85] HEADING_2 h.i59egoftapij 'Status one'."
+   },
+   {
+    "claim": "comment on edited heading",
+    "result": "partly",
+    "detail": "Comment 'Status heading comment' anchor shrank from 'Status 1' to 'Status' because '1' was deleted and 'one' inserted at the anchor's end boundary (outside the anchor). Insert inside the old range before deleting to keep it (done on copy B, see full-replace probe)."
+   },
+   {
+    "claim": "centred paragraph",
+    "result": "yes",
+    "detail": "'Ship small, ship very often.' alignment CENTER."
+   },
+   {
+    "claim": "list item",
+    "result": "yes",
+    "detail": "bullet kix.mb4mu0fkncr4, indentStart 72pt unchanged."
+   },
+   {
+    "claim": "cell paragraph",
+    "result": "yes",
+    "detail": "'First draft' in cell 1,0, style unchanged."
+   },
+   {
+    "claim": "checked checklist, bookmark, TOC",
+    "result": "no",
+    "detail": "not-run: needs UI (Docs API cannot create bookmarks, TOC or checked state)."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateTextStyle x7",
+     "updateParagraphStyle x7",
+     "insertText x19",
+     "deleteContentRange x13",
+     "replaceAllText x1 (tabsCriteria)"
+    ],
+    "seconds": 21.3,
+    "ok": true,
+    "error": null,
+    "note": "one 47-request batch on copy A shared by probes 1,2,6,7,9,10; seconds include composing the long request"
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "documents.get via gdoc's Python client (full textStyle/paragraphStyle dump) + gdoc cat --comments --all"
+ },
+ {
+  "id": "unicode-and-whitespace-exactness",
+  "status": "partial",
+  "summary": "read_doc returns the raw documents.get JSON, so emoji, CJK, accented, Arabic text, double spaces, tabs and soft line breaks (\\u000b) come back exactly, with UTF-16 indices. update_doc takes UTF-16 indices too: bold placed after '✅🚀 ' landed exactly on 'Status', and replaceAllText swapped 🟡→🟢 inside a table cell. Comments cannot be created (no tool), and tab titles/headings with emoji were not tested.",
+  "findings": [
+   {
+    "claim": "Reads return non-ASCII text and whitespace exactly",
+    "result": "yes",
+    "detail": "Inserted paragraphs read back byte-identical: '✅🚀 Status: green and shipping\\n' [416,447), '日本語の文章です。\\n', 'José García\\n', 'مرحبا بالعالم، هذه فقرة عربية.\\n', 'code:  two  spaces\\tand tab\\n', '12 Main St\\u000bSpringfield\\u000bUSA\\n'. Span 416→447 = 31 UTF-16 units (🚀 counts 2), so indices are UTF-16."
+   },
+   {
+    "claim": "Styles after a non-BMP emoji land on the right characters",
+    "result": "yes",
+    "detail": "updateTextStyle bold [420,426) → runs after: (416,420,'✅🚀 ',{}), (420,426,'Status',{bold}), (426,447,': green and shipping\\n',{}). Caller must compute UTF-16 offsets itself; the connector does no text-based targeting."
+   },
+   {
+    "claim": "Italic on 'García' after accented 'José'",
+    "result": "yes",
+    "detail": "updateTextStyle italic [462,468) → run (462,469,'García\\n',{italic}); the API reports the paragraph newline inside the italic run, text extent otherwise exact."
+   },
+   {
+    "claim": "Replace emoji in a table cell",
+    "result": "yes",
+    "detail": "replaceAllText 🟡→🟢 occurrencesChanged 1; cell row2 col3 '🟡 Friday' → '🟢 Friday'."
+   },
+   {
+    "claim": "Literal tab preserved through replaceAllText",
+    "result": "yes",
+    "detail": "'spaces\\tand' → 'spaces\\tAND', double spaces untouched."
+   },
+   {
+    "claim": "Comments anchored after emoji",
+    "result": "no",
+    "detail": "Connector has no comment-creation tool (only read_doc commentsIncluded and Drive tools); not testable."
+   }
+  ],
+  "calls": [
+   {
+    "tool": "read_doc",
+    "requests": [],
+    "seconds": 1.6,
+    "ok": true,
+    "error": "Result 51,192 chars, exceeded client token cap and was spilled to a file (client-side, not connector)"
+   },
+   {
+    "tool": "update_doc",
+    "requests": [
+     "updateTextStyle",
+     "updateTextStyle",
+     "replaceAllText",
+     "replaceAllText"
+    ],
+    "seconds": 2.7,
+    "ok": true
+   }
+  ],
+  "copy": "[doc-id]",
+  "inspected_with": "read_doc + Docs API documents.get via gdoc client"
+ }
+]
