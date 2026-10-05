@@ -6,9 +6,9 @@
 <title>End-to-end runs</title>
 <style>
   :root { --bg:#fbfaf7; --fg:#1d1c1a; --muted:#6b6862; --line:#e4e1da; --card:#fff;
-          --pass:#2f7d4f; --partial:#b7791f; --fail:#b23b3b; --other:#6b6862; }
+          --pass:#2f7d4f; --partial:#b7791f; --fail:#b23b3b; --other:#6b6862; --link:#1f5fbf; }
   @media (prefers-color-scheme: dark) { :root { --bg:#181816; --fg:#ecebe7; --muted:#a19d95; --line:#33322e; --card:#22211e;
-          --pass:#5fbf86; --partial:#e0a84a; --fail:#e07070; --other:#a19d95; } }
+          --pass:#5fbf86; --partial:#e0a84a; --fail:#e07070; --other:#a19d95; --link:#8ab4f8; } }
   body { background:var(--bg); color:var(--fg); font:14px/1.5 system-ui, sans-serif; margin:0; padding:24px 16px; }
   main { max-width:1100px; margin:auto; }
   h1 { font-size:22px; margin:0 0 4px; } h2 { font-size:16px; margin:28px 0 8px; }
@@ -17,15 +17,16 @@
   th, td { border-bottom:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
   th { font-weight:600; font-size:12px; color:var(--muted); }
   .wrap { overflow-x:auto; }
+  a { color:var(--link); }
   .o { font-weight:600; font-size:12px; white-space:nowrap; }
   .pass { color:var(--pass); } .partial { color:var(--partial); } .fail { color:var(--fail); }
   .asked, .off-route, .not-run { color:var(--other); }
   tr.task { cursor:pointer; } tr.detail td { font-size:12px; color:var(--muted); background:var(--bg); }
   select { font:inherit; padding:4px; background:var(--card); color:var(--fg); border:1px solid var(--line); }
 </style>
-</head>
+<style>.gh-link{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:8px;background:#24292f;color:#fff !important;border:1px solid #6e7781;font-weight:600;font-size:13px;text-decoration:none;white-space:nowrap}.gh-link:hover{background:#000}</style></head>
 <body><main>
-<p><a href="./">← Capability matrix</a> · <a href="https://github.com/alejoacelas/google-docs-agent-tools/blob/main/METHODOLOGY.md">Method</a></p><h1>End-to-end runs</h1>
+<p style="display:flex;align-items:center;gap:16px;flex-wrap:wrap"><a href="./">← Capability matrix</a><span style="margin-left:auto"><a class="gh-link" href="https://github.com/alejoacelas/google-docs-agent-tools" title="Method, data and code on GitHub"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Method &amp; data on GitHub</a></span></p><h1>End-to-end runs</h1>
 <p class="muted">Assistants doing concrete Google Docs tasks on synthetic documents, graded by inspecting the document afterwards against a snapshot taken before the run. <b>pass</b>: every requested effect and reported fact is right and nothing that must survive was lost. <b>partial</b>: the change happened but something was lost or misreported. <b>fail</b>: not done, wrong, or declined. The surface check runs the same 30 tasks through a web app and its command-line twin to see whether the CLI stands in for the app.</p>
 <label>Suite <select id="suite"><option value="main">Main runs (90 tasks)</option><option value="surface">Surface check (30 tasks)</option></select></label>
 <h2>By category</h2><div class="wrap" id="summary"></div>
