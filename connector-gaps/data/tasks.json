@@ -1,0 +1,72 @@
+{
+ "summary": {
+  "gap": "Pending suggestions read as ordinary text",
+  "prompt": "Can you give me a quick rundown of where this project stands? {doc}",
+  "pass": "Does not state the suggested text ($5,500 starter kits; the warehouse-move risk) as settled fact; either uses the current text or flags the pending suggestions."
+ },
+ "budget": {
+  "gap": "Pending suggestions read as ordinary text",
+  "prompt": "What's the total budget in this plan? {doc}",
+  "pass": "Answers $16,500 (or $16,500 now, $18,000 if the pending suggestion is accepted). $18,000 stated as the budget fails."
+ },
+ "checklist": {
+  "gap": "Checked state of checklist items",
+  "prompt": "Which items on the launch checklist are still open? {doc}",
+  "pass": "Names exactly 'Send the vendor invoice' and 'Legal review of the participant agreement'."
+ },
+ "image": {
+  "gap": "Inserting a local or attached image",
+  "prompt": "Add the chart in results-chart.png under the Results heading in this doc: {doc}",
+  "pass": "The chart appears below the Results heading; nothing is made public beyond the minimum, and the reply says what was exposed and for how long."
+ },
+ "subbullet": {
+  "gap": "Nested list structure",
+  "prompt": "In Next steps, add a sub-point under \"Schedule the launch review\": \"Book a room for 7 November\". {doc}",
+  "pass": "New item at nesting level 1 in the same list, directly after 'Schedule the launch review'; other items keep their levels and glyphs."
+ },
+ "indent": {
+  "gap": "Nested list structure",
+  "prompt": "In Next steps, make \"Draft the retrospective template\" a sub-point of \"Schedule the launch review\". {doc}",
+  "pass": "'Draft the retrospective template' at nesting level 1 in the same list; other items keep their levels and glyphs."
+ },
+ "triage": {
+  "gap": "Replying to, resolving and deciding on review items",
+  "prompt": "Can you deal with the review items on this doc? Accept the suggested change to the starter kit budget, then reply \"Yes, VAT is included\" to the tax question and resolve it. {doc}",
+  "pass": "Starter kits reads $5,500 with no pending suggestion; the tax thread has the reply and is resolved; the other suggestion and comments are untouched."
+ },
+ "edit-commented": {
+  "gap": "Editing text that carries a comment",
+  "prompt": "Update the contractor time budget to $14,000. {doc}",
+  "pass": "Cell reads $14,000; the 'Does this include tax?' comment is still open and anchored on the whole new amount, or the reply says how the anchor changed."
+ },
+ "history": {
+  "gap": "Version history",
+  "prompt": "Someone changed the kickoff date in this doc earlier today. What was it before? {doc}",
+  "pass": "Answers Monday 6 October."
+ },
+ "move": {
+  "gap": "Moving a section",
+  "prompt": "Move the Risks section up so it comes right after the Summary. {doc}",
+  "pass": "Risks follows Summary; its comment stays attached and its pending suggestion stays pending, or the reply says exactly what was lost."
+ },
+ "toc": {
+  "gap": "Table of contents",
+  "prompt": "Add a table of contents at the top of this doc. {doc}",
+  "pass": "A native table of contents at the top, or a clearly labelled substitute whose limits the reply states."
+ },
+ "suggest-adjacent": {
+  "gap": "Adding a suggestion next to an existing one",
+  "prompt": "In Risks, suggest adding \"We have a backup vendor lined up.\" at the end of the first risk. Keep it as a suggestion so the reviewers can approve it. {doc}",
+  "pass": "The new sentence is a pending suggestion with its own ID, separate from the warehouse-move suggestion, which is unchanged; or the reply says the two were merged."
+ },
+ "copy": {
+  "gap": "Copying a doc",
+  "prompt": "Make a copy of this doc called \"Q4 plan - review copy\", with the comments and suggested edits still in it. {doc}",
+  "pass": "The copy has the three comments anchored where they were and the two pending suggestions; or the reply says exactly what is missing. The original is unchanged."
+ },
+ "markdown": {
+  "gap": "Updating a doc from edited Markdown",
+  "prompt": "I edited the Markdown version of this plan. Can you update the doc to match? {doc}\n\n```markdown\n# Onboarding pilot — Q4 plan\n\nOwner: Sam Rivera. Reviewers: Ana, Ben.\n\n## Summary\n\nStatus: On track. The onboarding pilot runs with four **[pilot teams](https://example.com/pilot)** from October to December. Each team will receive a starter kit and a named contact.\n\nWe expect most teams to finish onboarding within two weeks.\n\nEarly findings will go in the Results section.\n\n## Timeline\n\n- Kickoff: Monday 6 October\n- Launch review: Friday 14 November\n- Retrospective: Friday 12 December\n\nWeekly check-ins with pilot teams happen every Friday afternoon.\n\n## Budget\n\n| Line | Amount | Notes |\n| --- | --- | --- |\n| Starter kits | $4,000 | Shipped by the vendor |\n| Contractor time | $12,500 | Two contractors |\n\n## Milestones\n\n| Milestone | Due | Status |\n| --- | --- | --- |\n| Kits shipped | 20 October | Not started |\n| All pilot teams onboarded | 3 November | Not started |\n| Launch review | 14 November | Not started |\n\n## Risks\n\n- The vendor may miss the kit delivery date.\n- Two pilot teams share a manager, which could slow approvals.\n- Legal review may take longer than two weeks.\n\n## Launch checklist\n\n- [x] Book a venue for the launch review\n- [ ] Send the vendor invoice\n- [x] Order the starter kits\n- [ ] Legal review of the participant agreement\n\n## Results\n\nResults will be added after the launch review.\n\n## Next steps\n\n- Confirm kit contents with the vendor\n  - Check that the welcome letters are included\n- Schedule the launch review\n- Draft the retrospective template\n```",
+  "pass": "Typo fixed, launch review moved to 14 November in Timeline and Milestones, new risk added. Comments stay anchored, both suggestions stay pending, and the header, heading link, column widths, checklist ticks and nested list are unchanged."
+ }
+}
